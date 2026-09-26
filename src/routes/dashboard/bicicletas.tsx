@@ -90,7 +90,7 @@ function BicicletasDashboard() {
               {statusCards.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className="rounded-xl border border-slate-200 p-4 hover:shadow-sm">
+                  <Link key={item.label} to="/dashboard/$tipo/$status" params={{ tipo: "bicicletas", status: statusSlug(item.label) }} className="block rounded-xl border border-slate-200 p-4 hover:border-sky-200 hover:bg-sky-50/30 hover:shadow-sm">
                     <div className="flex items-start justify-between">
                       <span className={`flex h-9 w-9 items-center justify-center rounded-lg bg-${item.tone}-50 text-${item.tone}-600`}>
                         <Icon className="h-4 w-4" />
@@ -99,7 +99,7 @@ function BicicletasDashboard() {
                     </div>
                     <p className="mt-4 text-xs font-medium text-slate-500">{item.label}</p>
                     <p className="mt-1 text-xl font-bold">{item.value}</p>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -193,4 +193,9 @@ function Action({ to, icon, title, text }: { to: string; icon: React.ReactNode; 
 function Status({ status }: { status: string }) {
   const styles: Record<string, string> = { Activa: "bg-emerald-50 text-emerald-700", "À venda": "bg-sky-50 text-sky-700", Roubada: "bg-rose-50 text-rose-700", Pendente: "bg-amber-50 text-amber-700" };
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${styles[status] ?? "bg-slate-100 text-slate-600"}`}>{status}</span>;
+}
+
+function statusSlug(status: string) {
+  const map: Record<string, string> = { Activas: "activas", "À venda": "a-venda", Roubadas: "roubadas", Apreendidas: "apreendidas", Pendentes: "pendentes", Transferidas: "transferidas", Canceladas: "canceladas" };
+  return map[status] ?? status.toLowerCase().replace(/\\s+/g, "-");
 }
