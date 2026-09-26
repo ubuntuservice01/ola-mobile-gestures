@@ -118,9 +118,58 @@ function MobiGestHome() {
             </div>
           </div>
 
-          <footer className="border-t border-white/10 py-5 text-xs text-slate-500">
-            MobiGest · Sistema Municipal de Gestão de Mobilidade
-          </footer>
+      <footer className="border-t border-white/10 bg-black px-6 py-10 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">MobiGest</p>
+                  <p className="text-xs text-slate-400">
+                    Gestão Municipal de Mobilidade
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 max-w-sm text-xs leading-5 text-slate-500">
+                Sistema municipal de registo e gestão de motorizadas, carros e
+                bicicletas.
+              </p>
+            </div>
+
+            <nav className="grid gap-2 text-sm text-slate-400">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Navegação
+              </p>
+              <a href="#" className="transition-colors hover:text-white">
+                Início
+              </a>
+              <a href="#" className="transition-colors hover:text-white">
+                Consulta pública
+              </a>
+              <a href="#" className="transition-colors hover:text-white">
+                Aceder ao sistema
+              </a>
+            </nav>
+
+            <div className="grid gap-2 text-sm text-slate-400">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Contacto
+              </p>
+              <a href="mailto:geral@mobigest.pt" className="transition-colors hover:text-white">
+                geral@mobigest.pt
+              </a>
+              <span>Município · Portugal</span>
+            </div>
+          </div>
+
+          <div className="mt-8 border-t border-white/10 pt-5 text-xs text-slate-600">
+            © 2026 MobiGest · Sistema Municipal de Gestão de Mobilidade
+          </div>
+        </div>
+      </footer>
         </div>
       </section>
     </main>
