@@ -21,11 +21,11 @@ export const Route = createFileRoute("/dashboard/bicicletas")({
 });
 
 const statusCards = [
-  { label: "Activas", value: "1 012", percent: "78,8%", tone: "emerald", icon: CircleCheck },
+  { label: "Activas", value: "660", percent: "83,3%", tone: "emerald", icon: CircleCheck },
   { label: "À venda", value: "42", percent: "6,7%", tone: "sky", icon: ShoppingCart },
   { label: "Roubadas", value: "21", percent: "4,2%", tone: "rose", icon: ShieldAlert },
-  { label: "Apreendidas", value: "38", percent: "3,0%", tone: "orange", icon: AlertTriangle },
-  { label: "Pendentes", value: "94", percent: "7,3%", tone: "amber", icon: XCircle },
+  { label: "Apreendidas", value: "18", percent: "2,3%", tone: "orange", icon: AlertTriangle },
+  { label: "Pendentes", value: "51", percent: "6,4%", tone: "amber", icon: XCircle },
 ];
 
 const recent = [{"number":"MZ-LIC-B-000792","owner":"Joaquim Ernesto","vehicle":"Atlas","date":"26 Set, 2026","status":"Activa"},{"number":"MZ-LIC-B-000789","owner":"Ana Cristina","vehicle":"Phoenix","date":"25 Set, 2026","status":"Pendente"},{"number":"MZ-LIC-B-000785","owner":"Salvador João","vehicle":"Atlas MTB","date":"24 Set, 2026","status":"À venda"},{"number":"MZ-LIC-B-000781","owner":"Mateus Pedro","vehicle":"BMX","date":"23 Set, 2026","status":"Roubada"},{"number":"MZ-LIC-B-000776","owner":"Rosa Manuel","vehicle":"Phoenix City","date":"22 Set, 2026","status":"Activa"}];
