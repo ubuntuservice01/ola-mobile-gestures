@@ -16,9 +16,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
-  UserRound,
   Users,
-  X,
 } from "lucide-react";
 import { useState } from "react";
 
