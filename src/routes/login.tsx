@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -8,6 +9,10 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -64,7 +69,7 @@ function LoginPage() {
                 </p>
               </div>
 
-              <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
+              <form\n                className="space-y-5"\n                onSubmit={async (event: FormEvent<HTMLFormElement>) => {\n                  event.preventDefault();\n                  setMessage(null);\n                  setLoading(true);\n\n                  const { error } = await supabase.auth.signInWithPassword({\n                    email: email.trim(),\n                    password,\n                  });\n\n                  if (error) {\n                    setMessage("Email ou palavra-passe inválidos.");\n                    setLoading(false);\n                    return;\n                  }\n\n                  window.location.href = "/dashboard";\n                }}\n              >
                 <div>
                   <label
                     htmlFor="email"
