@@ -20,18 +20,12 @@ function MobiGestHome() {
     <main className="min-h-screen bg-white text-slate-900">
       <header className="border-b border-slate-100 bg-white">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-slate-900">
-                MobiGest
-              </div>
-              <div className="text-xs font-medium text-slate-500">
-                Gestão Municipal de Mobilidade
-              </div>
-            </div>
+          <a href="/" className="flex items-center">
+            <img
+              src="/mobigest-logo.svg"
+              alt="MobiGest — Gestão de Motos, Carros e Bicicletas"
+              className="h-12 w-auto"
+            />
           </a>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
