@@ -85,6 +85,9 @@ function LoginPage() {
                       type="email"
                       autoComplete="email"
                       placeholder="nome@municipio.gov.mz"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                     />
                   </div>
@@ -114,6 +117,9 @@ function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       placeholder="Introduza a sua palavra-passe"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                     />
                     <button
@@ -131,11 +137,15 @@ function LoginPage() {
                   </div>
                 </div>
 
+                {message && (
+                  <p className="text-sm font-medium text-red-600">{message}</p>
+                )}
                 <button
                   type="submit"
-                  className="h-12 w-full rounded-xl bg-sky-600 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-500/20"
+                  disabled={loading}
+                  className="h-12 w-full rounded-xl bg-sky-600 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:opacity-60"
                 >
-                  Entrar
+                  {loading ? "A entrar..." : "Entrar"}
                 </button>
               </form>
 
