@@ -1,24 +1,34 @@
-# Ola Mobile Gestures
+# MobiGest
 
-ola mobigest
+Sistema municipal de gestão e registo de **motorizadas, carros e bicicletas**.
 
-This project was built with [Lovable](https://lovable.dev).
+O MobiGest será desenvolvido como uma plataforma web moderna, preparada para uso municipal e arquitectura multi-tenant, com Supabase como backend.
 
-## Build with Lovable
+## Objectivos iniciais
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/62bd1d8e-7600-4e1e-9cb9-c9ebc10705a1).
+- Gestão de municípios e utilizadores.
+- Registo de proprietários.
+- Registo de motorizadas, carros e bicicletas.
+- Numeração e identificação dos veículos.
+- Geração de QR Code para identificação.
+- Consulta de registos.
+- Gestão de estados dos veículos.
+- Base preparada para taxas, licenciamento, fiscalização e relatórios.
+- Interface responsiva, com prioridade para utilização em computadores e telemóveis.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Arquitectura
 
-## Development
+- Frontend: React + TypeScript + TanStack Router + Tailwind CSS.
+- Backend: Supabase.
+- Código fonte: GitHub.
+- Desenvolvimento visual: Lovable sincronizado com este repositório.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Regra de desenvolvimento
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+A branch principal é `main`. As alterações devem manter o projecto funcional para que continuem a sincronizar correctamente com o Lovable.
+
+## Estado
+
+**Fase 0 — preparação do projecto.**
+
+A implementação funcional será feita por etapas, começando pela estrutura base e depois pelo modelo de dados e autenticação.
