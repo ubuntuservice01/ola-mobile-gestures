@@ -1,36 +1,131 @@
-# MobiGest — Base do projecto
+# MobiGest — Mapa funcional
 
-## Escopo
+## Objectivo
 
-O MobiGest é um sistema municipal para registar e gerir três categorias principais de meios de transporte:
+Sistema municipal para gestão e registo de **motorizadas, carros e bicicletas**, com organização por município e posto administrativo.
 
-1. Motorizadas
-2. Carros
-3. Bicicletas
+Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na interface são demonstrações e não devem ser tratados como dados reais.
 
-## Princípios
+## Módulos desenhados
 
-- Multi-tenant por município.
-- Segurança baseada em autenticação e permissões.
-- Dados isolados entre municípios.
-- Identificação única dos registos.
-- Preparação para QR Code.
-- Interface simples para técnicos municipais.
-- Português de Moçambique na interface.
+### 1. Entrada e acesso
+- Página institucional
+- Login
+- Recuperação de palavra-passe
+- Nova palavra-passe
+- Área reservada
 
-## Primeira fase técnica
+### 2. Dashboard
+- Visão geral
+- Motorizadas
+- Carros
+- Bicicletas
+- Estados
+- Registos recentes
+- Indicadores mensais
+- Acesso por tipo e estado
 
-1. Estrutura visual base.
-2. Navegação e layout administrativo.
-3. Autenticação.
-4. Estrutura de municípios e perfis.
-5. Proprietários.
-6. Veículos.
-7. Numeração/identificação.
-8. Consulta pública.
-9. QR Code.
-10. Relatórios e módulos financeiros/fiscalização.
+### 3. Veículos
+- Lista geral
+- Pesquisa e filtros
+- Novo registo por tipo
+- Ficha individual
+- Documentação
+- QR Code
+- Impressão
+- Histórico
+- Transferência de propriedade
 
-## Backend
+### 4. Estados
+A interface está preparada para Activa, À venda, Roubada, Apreendida, Pendente, Transferida e Cancelada. Os estados e regras definitivos deverão ser confirmados antes da base de dados.
 
-O projecto deverá usar um novo projecto Supabase próprio do MobiGest. Nenhum projecto Supabase de aplicações anteriores deve ser reutilizado sem confirmação explícita.
+### 5. Proprietários
+- Lista e pesquisa
+- Novo proprietário
+- Perfil
+- Veículos associados
+- Histórico de propriedade
+
+### 6. Estrutura territorial
+- Municípios
+- Postos administrativos
+- Localidades/bairros
+- Distribuição de veículos por posto
+
+### 7. Fiscalização
+- Pesquisa por número MobiGest
+- Consulta por QR Code
+- Registo de fiscalização
+- Infração
+- Apreensão
+- Roubo
+- Recuperação
+- Histórico de ocorrências
+
+### 8. Consulta pública
+- Pesquisa por número MobiGest
+- Resultado público
+- Consulta por QR
+- Protecção de dados pessoais
+- Estado público do veículo
+
+### 9. Financeiro
+Interface preparada para taxas, registos, transferências, pagamentos, pendentes, recibos e relatórios de receita. Valores e regras deverão ser definidos antes da base de dados.
+
+### 10. Relatórios
+- Veículos por período
+- Veículos por tipo
+- Veículos por estado
+- Proprietários
+- Transferências
+- Fiscalização
+- Veículos roubados
+- Receitas
+
+### 11. Utilizadores e segurança
+- Utilizadores
+- Perfis
+- Permissões
+- Auditoria
+- Área municipal
+
+A aplicação está preparada para posteriormente aplicar isolamento por município e RLS no Supabase.
+
+### 12. Impressão
+- Ficha do veículo
+- QR Code
+- Identificação MobiGest
+
+## Fluxos principais
+
+### Registo
+Novo registo → Tipo → Proprietário → Veículo → Localização → Documentação → Confirmação → Número MobiGest → QR
+
+### Consulta pública
+QR/Número → Veículo → Estado público → Dados não sensíveis
+
+### Fiscalização
+Pesquisar/QR → Confirmar veículo → Registar ocorrência → Actualizar histórico
+
+### Transferência
+Veículo → Proprietário actual → Novo proprietário → Documentação → Confirmação → Histórico
+
+### Estado
+Veículo → Alterar estado → Motivo/ocorrência → Utilizador → Data/hora → Histórico
+
+## Próxima fase: Supabase
+
+Antes de criar tabelas, confirmar:
+1. Campos obrigatórios de cada entidade.
+2. Formato definitivo do número MobiGest.
+3. Municípios e postos administrativos.
+4. Estados e transições permitidas.
+5. Regras de transferência.
+6. Documentos obrigatórios por tipo de veículo.
+7. Informação visível na consulta pública.
+8. Taxas e pagamentos.
+9. Perfis e permissões definitivos.
+10. Política de auditoria.
+11. Regras de isolamento entre municípios.
+
+Só depois destes pontos será criada a estrutura SQL, relações, índices, triggers, funções e RLS.
