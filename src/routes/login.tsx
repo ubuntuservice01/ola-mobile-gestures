@@ -69,7 +69,27 @@ function LoginPage() {
                 </p>
               </div>
 
-              <form\n                className="space-y-5"\n                onSubmit={async (event: FormEvent<HTMLFormElement>) => {\n                  event.preventDefault();\n                  setMessage(null);\n                  setLoading(true);\n\n                  const { error } = await supabase.auth.signInWithPassword({\n                    email: email.trim(),\n                    password,\n                  });\n\n                  if (error) {\n                    setMessage("Email ou palavra-passe inválidos.");\n                    setLoading(false);\n                    return;\n                  }\n\n                  window.location.href = "/dashboard";\n                }}\n              >
+              <form
+                className="space-y-5"
+                onSubmit={async (event: FormEvent<HTMLFormElement>) => {
+                  event.preventDefault();
+                  setMessage(null);
+                  setLoading(true);
+
+                  const { error } = await supabase.auth.signInWithPassword({
+                    email: email.trim(),
+                    password,
+                  });
+
+                  if (error) {
+                    setMessage("Email ou palavra-passe inválidos.");
+                    setLoading(false);
+                    return;
+                  }
+
+                  window.location.href = "/dashboard";
+                }}
+              >
                 <div>
                   <label
                     htmlFor="email"
