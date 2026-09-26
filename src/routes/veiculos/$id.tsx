@@ -9,7 +9,7 @@ function Detalhe() {
   return <MobiGestShell title="Detalhes do veículo" subtitle="Ficha completa e situação actual">
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <Link to="/veiculos" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"><ArrowLeft className="h-4 w-4"/>Voltar aos veículos</Link>
-      <div className="flex gap-2"><Link to="/imprimir/veiculo/$id" params={{id}} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold"><Printer className="h-4 w-4"/>Imprimir ficha</Link><button className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white"><Edit3 className="h-4 w-4"/>Editar</button></div>
+      <div className="flex flex-wrap gap-2"><Link to="/veiculos/$id/estado" params={{id}} className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700">Alterar estado</Link><Link to="/imprimir/veiculo/$id" params={{id}} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold"><Printer className="h-4 w-4"/>Imprimir ficha</Link><button className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white"><Edit3 className="h-4 w-4"/>Editar</button></div>
     </div>
 
     <Card className="overflow-hidden">
@@ -38,7 +38,7 @@ function Detalhe() {
         <aside className="space-y-4">
           <div className="rounded-2xl bg-slate-50 p-6 text-center"><QrCode className="mx-auto h-36 w-36 text-slate-800"/><p className="mt-4 font-bold">{id}</p><p className="mt-1 text-xs text-slate-500">QR Code de identificação pública</p><Link to="/imprimir/qr/$id" params={{id}} className="mt-5 block rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Imprimir QR Code</Link></div>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex gap-3"><ShieldAlert className="h-5 w-5 shrink-0 text-amber-600"/><div><p className="text-sm font-semibold text-amber-900">Situação actual</p><p className="mt-1 text-xs leading-5 text-amber-800">Este veículo está activo. Alterações de estado ficam registadas no histórico.</p></div></div></div>
-          <Link to="/fiscalizacao" className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"><MapPin className="h-5 w-5 text-sky-600"/><span><b className="block text-sm">Fiscalização</b><small className="text-xs text-slate-400">Registar ocorrência</small></span></Link>
+          <Link to="/fiscalizacao/nova" className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"><MapPin className="h-5 w-5 text-sky-600"/><span><b className="block text-sm">Fiscalização</b><small className="text-xs text-slate-400">Registar ocorrência</small></span></Link>
         </aside>
       </div>
 
