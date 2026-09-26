@@ -36,13 +36,13 @@ function MobiGestHome() {
             <a href="#contacto" className="hover:text-sky-600">Contacto</a>
           </nav>
 
-          <button
-            type="button"
+          <a
+            href="/login"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-sky-500 hover:text-sky-600"
           >
             <UserRound className="h-4 w-4" />
             Entrar
-          </button>
+          </a>
         </div>
       </header>
 
