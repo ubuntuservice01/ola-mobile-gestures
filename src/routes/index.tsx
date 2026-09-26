@@ -170,6 +170,8 @@ function MobiGestHome() {
           </div>
         </div>
       </footer>
+        </div>
+      </section>
     </main>
   );
 }
