@@ -3,7 +3,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowUpRight,
-  Bike,
+  CarFront,
   ChevronRight,
   CircleCheck,
   FilePlus2,
@@ -21,11 +21,11 @@ export const Route = createFileRoute("/dashboard/carros")({
 });
 
 const statusCards = [
-  { label: "Activas", value: "1 012", percent: "78,8%", tone: "emerald", icon: CircleCheck },
+  { label: "Activas", value: "392", percent: "80,7%", tone: "emerald", icon: CircleCheck },
   { label: "À venda", value: "28", percent: "6,7%", tone: "sky", icon: ShoppingCart },
   { label: "Roubadas", value: "17", percent: "4,2%", tone: "rose", icon: ShieldAlert },
-  { label: "Apreendidas", value: "38", percent: "3,0%", tone: "orange", icon: AlertTriangle },
-  { label: "Pendentes", value: "94", percent: "7,3%", tone: "amber", icon: XCircle },
+  { label: "Apreendidas", value: "14", percent: "2,9%", tone: "orange", icon: AlertTriangle },
+  { label: "Pendentes", value: "35", percent: "7,2%", tone: "amber", icon: XCircle },
 ];
 
 const recent = [{"number":"MZ-LIC-C-001284","owner":"Maria José","vehicle":"Toyota Corolla","date":"26 Set, 2026","status":"Activa"},{"number":"MZ-LIC-C-001281","owner":"António Manuel","vehicle":"Nissan Note","date":"25 Set, 2026","status":"Pendente"},{"number":"MZ-LIC-C-001277","owner":"Júlia Ernesto","vehicle":"Toyota Hiace","date":"24 Set, 2026","status":"À venda"},{"number":"MZ-LIC-C-001269","owner":"Carlos João","vehicle":"Mazda Demio","date":"23 Set, 2026","status":"Roubada"},{"number":"MZ-LIC-C-001260","owner":"Paulo Alberto","vehicle":"Toyota Vitz","date":"22 Set, 2026","status":"Activa"}];
@@ -40,7 +40,7 @@ function CarrosDashboard() {
           </Link>
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-              <Bike className="h-5 w-5" />
+              <CarFront className="h-5 w-5" />
             </span>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">MobiGest</p>
@@ -72,7 +72,7 @@ function CarrosDashboard() {
           </div>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Metric label="Total de carros" value="428" detail="registadas no município" icon={<Bike />} />
+            <Metric label="Total de carros" value="428" detail="registadas no município" icon={<CarFront />} />
             <Metric label="Registos este mês" value="72" detail="+12,4% vs. mês anterior" icon={<FilePlus2 />} />
             <Metric label="À venda" value="28" detail="6,7% do total" icon={<ShoppingCart />} />
             <Metric label="Roubadas" value="17" detail="a requerer atenção" icon={<ShieldAlert />} />
