@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import {
   ArrowRight,
   Bike,
   CarFront,
-  CheckCircle2,
   FileCheck2,
   Search,
   ShieldCheck,
@@ -182,7 +182,7 @@ function Stat({
   value,
   label,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   value: string;
   label: string;
 }) {
