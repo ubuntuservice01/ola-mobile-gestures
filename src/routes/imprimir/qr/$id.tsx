@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router"; import { QrCode } from "lucide-react";
+export const Route=createFileRoute("/imprimir/qr/$id")({component:PrintQR});
+function PrintQR(){return <main className="flex min-h-screen items-center justify-center bg-white p-8"><div className="w-[340px] rounded-xl border-2 border-slate-900 p-7 text-center"><p className="text-sm font-semibold uppercase tracking-widest">MobiGest</p><QrCode className="mx-auto my-8 h-44 w-44"/><h1 className="text-xl font-bold">MZ-LIC-004821</h1><p className="mt-2 text-xs text-slate-500">Gestão de Motos, Carros e Bicicletas</p></div></main>}
