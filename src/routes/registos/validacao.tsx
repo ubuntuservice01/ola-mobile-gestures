@@ -5,10 +5,10 @@ import { MobiGestShell, Card } from "../../components/MobiGestShell";
 export const Route = createFileRoute("/registos/validacao")({ component: ValidacaoRegisto });
 
 const documentos = [
-  ["Documento de identificação", "Apresentado", true],
-  ["Documento do veículo", "Apresentado", true],
+  ["Documento de identificação do proprietário", "Apresentado", true],
+  ["Documento/título do veículo ou comprovativo de propriedade", "Apresentado", true],
   ["Fotografia do veículo", "Apresentada", true],
-  ["Comprovativo adicional", "Apresentado", true],
+  ["Comprovativo de aquisição/propriedade", "Pendente", false],
 ] as const;
 
 function ValidacaoRegisto() {
