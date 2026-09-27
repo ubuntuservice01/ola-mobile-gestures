@@ -193,3 +193,41 @@ Regras funcionais:
 - o Super Administrador pode preparar o vínculo globalmente;
 - a criação real da conta, convite de acesso, autenticação e políticas RLS dependem da integração com Supabase;
 - a preparação do administrador deve ficar registada na auditoria quando a persistência real for implementada.
+
+
+### 19. Perfis e permissões detalhados
+A autorização do MobiGest é composta por duas camadas:
+
+**1. Operação**
+- Consultar
+- Criar
+- Editar
+- Validar
+- Alterar estado
+- Transferir
+- Operações financeiras
+- Gestão de utilizadores
+
+**2. Âmbito**
+- Super Administrador: toda a plataforma;
+- Administrador Municipal: município atribuído;
+- Técnico: município e, quando definido, posto administrativo;
+- Fiscal: município e, quando definido, posto administrativo;
+- Financeiro: município.
+
+Perfis funcionais:
+- **Super Administrador:** administração global, municípios, utilizadores, configurações, auditoria e operações globais.
+- **Administrador Municipal:** gestão operacional do município, incluindo utilizadores municipais, registos, veículos, proprietários, documentos e configurações permitidas.
+- **Técnico:** criação/edição de registos, proprietários, veículos e documentos, incluindo validação quando atribuída.
+- **Fiscal:** consulta e fiscalização, incluindo registo de ocorrências e alterações de estado autorizadas.
+- **Financeiro:** consulta dos processos necessários e gestão de taxas, cobranças, pagamentos e informação financeira.
+
+Princípios:
+- o perfil não deve, por si só, conceder acesso a todos os dados;
+- o município limita o conjunto de dados acessíveis;
+- o posto administrativo pode restringir ainda mais o âmbito;
+- permissões de maior impacto devem ser auditadas;
+- alterações de perfil, município ou permissões devem gerar evento de auditoria;
+- o controlo real será implementado com Supabase Auth, perfil funcional, autorização no servidor e RLS.
+
+A matriz apresentada na interface é a referência funcional do produto e deverá ser convertida em políticas testáveis antes da entrada em produção.
