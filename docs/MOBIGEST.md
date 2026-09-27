@@ -36,6 +36,49 @@ Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na
 - Histórico
 - Transferência de propriedade
 
+### 3.1 Documentação e requisitos
+
+A documentação é configurável por **município + tipo de veículo**, mantendo uma matriz base.
+
+#### Matriz base
+
+| Documento/requisito | Motorizada | Carro | Bicicleta |
+|---|---|---|---|
+| Identificação do proprietário | Obrigatório | Obrigatório | Obrigatório |
+| Documento/título do veículo ou comprovativo de propriedade | Obrigatório | Obrigatório | Configurável |
+| Fotografia do veículo | Obrigatório | Obrigatório | Obrigatório |
+| Comprovativo de aquisição/propriedade | Configurável | Configurável | Configurável |
+| Número de chassis | Obrigatório | Obrigatório | Não aplicável |
+| Número do quadro | Quando aplicável | Não aplicável | Obrigatório quando existente |
+| Número do motor | Configurável | Configurável | Não aplicável |
+| Matrícula | Configurável | Configurável | Não aplicável |
+| Inspecção/regularidade | Configurável | Configurável | Configurável |
+| Representação/autorização | Condicional | Condicional | Condicional |
+| Outros documentos municipais | Configurável | Configurável | Configurável |
+
+**Nota:** esta é uma matriz funcional do produto. Não deve ser tratada como lista definitiva de requisitos legais nacionais. Cada município deverá confirmar os requisitos que serão efectivamente exigidos.
+
+#### Estados dos documentos
+- Não apresentado
+- Em validação
+- Validado
+- Rejeitado
+- Expirado
+
+Cada documento deverá guardar, no mínimo:
+- tipo;
+- entidade a que pertence;
+- ficheiro;
+- número/referência, quando existir;
+- data de emissão, quando aplicável;
+- data de validade, quando aplicável;
+- estado;
+- motivo de rejeição, quando aplicável;
+- utilizador que validou;
+- data/hora da validação.
+
+**Regra de aprovação:** um processo não deve ser aprovado enquanto existir documento obrigatório em falta, rejeitado ou, quando aplicável, expirado.
+
 ### 4. Estados e transições
 
 O modelo funcional fica fechado com **cinco estados principais do registo do veículo**:
