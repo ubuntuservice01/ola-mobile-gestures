@@ -101,7 +101,6 @@ function LoginPage() {
               <p className="mt-7 border-t border-slate-100 pt-6 text-center text-xs leading-5 text-slate-400">
                 O acesso à área administrativa é reservado aos utilizadores autorizados pelo município.
               </p>
-        </p>
             </div>
           </div>
         </section>
