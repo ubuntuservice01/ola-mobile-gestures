@@ -98,24 +98,10 @@ function LoginPage() {
                 </button>
               </form>
 
-              <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-medium uppercase tracking-wider text-slate-400">ou</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              <button type="button" onClick={enterDemo} disabled={loading || demoLoading} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50 focus:outline-none focus:ring-4 focus:ring-sky-500/10 disabled:opacity-60">
-                <PlayCircle className="h-4 w-4 text-sky-600" />
-                {demoLoading ? "A abrir demonstração..." : "Entrar em modo demonstração"}
-              </button>
-
-              <p className="mt-4 text-center text-xs leading-5 text-slate-400">
-                O modo demonstração serve apenas para testar a interface. Não grava dados no sistema.
-              </p>
-
               <p className="mt-7 border-t border-slate-100 pt-6 text-center text-xs leading-5 text-slate-400">
                 O acesso à área administrativa é reservado aos utilizadores autorizados pelo município.
               </p>
+        </p>
             </div>
           </div>
         </section>
