@@ -73,10 +73,48 @@ Uma transferência deve preservar o proprietário anterior e criar o novo propri
 - Histórico de propriedade
 
 ### 6. Estrutura territorial
-- Municípios
-- Postos administrativos
-- Localidades/bairros
-- Distribuição de veículos por posto
+
+A estrutura territorial do MobiGest fica organizada em quatro níveis funcionais:
+
+**Município → Posto Administrativo → Localidade/Bairro → Registo**
+
+#### Município
+É o nível principal de gestão territorial e de isolamento dos dados.
+
+Cada município terá, entre outros:
+- nome;
+- código;
+- província;
+- estado;
+- configuração de numeração MobiGest;
+- postos administrativos associados.
+
+#### Posto Administrativo
+Pertence a um único município.
+
+É usado para:
+- organizar atendimento e operação;
+- limitar o âmbito de determinados utilizadores;
+- distribuir registos;
+- produzir relatórios territoriais.
+
+#### Localidade/Bairro
+Pertence a um único posto administrativo.
+
+No registo de um veículo, a localização administrativa deverá permitir seleccionar:
+**Município → Posto Administrativo → Localidade/Bairro**.
+
+O sistema não deve permitir seleccionar um posto de outro município nem uma localidade pertencente a outro posto.
+
+#### Âmbito dos utilizadores
+- Super Administrador: acesso global.
+- Administrador Municipal: município atribuído.
+- Técnico/Fiscal/Financeiro: município atribuído e, quando configurado, posto administrativo atribuído.
+
+#### Âmbito dos registos
+Cada veículo, proprietário, fiscalização, processo e operação relevante deverá ficar associado ao município. Quando aplicável, o registo deverá também guardar posto administrativo e localidade/bairro.
+
+A estrutura territorial será a base para filtros, dashboards, relatórios e RLS no Supabase.
 
 ### 7. Fiscalização
 - Pesquisa por número MobiGest
