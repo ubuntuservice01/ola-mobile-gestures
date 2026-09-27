@@ -231,3 +231,45 @@ Princípios:
 - o controlo real será implementado com Supabase Auth, perfil funcional, autorização no servidor e RLS.
 
 A matriz apresentada na interface é a referência funcional do produto e deverá ser convertida em políticas testáveis antes da entrada em produção.
+
+
+### 20. Licenças de utilização do MobiGest
+A área de Licenças do Super Administrador controla a **licença de utilização do software MobiGest** atribuída a cada município. Esta licença é distinta das licenças, taxas ou autorizações municipais aplicadas aos veículos.
+
+Cada licença deverá guardar, no mínimo:
+- município;
+- plano;
+- identificador da licença;
+- data de início;
+- data de fim;
+- estado;
+- limites de utilizadores;
+- limites de veículos;
+- módulos incluídos;
+- referência/observação;
+- histórico de alterações e renovações.
+
+Estados previstos:
+- **Em configuração**
+- **Activa**
+- **Suspensa**
+- **Expirada**
+- **Cancelada**
+
+Regras:
+- uma licença pertence a um município;
+- o município não deve ter duas licenças activas concorrentes sem uma regra explícita de transição;
+- suspender uma licença não apaga dados;
+- expiração não elimina histórico;
+- renovação deve preservar o histórico da licença anterior;
+- alterações de plano, limites, período e estado devem gerar auditoria;
+- limites e módulos são definidos pelo plano e podem ser configuráveis;
+- preços definitivos ainda não estão fixados no produto e serão definidos pela Ubuntu Service.
+
+Planos inicialmente desenhados:
+- Inicial;
+- Profissional;
+- Enterprise;
+- Demonstração.
+
+Na integração com Supabase, a licença deverá participar das regras de acesso da plataforma. A verificação deverá considerar, pelo menos, utilizador, município, perfil e estado/validade da licença, sem substituir as políticas RLS.
