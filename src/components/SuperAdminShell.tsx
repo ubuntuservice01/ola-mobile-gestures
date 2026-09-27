@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Activity,
+  BarChart3,
   Bell,
   Building2,
   ChevronDown,
@@ -97,6 +98,16 @@ export function SuperAdminShell({
             <p className="mt-7 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Controlo
             </p>
+
+            <Link
+              to="/super-admin/relatorios"
+              onClick={() => setOpen(false)}
+              activeProps={{ className: "bg-sky-600 text-white" }}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Relatórios globais
+            </Link>
 
             <Link
               to="/super-admin/notificacoes"
