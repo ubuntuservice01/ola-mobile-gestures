@@ -36,8 +36,34 @@ Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na
 - Histórico
 - Transferência de propriedade
 
-### 4. Estados
-A interface está preparada para Activa, À venda, Roubada, Apreendida, Pendente, Transferida e Cancelada. Os estados e regras definitivos deverão ser confirmados antes da base de dados.
+### 4. Estados e transições
+
+O modelo funcional fica fechado com **cinco estados principais do registo do veículo**:
+
+1. **Activa** — registo válido e veículo autorizado para circulação.
+2. **Suspensa** — registo temporariamente suspenso por decisão administrativa.
+3. **Roubada** — veículo declarado como roubado.
+4. **Apreendida** — veículo retido pelas autoridades competentes.
+5. **Cancelada** — registo cancelado administrativamente; não volta directamente a Activa.
+
+**Importante:**
+- **Pendente de validação** é estado do processo de registo, não estado permanente do veículo.
+- **À venda** é uma situação comercial que pode coexistir com um veículo Activo; não substitui o estado principal.
+- **Transferida** é uma operação/evento de mudança de proprietário. Depois da transferência concluída, o veículo mantém o seu estado operacional (normalmente Activa) e o histórico conserva a transferência.
+
+### Regras de transição
+
+| Estado actual | Transições permitidas |
+|---|---|
+| Activa | Suspensa, Roubada, Apreendida, Cancelada |
+| Suspensa | Activa, Cancelada |
+| Roubada | Activa, Cancelada |
+| Apreendida | Activa, Cancelada |
+| Cancelada | Nenhuma transição directa |
+
+Toda alteração deve guardar **estado anterior, novo estado, motivo, utilizador, data/hora e referência da ocorrência/processo**.
+
+Uma transferência deve preservar o proprietário anterior e criar o novo proprietário no histórico. A transferência não deve ser permitida enquanto existirem situações que legalmente impeçam a mudança de titularidade.
 
 ### 5. Proprietários
 - Lista e pesquisa
