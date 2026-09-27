@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Building2, CheckCircle2, MapPin, Settings2, ShieldOff, Users, Pencil, UserPlus, KeyRound } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, MapPin, Settings2, ShieldOff, Users, Pencil, UserPlus, KeyRound, LockKeyhole } from "lucide-react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
 
 export const Route = createFileRoute("/super-admin/municipios/$id")({ component: MunicipioGlobal });
@@ -30,6 +30,7 @@ function MunicipioGlobal() {
 
         <div className="space-y-4">
           <SuperCard className="p-6"><h3 className="font-semibold">Gestão do município</h3><div className="mt-4 space-y-2">
+            <Link to="/super-admin/acesso-municipal/$id" params={{ id }} className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm font-semibold text-sky-700 hover:bg-sky-100"><LockKeyhole className="h-4 w-4" /> Aceder à área municipal</Link>
             <Link to="/super-admin/utilizadores" className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><Users className="h-4 w-4 text-sky-600" /> Utilizadores</Link>
             <Link to="/super-admin/municipios/$id/administrador/novo" params={{ id }} className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm font-semibold text-sky-700 hover:bg-sky-100"><UserPlus className="h-4 w-4" /> Criar Administrador Municipal</Link>
             <Link to="/super-admin/licencas/$id" params={{ id: id === "lichinga" ? "LIC-001" : "PEM-001" }} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><KeyRound className="h-4 w-4 text-sky-600" /> Licença MobiGest</Link>
