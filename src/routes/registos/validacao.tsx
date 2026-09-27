@@ -71,21 +71,21 @@ function ValidacaoRegisto() {
           <Card className="p-6">
             <h3 className="font-bold">Decisão da validação</h3>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <button className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left hover:border-emerald-400">
+              <Link to="/registos/aprovado/$id" params={{ id: "1284" }} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left hover:border-emerald-400">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 <p className="mt-2 text-sm font-semibold">Aprovar</p>
                 <p className="mt-1 text-xs text-slate-500">Permitir a emissão do registo MobiGest.</p>
-              </button>
-              <button className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left hover:border-amber-400">
+              </Link>
+              <Link to="/registos/correcao/1284" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left hover:border-amber-400">
                 <FileCheck2 className="h-5 w-5 text-amber-600" />
                 <p className="mt-2 text-sm font-semibold">Solicitar correcção</p>
                 <p className="mt-1 text-xs text-slate-500">Devolver o processo para completar informação.</p>
-              </button>
-              <button className="rounded-xl border border-red-200 bg-red-50 p-4 text-left hover:border-red-400">
+              </Link>
+              <Link to="/registos/rejeitado/1284" className="rounded-xl border border-red-200 bg-red-50 p-4 text-left hover:border-red-400">
                 <XCircle className="h-5 w-5 text-red-600" />
                 <p className="mt-2 text-sm font-semibold">Rejeitar</p>
                 <p className="mt-1 text-xs text-slate-500">Registar a razão da rejeição.</p>
-              </button>
+              </Link>
             </div>
             <label className="mt-5 block text-sm font-medium">Observação da decisão
               <textarea className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-sky-500" placeholder="Registe a fundamentação ou observação..." />
