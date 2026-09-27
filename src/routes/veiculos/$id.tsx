@@ -42,7 +42,7 @@ function Detalhe() {
         </aside>
       </div>
 
-      <div className="border-t border-slate-100 p-6"><div className="flex flex-wrap gap-5"><Link to="/veiculos/$id/historico" params={{id}} className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><History className="h-4 w-4"/>Histórico de estados</Link><Link to="/veiculos/$id/transferir" params={{id}} className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><UserRound className="h-4 w-4"/>Transferir propriedade</Link></div></div>
+      <div className="border-t border-slate-100 p-6"><div className="flex flex-wrap gap-5"><Link to="/veiculos/$id/historico" params={{id}} className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><History className="h-4 w-4"/>Histórico de estados</Link><Link to="/veiculos/$id/transferir" params={{id}} className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><UserRound className="h-4 w-4"/>Transferir propriedade</Link><Link to="/veiculos/$id/documentos" params={{id}} className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><FileText className="h-4 w-4"/>Documentos</Link></div></div>
     </Card>
   </MobiGestShell>;
 }
