@@ -480,3 +480,89 @@ O modelo inclui:
 A migration já activa RLS nas tabelas públicas criadas, mas **não cria ainda as políticas de acesso**. Isso será tratado na Fase 4, depois de confirmar as regras de perfil, município e posto.
 
 A migration não contém dados de demonstração nem credenciais.
+
+
+### 27. Perfis, municípios e RLS
+
+A Fase 4 criou a primeira camada real de autorização da base de dados.
+
+Foi adicionada a migration:
+
+`supabase/migrations/20260927010000_mobigest_profiles_rls.sql`
+
+Ela implementa:
+
+- funções privadas de contexto do utilizador;
+- identificação do perfil, município e posto;
+- autorização baseada em permissões;
+- matriz inicial de permissões para os cinco perfis;
+- RLS para municípios e estrutura territorial;
+- RLS para proprietários e contactos;
+- RLS para veículos;
+- RLS para registos e decisões;
+- RLS para documentos;
+- RLS para fiscalização;
+- RLS para financeiro;
+- RLS para notificações;
+- RLS para auditoria;
+- RLS para sessões de acesso municipal do Super Administrador;
+- controlo de integridade entre município, posto e localidade.
+
+### Regras principais
+
+**Super Administrador**
+- acesso global à plataforma;
+- gestão global de municípios, perfis, permissões e configurações;
+- acesso aos dados municipais conforme as regras globais.
+
+**Administrador Municipal**
+- limitado ao município atribuído;
+- pode gerir as operações municipais previstas pelas permissões;
+- não pode criar/promover outro Super Administrador através da API normal.
+
+**Técnico**
+- acesso operacional aos registos, proprietários, veículos e documentos conforme as permissões.
+
+**Fiscal**
+- acesso à consulta e registo de fiscalização conforme as permissões.
+
+**Financeiro**
+- acesso às áreas financeiras e consultas necessárias conforme as permissões.
+
+O município e o posto não são tratados apenas como filtros da interface: fazem parte das regras RLS da base de dados.
+
+### Consulta pública
+
+A migration não concede SELECT público directo à tabela `vehicles`.
+
+Foi criada a função:
+
+`public.lookup_vehicle(p_mobigest_number)`
+
+Ela devolve apenas os campos definidos para consulta pública:
+- número MobiGest;
+- tipo;
+- marca;
+- modelo;
+- cor;
+- ano;
+- município;
+- estado.
+
+A função só devolve veículos com processo de registo aprovado. Dados pessoais, documentos, contactos, chassis, motor e outros campos internos não fazem parte do resultado.
+
+### Testes
+
+Foi criado:
+
+`supabase/tests/database/000_mobigest_rls_structure_test.sql`
+
+O ficheiro verifica a estrutura básica do RLS e a existência de permissões essenciais.
+
+O teste completo por perfis, municípios e operações deverá ser executado no ambiente Supabase com utilizadores de teste antes da produção. O Supabase recomenda testes de RLS para operações permitidas e negadas através de `supabase test db`. citeturn2search0turn2search2
+
+### Nota de segurança
+
+As funções auxiliares que precisam consultar `profiles` usam um schema privado e `SECURITY DEFINER` com `search_path` fixado. Este padrão evita ciclos de RLS ao consultar a própria tabela de perfis e deve ser mantido cuidadosamente protegido. citeturn4search1turn5search2
+
+A chave publishable continua apropriada para o frontend quando as políticas RLS estão correctamente configuradas; chaves secret/service role não devem ser colocadas no frontend. citeturn6search1
