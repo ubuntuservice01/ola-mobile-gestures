@@ -86,7 +86,7 @@ function RegistoVeiculo() {
           <Section icon={<MapPin/>} title="3. Localização administrativa" text="Indique onde o veículo está registado."/>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <Field label="Município" placeholder="Seleccionar município" required/><Field label="Posto administrativo" placeholder="Seleccionar posto" required/>
-            <Field label="Localidade/Bairro" placeholder="Localidade ou bairro"/>
+            <Field label="Localidade/Bairro" placeholder="Seleccionar localidade ou bairro" required/>
           </div>
         </Card>
 
