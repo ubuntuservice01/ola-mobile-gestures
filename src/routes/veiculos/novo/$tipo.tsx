@@ -103,7 +103,7 @@ function RegistoVeiculo() {
           <Section icon={<CheckCircle2/>} title="5. Confirmação" text="Depois da confirmação, o sistema poderá atribuir o número MobiGest e preparar o QR Code."/>
           <div className="mt-4 rounded-xl bg-white p-4 text-sm text-slate-600"><strong>Estado inicial:</strong> Pendente de validação.</div>
           <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">Guardar registo <ArrowRight className="h-4 w-4"/></button>
+            <Link to="/registos/validacao" className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">Enviar para validação <ArrowRight className="h-4 w-4"/></Link>
             <Link to="/veiculos" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700">Cancelar</Link>
           </div>
         </Card>
