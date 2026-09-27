@@ -13,11 +13,10 @@ const config = {
 
 const statusNames: Record<string, string> = {
   activas: "Activas",
-  "a-venda": "À venda",
+  "suspensas": "Suspensas",
   roubadas: "Roubadas",
   apreendidas: "Apreendidas",
   pendentes: "Pendentes",
-  transferidas: "Transferidas",
   canceladas: "Canceladas",
 };
 
