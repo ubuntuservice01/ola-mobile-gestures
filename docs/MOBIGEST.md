@@ -387,3 +387,46 @@ Quando o Supabase for integrado:
 - exportações deverão ser auditadas quando envolverem informação sensível ou operações de elevado impacto.
 
 Os números apresentados actualmente são apenas dados de demonstração e não representam estatísticas reais dos municípios.
+
+
+### 24. Acesso controlado à Área Municipal
+O Super Administrador terá acesso à área operacional dos municípios através de um fluxo controlado, e não por uma ligação directa para o dashboard municipal.
+
+Fluxo:
+1. seleccionar o município;
+2. confirmar o contexto;
+3. escolher o modo de acesso;
+4. indicar a duração;
+5. indicar o motivo;
+6. iniciar uma sessão temporária;
+7. regressar à área global quando a sessão terminar.
+
+Modos previstos:
+- **Consulta** — leitura e acompanhamento;
+- **Assistência** — apoio operacional sujeito às permissões aplicáveis.
+
+Regras de segurança:
+- o município deve ser explícito;
+- o motivo do acesso é obrigatório;
+- a sessão deve ter duração limitada;
+- início e fim devem ser registados;
+- as operações realizadas durante o acesso devem manter o contexto do município;
+- o acesso não deve alterar permanentemente o perfil do Super Administrador;
+- o Super Administrador não deve receber acesso municipal através de uma simples alteração no frontend;
+- a autorização efectiva será aplicada no backend com Auth, autorização por contexto e RLS.
+
+Na interface actual, o fluxo está preparado como protótipo. O botão de início ainda não cria uma sessão real nem concede permissões, porque essa parte depende da integração com Supabase.
+
+Quando for implementado no backend, recomenda-se guardar um registo de sessão de acesso com:
+- utilizador global;
+- município;
+- modo;
+- motivo;
+- início;
+- expiração;
+- fim efectivo;
+- IP/metadados de segurança, quando apropriado;
+- estado;
+- referência de auditoria.
+
+O contexto municipal deve acompanhar consultas, alterações e exportações feitas durante a sessão, permitindo rastrear claramente que o Super Administrador actuou dentro de determinado município.
