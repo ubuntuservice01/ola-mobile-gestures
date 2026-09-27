@@ -175,3 +175,21 @@ A RLS deve ser aplicada às tabelas expostas e testada para operações permitid
 
 ## Nota
 Os requisitos municipais e valores de taxas devem ser confirmados antes de serem tratados como regras oficiais do sistema.
+
+
+### 18. Administrador Municipal
+O Super Administrador dispõe de um fluxo próprio para preparar o Administrador Municipal a partir da ficha do município.
+
+O processo está organizado em quatro etapas:
+1. **Dados** — identificação e contacto;
+2. **Acesso** — email institucional e perfil fixo de Administrador Municipal;
+3. **Âmbito** — município, código MobiGest, posto administrativo opcional e estado;
+4. **Revisão** — confirmação dos dados antes da criação.
+
+Regras funcionais:
+- o município é definido pelo contexto de criação e não é alterado no formulário;
+- o perfil é **Administrador Municipal**;
+- o posto administrativo pode restringir o âmbito territorial quando aplicável;
+- o Super Administrador pode preparar o vínculo globalmente;
+- a criação real da conta, convite de acesso, autenticação e políticas RLS dependem da integração com Supabase;
+- a preparação do administrador deve ficar registada na auditoria quando a persistência real for implementada.
