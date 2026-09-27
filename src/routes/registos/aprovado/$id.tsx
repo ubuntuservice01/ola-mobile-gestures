@@ -7,7 +7,9 @@ export const Route = createFileRoute("/registos/aprovado/$id")({ component: Regi
 
 function RegistoAprovado() {
   const { id } = Route.useParams();
-  const codigo = "MOBI-" + id.replace(/\D/g, "").padStart(6, "0");
+  const municipioCodigo = "LIC"; // código municipal usado apenas no protótipo
+  const sequencia = id.replace(/\D/g, "").padStart(6, "0");
+  const codigo = "MOBI-" + municipioCodigo + "-" + sequencia;
   const consulta = "/consulta/" + codigo;
   const qrValue = typeof window !== "undefined" ? window.location.origin + "/q/" + codigo : "/q/" + codigo;
 
@@ -24,7 +26,7 @@ function RegistoAprovado() {
               <div>
                 <div className="flex items-center gap-2 text-emerald-600"><CheckCircle2 className="h-5 w-5" /><span className="text-sm font-semibold">Registo aprovado</span></div>
                 <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{codigo}</h2>
-                <p className="mt-1 text-sm text-slate-500">Número único de identificação MobiGest</p>
+                <p className="mt-1 text-sm text-slate-500">Número único de identificação MobiGest · município LIC</p>
               </div>
               <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Activo</span>
             </div>
