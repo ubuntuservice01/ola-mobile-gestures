@@ -309,3 +309,42 @@ Regras:
 - alertas críticos devem permanecer no histórico de notificações mesmo depois de marcados como lidos.
 
 Na interface actual estão previstos pesquisa, filtro por categoria, filtro de não lidas e marcação individual ou global como lida.
+
+
+### 22. Saúde da plataforma
+A área **Saúde da plataforma** pertence ao Super Administrador e acompanha a preparação técnica do MobiGest.
+
+Componentes acompanhados:
+- aplicação web;
+- Supabase;
+- autenticação;
+- RLS e isolamento por município;
+- base de dados;
+- armazenamento de documentos;
+- integrações externas;
+- CI/testes automáticos.
+
+Estados funcionais:
+- **Configurado** — componente preparado no projecto;
+- **Pendente** — existe desenho ou configuração inicial, mas falta implementação;
+- **Não configurado** — ainda não foi preparado.
+
+A página também mantém um checklist de produção, incluindo:
+- modelo de dados;
+- Auth e perfis;
+- RLS;
+- Storage;
+- numeração atómica;
+- auditoria persistente;
+- testes de segurança e RLS.
+
+Importante: nesta fase, a página é um **painel de preparação técnica**, não um monitor de uptime. Não deve apresentar disponibilidade em tempo real sem uma verificação efectiva do backend. Depois da integração com Supabase e de uma camada de health checks, os estados poderão ser alimentados automaticamente.
+
+Antes da entrada em produção, o Super Administrador deverá conseguir identificar claramente:
+- serviços indisponíveis;
+- erros de integração;
+- falhas de autenticação;
+- problemas de base de dados;
+- falhas de Storage;
+- problemas de RLS;
+- tarefas técnicas pendentes.
