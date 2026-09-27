@@ -32,7 +32,7 @@ function MunicipioGlobal() {
           <SuperCard className="p-6"><h3 className="font-semibold">Gestão do município</h3><div className="mt-4 space-y-2">
             <Link to="/super-admin/utilizadores" className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><Users className="h-4 w-4 text-sky-600" /> Utilizadores</Link>
             <Link to="/super-admin/municipios/$id/administrador/novo" params={{ id }} className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm font-semibold text-sky-700 hover:bg-sky-100"><UserPlus className="h-4 w-4" /> Criar Administrador Municipal</Link>
-            <Link to="/super-admin/licencas/$id" params={{ id: "LIC-001" }} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><KeyRound className="h-4 w-4 text-sky-600" /> Licença MobiGest</Link>
+            <Link to="/super-admin/licencas/$id" params={{ id: id === "lichinga" ? "LIC-001" : "PEM-001" }} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><KeyRound className="h-4 w-4 text-sky-600" /> Licença MobiGest</Link>
             <Link to="/postos-administrativos" className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><MapPin className="h-4 w-4 text-sky-600" /> Estrutura territorial</Link>
             <Link to="/definicoes" className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold hover:bg-slate-50"><Settings2 className="h-4 w-4 text-sky-600" /> Configurações municipais</Link>
           </div></SuperCard>
