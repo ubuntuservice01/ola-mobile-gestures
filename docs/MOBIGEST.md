@@ -108,12 +108,38 @@ Interface preparada para taxas, registos, transferências, pagamentos, pendentes
 - Veículos roubados
 - Receitas
 
-### 11. Utilizadores e segurança
-- Utilizadores
-- Perfis
-- Permissões
-- Auditoria
-- Área municipal
+### 11. Utilizadores, perfis e segurança
+
+O modelo funcional fica fechado com cinco perfis:
+
+1. **Super Administrador** — acesso global, incluindo municípios, configuração geral, utilizadores e auditoria.
+2. **Administrador Municipal** — gere a operação do município atribuído e os utilizadores desse município.
+3. **Técnico** — regista, actualiza e valida processos dentro do seu âmbito.
+4. **Fiscal** — consulta veículos e proprietários dentro das permissões atribuídas e regista actos de fiscalização.
+5. **Financeiro** — gere taxas, pagamentos e informação financeira, com acesso de consulta aos dados necessários.
+
+### Âmbito territorial
+
+- Super Administrador: global.
+- Outros perfis: município obrigatório.
+- Quando aplicável, o utilizador pode ficar limitado a um posto administrativo.
+- Um utilizador não pode consultar ou alterar dados de outro município apenas por conhecer o identificador do registo.
+
+### Operações críticas
+
+As permissões deverão distinguir pelo menos:
+- consultar;
+- criar;
+- editar;
+- validar;
+- alterar estado;
+- transferir propriedade;
+- gerir utilizadores;
+- gerir municípios;
+- gerir financeiro;
+- consultar auditoria.
+
+A interface apresenta a matriz funcional; o controlo efectivo será aplicado no Supabase com Auth, RLS e regras de autorização no servidor.
 
 A aplicação está preparada para posteriormente aplicar isolamento por município e RLS no Supabase.
 
