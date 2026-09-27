@@ -8,6 +8,7 @@ import {
   ChevronDown,
   FileBarChart,
   Globe2,
+  LockKeyhole,
   HeartPulse,
   KeyRound,
   LayoutDashboard,
@@ -145,12 +146,12 @@ export function SuperAdminShell({
                 Relatórios
               </Link>
               <Link
-                to="/dashboard"
+                to="/super-admin/acesso-municipal"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
-                <Globe2 className="h-4 w-4" />
-                Área municipal
+                <LockKeyhole className="h-4 w-4" />
+                Acesso à área municipal
               </Link>
             </div>
           </nav>
