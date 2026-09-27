@@ -21,6 +21,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { DashboardFinance } from "../components/financeiro/DashboardFinance";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -138,6 +139,9 @@ function DashboardPage() {
                   Registar veículo
                 </Link>
               </div>
+
+              <DashboardFinance />
+
 
               <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Link to="/dashboard/motorizadas" className="block transition hover:-translate-y-0.5">
