@@ -7,7 +7,6 @@ import {
   Building2,
   ChevronDown,
   FileBarChart,
-  Globe2,
   LockKeyhole,
   HeartPulse,
   KeyRound,
