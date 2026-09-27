@@ -348,3 +348,42 @@ Antes da entrada em produção, o Super Administrador deverá conseguir identifi
 - falhas de Storage;
 - problemas de RLS;
 - tarefas técnicas pendentes.
+
+
+### 23. Relatórios globais do Super Administrador
+A área **Relatórios globais** permite ao Super Administrador consultar uma visão consolidada da plataforma MobiGest.
+
+Áreas previstas:
+- veículos;
+- proprietários;
+- registos;
+- utilizadores;
+- fiscalização;
+- financeiro;
+- licenças;
+- auditoria;
+- visão geral da plataforma.
+
+Filtros globais:
+- município;
+- tipo de relatório;
+- período inicial;
+- período final.
+
+A área global pode consolidar dados de vários municípios. Os relatórios municipais continuam sujeitos ao âmbito do município e às permissões do utilizador.
+
+A interface prevê:
+- indicadores consolidados;
+- resumo por município;
+- impressão;
+- exportação CSV;
+- indicação clara de dados demonstrativos enquanto o backend não estiver ligado.
+
+Quando o Supabase for integrado:
+- os indicadores serão calculados a partir dos dados persistidos;
+- as consultas globais serão reservadas ao Super Administrador;
+- as consultas municipais serão limitadas pelo âmbito e pelas políticas RLS;
+- valores financeiros históricos deverão respeitar os valores efectivamente registados nas cobranças;
+- exportações deverão ser auditadas quando envolverem informação sensível ou operações de elevado impacto.
+
+Os números apresentados actualmente são apenas dados de demonstração e não representam estatísticas reais dos municípios.
