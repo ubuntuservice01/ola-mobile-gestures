@@ -115,7 +115,36 @@ Uma transferência deve preservar o proprietário anterior e criar o novo propri
 - Veículos associados
 - Histórico de propriedade
 
-### 6. Estrutura territorial
+### 6. Numeração MobiGest
+
+O número MobiGest é o identificador permanente do veículo dentro do sistema.
+
+#### Formato definitivo
+
+**MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}**
+
+Exemplo:
+
+**MOBI-LIC-000001**
+
+#### Regras
+
+1. A sequência é **por município**.
+2. A sequência começa em **000001**.
+3. A sequência é independente do tipo de veículo.
+4. O número é atribuído **somente após a aprovação do registo**.
+5. Depois de atribuído, o número é permanente.
+6. Transferência de proprietário não altera o número.
+7. Alteração de estado não altera o número.
+8. Cancelamento não libera o número para reutilização.
+9. A sequência não é reiniciada anualmente.
+10. O código municipal é único e usado em maiúsculas.
+11. A geração deve ser atómica no servidor para evitar duplicações em registos simultâneos.
+12. A base de dados terá uma restrição de unicidade sobre o número MobiGest.
+
+O número não deve depender do posto administrativo, localidade ou tipo de veículo. Esses dados são atributos do registo e podem mudar sem alterar a identidade MobiGest.
+
+### 7. Estrutura territorial
 
 A estrutura territorial do MobiGest fica organizada em quatro níveis funcionais:
 
@@ -250,7 +279,7 @@ Veículo → Alterar estado → Motivo/ocorrência → Utilizador → Data/hora 
 
 Antes de criar tabelas, confirmar:
 1. Campos obrigatórios de cada entidade.
-2. Formato definitivo do número MobiGest.
+2. Formato definitivo do número MobiGest. **Concluído: MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}.**
 3. Municípios e postos administrativos.
 4. Estados e transições permitidas.
 5. Regras de transferência.
