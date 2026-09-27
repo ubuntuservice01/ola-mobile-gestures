@@ -199,11 +199,45 @@ A estrutura territorial será a base para filtros, dashboards, relatórios e RLS
 - Histórico de ocorrências
 
 ### 8. Consulta pública
-- Pesquisa por número MobiGest
-- Resultado público
-- Consulta por QR
-- Protecção de dados pessoais
-- Estado público do veículo
+
+A consulta pública é deliberadamente limitada ao mínimo necessário para confirmar que um veículo pertence ao registo MobiGest e qual é o seu estado actual.
+
+#### Dados públicos por defeito
+
+| Campo | Público |
+|---|---|
+| Número MobiGest | Sim |
+| Tipo de veículo | Sim |
+| Marca | Sim |
+| Modelo | Sim |
+| Cor | Sim |
+| Ano do veículo | Sim, quando disponível |
+| Município | Sim |
+| Estado principal (Activa, Suspensa, Roubada, Apreendida, Cancelada) | Sim |
+| Nome do proprietário | Não |
+| BI / documento de identificação | Não |
+| NUIT | Não |
+| Telefone / contacto | Não |
+| Morada | Não |
+| Contactos adicionais | Não |
+| Posto administrativo | Não, por defeito |
+| Localidade/Bairro | Não |
+| Número de chassis | Não |
+| Número do quadro | Não |
+| Número do motor | Não |
+| Matrícula | Não, por defeito |
+| Documentos e fotografias | Não |
+| Histórico de proprietários | Não |
+| Histórico de fiscalização/ocorrências | Não |
+| Taxas, pagamentos e recibos | Não |
+| Utilizador que efectuou o registo | Não |
+| Identificadores internos do sistema | Não |
+
+O **número MobiGest** e o **QR Code** são identificadores concebidos para consulta pública. Os restantes dados pessoais e dados operacionais ficam protegidos na área autenticada.
+
+A exposição pública deve seguir o princípio de minimização: apresentar apenas informação necessária para a finalidade da consulta. Esta decisão é de desenho do produto e deverá ser validada com a entidade municipal responsável e com os requisitos legais aplicáveis antes da entrada em produção. Em Moçambique, o quadro de protecção de dados e privacidade continua a exigir atenção ao tratamento e divulgação de dados pessoais; o INTIC tem destacado princípios de finalidade, necessidade, confidencialidade e segurança. 
+
+### 9. Fiscalização
 
 ### 9. Financeiro
 Interface preparada para taxas, registos, transferências, pagamentos, pendentes, recibos e relatórios de receita. Valores e regras deverão ser definidos antes da base de dados.
