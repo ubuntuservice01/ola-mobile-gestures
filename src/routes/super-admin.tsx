@@ -7,6 +7,7 @@ import {
   CircleAlert,
   FileText,
   Globe2,
+  KeyRound,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -112,6 +113,7 @@ function SuperAdminDashboard() {
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         <QuickLink to="/super-admin/utilizadores" icon={<Users />} title="Gerir utilizadores" description="Contas globais e atribuição aos municípios." />
         <QuickLink to="/super-admin/permissoes" icon={<ShieldCheck />} title="Perfis e permissões" description="Definir o que cada perfil pode executar." />
+        <QuickLink to="/super-admin/licencas" icon={<KeyRound />} title="Licenças MobiGest" description="Planos, validade e utilização por município." />
         <QuickLink to="/super-admin/auditoria" icon={<Activity />} title="Auditoria global" description="Acompanhar alterações e actividades críticas." />
       </section>
 
