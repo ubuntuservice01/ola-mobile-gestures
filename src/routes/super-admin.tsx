@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
+  BarChart3,
   ArrowUpRight,
   Building2,
   CheckCircle2,
@@ -114,6 +115,7 @@ function SuperAdminDashboard() {
         <QuickLink to="/super-admin/utilizadores" icon={<Users />} title="Gerir utilizadores" description="Contas globais e atribuição aos municípios." />
         <QuickLink to="/super-admin/permissoes" icon={<ShieldCheck />} title="Perfis e permissões" description="Definir o que cada perfil pode executar." />
         <QuickLink to="/super-admin/licencas" icon={<KeyRound />} title="Licenças MobiGest" description="Planos, validade e utilização por município." />
+        <QuickLink to="/super-admin/relatorios" icon={<BarChart3 />} title="Relatórios globais" description="Indicadores consolidados de toda a plataforma." />
         <QuickLink to="/super-admin/auditoria" icon={<Activity />} title="Auditoria global" description="Acompanhar alterações e actividades críticas." />
       </section>
 
