@@ -273,3 +273,39 @@ Planos inicialmente desenhados:
 - Demonstração.
 
 Na integração com Supabase, a licença deverá participar das regras de acesso da plataforma. A verificação deverá considerar, pelo menos, utilizador, município, perfil e estado/validade da licença, sem substituir as políticas RLS.
+
+
+### 21. Notificações do Super Administrador
+A plataforma terá um centro próprio de notificações para o Super Administrador, separado das notificações operacionais de cada município.
+
+Tipos de alerta previstos:
+- licenças próximas da renovação;
+- licenças suspensas ou expiradas;
+- municípios em configuração;
+- criação ou alteração de Administradores Municipais;
+- alterações relevantes de utilizadores e permissões;
+- eventos de segurança;
+- actividades críticas de auditoria;
+- falhas ou situações operacionais que exijam acompanhamento.
+
+Cada notificação deverá guardar:
+- utilizador destinatário;
+- tipo/categoria;
+- título;
+- mensagem;
+- severidade;
+- município relacionado, quando aplicável;
+- entidade e referência relacionadas, quando aplicável;
+- data/hora;
+- estado lida/não lida;
+- data de leitura.
+
+Regras:
+- notificações são alertas e não substituem a auditoria;
+- o conteúdo deve permitir navegar para o contexto relacionado quando aplicável;
+- cada utilizador vê apenas as suas notificações;
+- eventos globais podem ser destinados aos Super Administradores;
+- na integração com Supabase, a criação e leitura serão persistidas e protegidas por RLS;
+- alertas críticos devem permanecer no histórico de notificações mesmo depois de marcados como lidos.
+
+Na interface actual estão previstos pesquisa, filtro por categoria, filtro de não lidas e marcação individual ou global como lida.
