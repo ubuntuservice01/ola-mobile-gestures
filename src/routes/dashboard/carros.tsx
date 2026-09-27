@@ -81,8 +81,8 @@ function CarrosDashboard() {
           <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold">Estado das carros</h3>
-                <p className="mt-1 text-sm text-slate-500">Distribuição por situação actual</p>
+                <h3 className="font-semibold">Situação dos carros</h3>
+                <p className="mt-1 text-sm text-slate-500">Distribuição por estado do registo</p>
               </div>
               <Link to="/veiculos" className="text-sm font-semibold text-sky-600">Abrir lista</Link>
             </div>
@@ -196,6 +196,6 @@ function Status({ status }: { status: string }) {
 }
 
 function statusSlug(status: string) {
-  const map: Record<string, string> = { Activas: "activas", "À venda": "a-venda", Roubadas: "roubadas", Apreendidas: "apreendidas", Pendentes: "pendentes", Transferidas: "transferidas", Canceladas: "canceladas" };
+  const map: Record<string, string> = { Activas: "activas", Suspensas: "suspensas", Roubadas: "roubadas", Apreendidas: "apreendidas", Canceladas: "canceladas" };
   return map[status] ?? status.toLowerCase().replace(/\\s+/g, "-");
 }
