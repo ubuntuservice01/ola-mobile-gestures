@@ -450,3 +450,33 @@ A primeira camada de acesso do MobiGest utiliza o Supabase Auth.
 A autenticação confirma que o utilizador possui uma sessão válida. A autorização por perfil, município e posto será implementada depois da criação das tabelas de perfis e municípios e das respectivas políticas RLS.
 
 Por isso, nesta fase, a existência de uma sessão não deve ser interpretada como autorização para todas as operações do MobiGest.
+
+
+### 26. Arquitectura da Base de Dados Supabase
+
+A Fase 3 criou a arquitectura relacional inicial em:
+
+`supabase/migrations/20260927000000_mobigest_initial_schema.sql`
+
+Também foi criada a documentação técnica detalhada em `docs/MOBIGEST_BD.md`.
+
+O modelo inclui:
+- municípios, postos e localidades;
+- perfis, permissões e âmbito territorial;
+- planos e licenças MobiGest;
+- proprietários e contactos adicionais;
+- veículos;
+- processos de registo e decisões de validação;
+- documentos e requisitos documentais;
+- histórico de estados;
+- histórico de propriedade/transferências;
+- contador de numeração por município;
+- fiscalização e evidências;
+- taxas, cobranças e pagamentos;
+- notificações;
+- auditoria;
+- sessões temporárias de acesso municipal do Super Administrador.
+
+A migration já activa RLS nas tabelas públicas criadas, mas **não cria ainda as políticas de acesso**. Isso será tratado na Fase 4, depois de confirmar as regras de perfil, município e posto.
+
+A migration não contém dados de demonstração nem credenciais.
