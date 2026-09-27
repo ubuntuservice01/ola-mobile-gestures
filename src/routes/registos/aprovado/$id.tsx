@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Copy, ExternalLink, Printer, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 
 export const Route = createFileRoute("/registos/aprovado/$id")({ component: RegistoAprovado });
@@ -8,6 +9,7 @@ function RegistoAprovado() {
   const { id } = Route.useParams();
   const codigo = "MOBI-" + id.replace(/\D/g, "").padStart(6, "0");
   const consulta = "/consulta/" + codigo;
+  const qrValue = typeof window !== "undefined" ? window.location.origin + "/q/" + codigo : "/q/" + codigo;
 
   return (
     <MobiGestShell title="Registo MobiGest" subtitle="Registo aprovado e pronto para identificação do veículo">
@@ -62,7 +64,7 @@ function RegistoAprovado() {
                   <span className="flex-1 break-all">{consulta}</span>
                   <button className="rounded-lg p-2 hover:bg-white" title="Copiar"><Copy className="h-4 w-4" /></button>
                 </div>
-                <p className="mt-3 text-xs leading-5 text-slate-500">Na implementação final, o QR será gerado a partir do código único do registo e validado pelo sistema antes de apresentar os dados públicos.</p>
+                <p className="mt-3 text-xs leading-5 text-slate-500">O QR Code abre directamente a consulta pública deste registo. A página pública apresenta apenas os dados necessários para confirmar a autenticidade do registo.</p>
               </div>
             </div>
           </Card>
