@@ -7,6 +7,7 @@ import {
   ChevronDown,
   FileBarChart,
   Globe2,
+  HeartPulse,
   KeyRound,
   LayoutDashboard,
   Menu,
