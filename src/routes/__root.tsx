@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { RequireAuth } from "../components/RequireAuth";
 
 function NotFoundComponent() {
   return (
@@ -83,7 +84,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <RequireAuth>
+        <Outlet />
+      </RequireAuth>
     </QueryClientProvider>
   );
 }
