@@ -28,30 +28,6 @@ const matrix=[
   ["Definições",     ["✓","✓","✓","—","—","—","✓","—"]],
 ];
 
-const profilePermissions: Record<string,Record<string,string[]>>={
-  "Super Administrador": Object.fromEntries(matrix.map(([m])=>[m,actions])),
-  "Administrador Municipal":{
-    "Dashboard":["Consultar"],"Veículos":["Consultar","Criar","Editar","Alterar estado","Transferir"],"Proprietários":["Consultar","Criar","Editar"],
-    "Registos":["Consultar","Criar","Editar","Validar"],"Documentos":["Consultar","Criar","Editar","Validar"],"Fiscalização":["Consultar"],
-    "Financeiro":["Consultar"],"Relatórios":["Consultar"],"Utilizadores":["Consultar","Utilizadores"],"Municípios":["Consultar"],"Auditoria":["Consultar"],"Definições":["Consultar","Editar"],
-  },
-  "Técnico":{
-    "Dashboard":["Consultar"],"Veículos":["Consultar","Criar","Editar","Alterar estado"],"Proprietários":["Consultar","Criar","Editar"],
-    "Registos":["Consultar","Criar","Editar","Validar"],"Documentos":["Consultar","Criar","Editar","Validar"],"Fiscalização":["Consultar","Criar","Editar"],
-    "Financeiro":["Consultar"],"Relatórios":["Consultar"],"Utilizadores":[],"Municípios":["Consultar"],"Auditoria":["Consultar"],"Definições":["Consultar"],
-  },
-  "Fiscal":{
-    "Dashboard":["Consultar"],"Veículos":["Consultar","Alterar estado"],"Proprietários":["Consultar"],"Registos":["Consultar"],"Documentos":["Consultar"],
-    "Fiscalização":["Consultar","Criar","Editar","Alterar estado"],"Financeiro":[],"Relatórios":["Consultar"],"Utilizadores":[],"Municípios":["Consultar"],
-    "Auditoria":["Consultar"],"Definições":[],
-  },
-  "Financeiro":{
-    "Dashboard":["Consultar"],"Veículos":["Consultar"],"Proprietários":["Consultar"],"Registos":["Consultar"],"Documentos":["Consultar"],
-    "Fiscalização":["Consultar"],"Financeiro":["Consultar","Criar","Editar"],"Relatórios":["Consultar","Financeiro"],"Utilizadores":[],"Municípios":["Consultar"],
-    "Auditoria":["Consultar"],"Definições":["Consultar","Financeiro"],
-  },
-};
-
 function PermissoesGlobais(){
  return <SuperAdminShell title="Perfis e permissões" subtitle="Modelo de autorização do MobiGest antes da aplicação de Auth, RBAC e RLS.">
   <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">{profiles.map(p=><SuperCard key={p.key} className="p-5"><ShieldCheck className="h-5 w-5 text-sky-600"/><h3 className="mt-3 text-sm font-bold">{p.name}</h3><p className="mt-2 text-xs font-semibold text-slate-500">{p.scope}</p><p className="mt-1 text-xs leading-5 text-slate-500">{p.description}</p><Link to="/super-admin/permissoes/$perfil" params={{perfil:p.key}} className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-sky-700">Ver perfil <ChevronRight className="h-3.5 w-3.5"/></Link></SuperCard>)}</div>
