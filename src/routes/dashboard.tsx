@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { DashboardFinance } from "../components/financeiro/DashboardFinance";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -45,6 +46,12 @@ const statusData = [
 
 function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.replace("/login");
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -88,9 +95,9 @@ function DashboardPage() {
                   <p className="truncate text-sm font-semibold">Administrador</p>
                   <p className="truncate text-xs text-slate-500">Gestor municipal</p>
                 </div>
-                <Link to="/login" className="text-slate-500 hover:text-white" aria-label="Sair">
+                <button type="button" onClick={handleSignOut} disabled={signingOut} className="text-slate-500 hover:text-white disabled:opacity-50" aria-label="Sair">
                   <LogOut className="h-4 w-4" />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
