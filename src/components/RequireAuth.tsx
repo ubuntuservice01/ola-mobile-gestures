@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { supabase } from "../lib/supabase";
 
-const PUBLIC_PATHS = ["/", "/login", "/recuperar-password", "/nova-password", "/consulta"];
+const PUBLIC_PATHS = ["/", "/login", "/recuperar-password", "/nova-password", "/consulta", "/q"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
