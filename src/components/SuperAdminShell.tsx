@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { supabase } from "../lib/supabase";
 import { Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -38,6 +39,12 @@ export function SuperAdminShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.replace("/login");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -164,9 +171,9 @@ export function SuperAdminShell({
                 <p className="truncate text-sm font-semibold">Super Administrador</p>
                 <p className="truncate text-xs text-slate-500">Acesso global</p>
               </div>
-              <Link to="/login" aria-label="Sair">
-                <ChevronDown className="h-4 w-4 text-slate-500" />
-              </Link>
+              <button type="button" onClick={handleSignOut} disabled={signingOut} aria-label="Sair" className="text-slate-500 hover:text-white disabled:opacity-50">
+                <ChevronDown className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
