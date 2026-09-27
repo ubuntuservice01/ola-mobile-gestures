@@ -1,7 +1,6 @@
 # MobiGest — Mapa funcional
 
 ## Objectivo
-
 Sistema municipal para gestão e registo de **motorizadas, carros e bicicletas**, com organização por município e posto administrativo.
 
 Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na interface são demonstrações e não devem ser tratados como dados reais.
@@ -36,13 +35,7 @@ Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na
 - Histórico
 - Transferência de propriedade
 
-### 3.1 Documentação e requisitos
-A documentação é configurável por **município + tipo de veículo**, mantendo uma matriz base.
-
-### 4. Estados e transições
-O modelo funcional usa cinco estados principais: **Activa, Suspensa, Roubada, Apreendida e Cancelada**. Pendente de validação pertence ao processo de registo; à venda é situação comercial; transferência é uma operação que fica no histórico.
-
-### 5. Proprietários
+### 4. Proprietários
 - Lista e pesquisa
 - Novo proprietário
 - Perfil
@@ -50,9 +43,18 @@ O modelo funcional usa cinco estados principais: **Activa, Suspensa, Roubada, Ap
 - Histórico de propriedade
 - Contactos adicionais
 
+### 5. Estados e transições
+- Activa
+- Suspensa
+- Roubada
+- Apreendida
+- Cancelada
+- Pendente de validação pertence ao processo de registo
+- À venda é situação comercial
+- Transferência é uma operação histórica
+
 ### 6. Numeração MobiGest
 Formato: **MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}**. Exemplo: **MOBI-LIC-000001**.
-
 A sequência é por município, começa em 000001, é independente do tipo de veículo, só é atribuída após aprovação, é permanente, não é reutilizada após cancelamento e deve ser gerada atomicamente no servidor com restrição de unicidade.
 
 ### 7. Estrutura territorial
@@ -62,91 +64,60 @@ A sequência é por município, começa em 000001, é independente do tipo de ve
 A consulta pública mostra apenas o mínimo necessário: número MobiGest, tipo, marca, modelo, cor, ano quando disponível, município e estado. Dados pessoais, documentos, contactos, chassis, motor, pagamentos e histórico de fiscalização ficam protegidos.
 
 ### 9. Fiscalização
-
-O módulo de fiscalização permite verificar veículos no terreno, registar actos de fiscalização e acompanhar ocorrências, respeitando município e permissões do utilizador.
-
-#### 9.1 Consulta rápida
-O fiscal pode pesquisar por:
-- número MobiGest;
-- QR Code;
-- outros identificadores permitidos pelo perfil.
-
-A consulta apresenta, conforme permissões:
-- número MobiGest;
-- tipo;
-- marca/modelo;
-- cor;
-- ano;
-- município;
-- estado actual;
-- situação documental necessária à fiscalização.
-
-Não apresenta por defeito dados pessoais, financeiros ou informação interna.
-
-#### 9.2 Nova fiscalização
-Fluxo:
-**Identificar veículo → Confirmar veículo → Verificar registo/documentação → Registar resultado → Observação → Evidência opcional → Finalizar**
-
-Cada fiscalização deve guardar:
-- veículo;
-- proprietário, quando necessário;
-- município;
-- posto administrativo;
-- localidade/bairro;
-- local;
-- data/hora;
-- fiscal responsável;
-- resultado;
-- observação;
-- evidências, quando existirem.
-
-#### 9.3 Resultados
-Resultados iniciais configuráveis:
-- Regular;
-- Irregularidade documental;
-- Registo suspenso;
-- Veículo reportado como roubado;
-- Veículo apreendido;
-- Dados divergentes;
-- QR Code inválido;
-- Registo inexistente;
-- Outro.
-
-Um resultado de fiscalização não significa automaticamente multa, apreensão ou alteração de estado.
-
-#### 9.4 Ocorrências
-Uma fiscalização pode gerar uma ocorrência:
-- Aberta;
-- Em análise;
-- Resolvida;
-- Cancelada.
-
-A ocorrência deve manter histórico e não pode ser apagada silenciosamente.
-
-#### 9.5 Evidências
-Podem ser anexados, quando configurado:
-- fotografia;
-- documento;
-- outro ficheiro.
-
-Cada evidência deve guardar tipo, nome, data, utilizador e ocorrência relacionada.
-
-#### 9.6 Estado do veículo
-A fiscalização não deve contornar o fluxo de alteração de estado. Quando necessário, deve usar a operação de alteração de estado já definida, guardando estado anterior, novo estado, motivo, utilizador, data/hora e referência da ocorrência.
-
-#### 9.7 Histórico
-Cada fiscalização deve aparecer no histórico do veículo e no histórico geral de fiscalização. O histórico deve ser pesquisável por número MobiGest e filtrável por município, tipo, resultado e período.
-
-#### 9.8 Perfis
-O Fiscal pode consultar veículos, ler QR Code, registar fiscalizações, criar ocorrências e adicionar evidências dentro do seu âmbito. Não pode gerir utilizadores, municípios, taxas ou apagar histórico. Alterações de estado dependem das permissões já definidas.
-
-#### 9.9 Auditoria e isolamento
-Toda fiscalização deve guardar utilizador, perfil, município, data/hora, veículo, acção e resultado. Os dados devem ficar isolados por município e preparados para RLS no Supabase.
+Consulta por MobiGest/QR, nova fiscalização, resultados configuráveis, ocorrências, evidências, histórico e integração com estados do veículo, sempre respeitando município e permissões.
 
 ### 10. Financeiro
-Interface preparada para taxas, registos, transferências, pagamentos, pendentes, recibos e relatórios de receita. Valores e regras deverão ser definidos por município.
+Taxas municipais, cobranças, pagamentos, recibos, isenções, reembolsos e relatórios financeiros. Os valores e regras são definidos por município; os valores aplicados ficam preservados na cobrança histórica.
 
-### 11. Relatórios
+### 11. Auditoria e rastreabilidade
+O MobiGest deve manter um histórico das acções relevantes realizadas pelos utilizadores.
+
+Cada evento de auditoria deve, quando aplicável, guardar:
+- utilizador;
+- perfil;
+- município;
+- data e hora;
+- acção;
+- módulo/área;
+- entidade afectada;
+- identificador da entidade;
+- resultado;
+- referência relacionada;
+- valor anterior;
+- valor novo;
+- observação;
+- origem da operação.
+
+Acções a auditar incluem, entre outras:
+- criação de registo;
+- alteração de dados;
+- aprovação/rejeição;
+- alteração de estado;
+- transferência de propriedade;
+- geração de QR;
+- criação/alteração de taxas;
+- confirmação de pagamento;
+- isenção;
+- reembolso;
+- criação/alteração de utilizadores e permissões;
+- fiscalizações e ocorrências.
+
+Os eventos de auditoria devem ser tratados como histórico imutável: não devem ser apagados nem alterados silenciosamente.
+
+A consulta da auditoria deve permitir pesquisa e filtros por:
+- período;
+- utilizador;
+- município;
+- módulo;
+- acção;
+- entidade;
+- referência.
+
+O acesso à auditoria deve ser limitado às permissões já definidas. O isolamento entre municípios deverá ser aplicado com RLS no Supabase.
+
+A auditoria funcional do MobiGest é distinta dos logs internos do Supabase. O Supabase também disponibiliza Audit Logs para eventos de autenticação e mecanismos de logging da plataforma; estes serão complementares ao histórico funcional do MobiGest. 
+
+### 12. Relatórios
 - Veículos por período
 - Veículos por tipo
 - Veículos por estado
@@ -155,14 +126,16 @@ Interface preparada para taxas, registos, transferências, pagamentos, pendentes
 - Fiscalização
 - Veículos roubados
 - Receitas
+- Indicadores de auditoria
 
-### 12. Utilizadores, perfis e segurança
+### 13. Utilizadores, perfis e segurança
 Cinco perfis: Super Administrador, Administrador Municipal, Técnico, Fiscal e Financeiro. O controlo efectivo será aplicado posteriormente com Auth, RLS e autorização no servidor.
 
-### 13. Impressão
+### 14. Impressão
 - Ficha do veículo
 - QR Code
 - Identificação MobiGest
+- Recibo financeiro
 
 ## Fluxos principais
 
@@ -175,24 +148,30 @@ QR/Número → Veículo → Estado público → Dados não sensíveis
 ### Fiscalização
 Pesquisar/QR → Confirmar veículo → Verificar situação → Registar fiscalização → Ocorrência, quando necessária → Histórico
 
+### Financeiro
+Serviço → Taxa aplicável → Cobrança → Pagamento → Recibo → Auditoria
+
 ### Transferência
-Veículo → Proprietário actual → Novo proprietário → Documentação → Confirmação → Histórico
+Veículo → Proprietário actual → Novo proprietário → Documentação → Confirmação → Histórico → Auditoria
 
 ### Estado
-Veículo → Alterar estado → Motivo/ocorrência → Utilizador → Data/hora → Histórico
+Veículo → Alterar estado → Motivo/ocorrência → Utilizador → Data/hora → Histórico → Auditoria
 
-## Próxima fase: Supabase
+## Preparação para Supabase
 
-Antes de criar tabelas, confirmar:
-1. Campos obrigatórios de cada entidade.
-2. Formato do número MobiGest.
-3. Municípios e postos administrativos.
-4. Estados e transições.
-5. Regras de transferência.
-6. Documentos obrigatórios por tipo.
-7. Informação visível na consulta pública.
-8. Taxas e pagamentos.
-9. Perfis e permissões.
-10. Política de auditoria.
-11. Regras de isolamento entre municípios.
-12. Estrutura de fiscalização, ocorrências e evidências.
+Antes da implementação definitiva:
+1. Criar entidades e relações.
+2. Definir campos obrigatórios.
+3. Criar constraints e índices.
+4. Aplicar RLS a todas as tabelas expostas.
+5. Criar políticas por município e perfil.
+6. Criar testes de RLS.
+7. Implementar auditoria funcional.
+8. Ligar autenticação e perfis.
+9. Configurar armazenamento de documentos/evidências.
+10. Validar fluxos ponta a ponta.
+
+A RLS deve ser aplicada às tabelas expostas e testada para operações permitidas e negadas. O Supabase recomenda habilitar RLS e criar políticas por operação. 
+
+## Nota
+Os requisitos municipais e valores de taxas devem ser confirmados antes de serem tratados como regras oficiais do sistema.
