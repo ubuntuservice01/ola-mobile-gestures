@@ -430,3 +430,23 @@ Quando for implementado no backend, recomenda-se guardar um registo de sessão d
 - referência de auditoria.
 
 O contexto municipal deve acompanhar consultas, alterações e exportações feitas durante a sessão, permitindo rastrear claramente que o Super Administrador actuou dentro de determinado município.
+
+
+## 25. Autenticação e controlo inicial de acesso
+
+A primeira camada de acesso do MobiGest utiliza o Supabase Auth.
+
+### Implementado
+- Login por email e palavra-passe com `signInWithPassword`.
+- Remoção do antigo modo de demonstração no login.
+- Protecção global das rotas internas através do componente `RequireAuth`.
+- Redireccionamento de utilizadores sem sessão para `/login`, preservando a rota de destino.
+- Logout real da sessão actual com `signOut({ scope: "local" })`.
+- Recuperação de palavra-passe com `resetPasswordForEmail`.
+- Definição de nova palavra-passe com `updateUser`.
+- Consulta pública continua acessível sem autenticação em `/consulta/*` e `/q/*`.
+
+### Próxima camada
+A autenticação confirma que o utilizador possui uma sessão válida. A autorização por perfil, município e posto será implementada depois da criação das tabelas de perfis e municípios e das respectivas políticas RLS.
+
+Por isso, nesta fase, a existência de uma sessão não deve ser interpretada como autorização para todas as operações do MobiGest.
