@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, PlayCircle } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -12,14 +12,7 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
-  const enterDemo = () => {
-    setDemoLoading(true);
-    window.sessionStorage.setItem("mobigest_demo_mode", "true");
-    window.location.href = "/dashboard";
-  };
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -72,7 +65,8 @@ function LoginPage() {
                     setLoading(false);
                     return;
                   }
-                  window.location.href = "/dashboard";
+                  const redirect = new URLSearchParams(window.location.search).get("redirect");
+                  window.location.replace(redirect && redirect.startsWith("/") ? redirect : "/dashboard");
                 }}
               >
                 <div>
@@ -99,7 +93,7 @@ function LoginPage() {
 
                 {message && <p className="text-sm font-medium text-red-600">{message}</p>}
 
-                <button type="submit" disabled={loading || demoLoading} className="h-12 w-full rounded-xl bg-sky-600 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:opacity-60">
+                <button type="submit" disabled={loading} className="h-12 w-full rounded-xl bg-sky-600 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:opacity-60">
                   {loading ? "A entrar..." : "Entrar"}
                 </button>
               </form>
