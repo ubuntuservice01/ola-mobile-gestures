@@ -37,76 +37,10 @@ Esta fase é exclusivamente de **produto e interface**. Os dados apresentados na
 - Transferência de propriedade
 
 ### 3.1 Documentação e requisitos
-
 A documentação é configurável por **município + tipo de veículo**, mantendo uma matriz base.
 
-#### Matriz base
-
-| Documento/requisito | Motorizada | Carro | Bicicleta |
-|---|---|---|---|
-| Identificação do proprietário | Obrigatório | Obrigatório | Obrigatório |
-| Documento/título do veículo ou comprovativo de propriedade | Obrigatório | Obrigatório | Configurável |
-| Fotografia do veículo | Obrigatório | Obrigatório | Obrigatório |
-| Comprovativo de aquisição/propriedade | Configurável | Configurável | Configurável |
-| Número de chassis | Obrigatório | Obrigatório | Não aplicável |
-| Número do quadro | Quando aplicável | Não aplicável | Obrigatório quando existente |
-| Número do motor | Configurável | Configurável | Não aplicável |
-| Matrícula | Configurável | Configurável | Não aplicável |
-| Inspecção/regularidade | Configurável | Configurável | Configurável |
-| Representação/autorização | Condicional | Condicional | Condicional |
-| Outros documentos municipais | Configurável | Configurável | Configurável |
-
-**Nota:** esta é uma matriz funcional do produto. Não deve ser tratada como lista definitiva de requisitos legais nacionais. Cada município deverá confirmar os requisitos que serão efectivamente exigidos.
-
-#### Estados dos documentos
-- Não apresentado
-- Em validação
-- Validado
-- Rejeitado
-- Expirado
-
-Cada documento deverá guardar, no mínimo:
-- tipo;
-- entidade a que pertence;
-- ficheiro;
-- número/referência, quando existir;
-- data de emissão, quando aplicável;
-- data de validade, quando aplicável;
-- estado;
-- motivo de rejeição, quando aplicável;
-- utilizador que validou;
-- data/hora da validação.
-
-**Regra de aprovação:** um processo não deve ser aprovado enquanto existir documento obrigatório em falta, rejeitado ou, quando aplicável, expirado.
-
 ### 4. Estados e transições
-
-O modelo funcional fica fechado com **cinco estados principais do registo do veículo**:
-
-1. **Activa** — registo válido e veículo autorizado para circulação.
-2. **Suspensa** — registo temporariamente suspenso por decisão administrativa.
-3. **Roubada** — veículo declarado como roubado.
-4. **Apreendida** — veículo retido pelas autoridades competentes.
-5. **Cancelada** — registo cancelado administrativamente; não volta directamente a Activa.
-
-**Importante:**
-- **Pendente de validação** é estado do processo de registo, não estado permanente do veículo.
-- **À venda** é uma situação comercial que pode coexistir com um veículo Activo; não substitui o estado principal.
-- **Transferida** é uma operação/evento de mudança de proprietário. Depois da transferência concluída, o veículo mantém o seu estado operacional (normalmente Activa) e o histórico conserva a transferência.
-
-### Regras de transição
-
-| Estado actual | Transições permitidas |
-|---|---|
-| Activa | Suspensa, Roubada, Apreendida, Cancelada |
-| Suspensa | Activa, Cancelada |
-| Roubada | Activa, Cancelada |
-| Apreendida | Activa, Cancelada |
-| Cancelada | Nenhuma transição directa |
-
-Toda alteração deve guardar **estado anterior, novo estado, motivo, utilizador, data/hora e referência da ocorrência/processo**.
-
-Uma transferência deve preservar o proprietário anterior e criar o novo proprietário no histórico. A transferência não deve ser permitida enquanto existirem situações que legalmente impeçam a mudança de titularidade.
+O modelo funcional usa cinco estados principais: **Activa, Suspensa, Roubada, Apreendida e Cancelada**. Pendente de validação pertence ao processo de registo; à venda é situação comercial; transferência é uma operação que fica no histórico.
 
 ### 5. Proprietários
 - Lista e pesquisa
@@ -114,135 +48,105 @@ Uma transferência deve preservar o proprietário anterior e criar o novo propri
 - Perfil
 - Veículos associados
 - Histórico de propriedade
+- Contactos adicionais
 
 ### 6. Numeração MobiGest
+Formato: **MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}**. Exemplo: **MOBI-LIC-000001**.
 
-O número MobiGest é o identificador permanente do veículo dentro do sistema.
-
-#### Formato definitivo
-
-**MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}**
-
-Exemplo:
-
-**MOBI-LIC-000001**
-
-#### Regras
-
-1. A sequência é **por município**.
-2. A sequência começa em **000001**.
-3. A sequência é independente do tipo de veículo.
-4. O número é atribuído **somente após a aprovação do registo**.
-5. Depois de atribuído, o número é permanente.
-6. Transferência de proprietário não altera o número.
-7. Alteração de estado não altera o número.
-8. Cancelamento não libera o número para reutilização.
-9. A sequência não é reiniciada anualmente.
-10. O código municipal é único e usado em maiúsculas.
-11. A geração deve ser atómica no servidor para evitar duplicações em registos simultâneos.
-12. A base de dados terá uma restrição de unicidade sobre o número MobiGest.
-
-O número não deve depender do posto administrativo, localidade ou tipo de veículo. Esses dados são atributos do registo e podem mudar sem alterar a identidade MobiGest.
+A sequência é por município, começa em 000001, é independente do tipo de veículo, só é atribuída após aprovação, é permanente, não é reutilizada após cancelamento e deve ser gerada atomicamente no servidor com restrição de unicidade.
 
 ### 7. Estrutura territorial
-
-A estrutura territorial do MobiGest fica organizada em quatro níveis funcionais:
-
-**Município → Posto Administrativo → Localidade/Bairro → Registo**
-
-#### Município
-É o nível principal de gestão territorial e de isolamento dos dados.
-
-Cada município terá, entre outros:
-- nome;
-- código;
-- província;
-- estado;
-- configuração de numeração MobiGest;
-- postos administrativos associados.
-
-#### Posto Administrativo
-Pertence a um único município.
-
-É usado para:
-- organizar atendimento e operação;
-- limitar o âmbito de determinados utilizadores;
-- distribuir registos;
-- produzir relatórios territoriais.
-
-#### Localidade/Bairro
-Pertence a um único posto administrativo.
-
-No registo de um veículo, a localização administrativa deverá permitir seleccionar:
-**Município → Posto Administrativo → Localidade/Bairro**.
-
-O sistema não deve permitir seleccionar um posto de outro município nem uma localidade pertencente a outro posto.
-
-#### Âmbito dos utilizadores
-- Super Administrador: acesso global.
-- Administrador Municipal: município atribuído.
-- Técnico/Fiscal/Financeiro: município atribuído e, quando configurado, posto administrativo atribuído.
-
-#### Âmbito dos registos
-Cada veículo, proprietário, fiscalização, processo e operação relevante deverá ficar associado ao município. Quando aplicável, o registo deverá também guardar posto administrativo e localidade/bairro.
-
-A estrutura territorial será a base para filtros, dashboards, relatórios e RLS no Supabase.
-
-### 7. Fiscalização
-- Pesquisa por número MobiGest
-- Consulta por QR Code
-- Registo de fiscalização
-- Infração
-- Apreensão
-- Roubo
-- Recuperação
-- Histórico de ocorrências
+**Município → Posto Administrativo → Localidade/Bairro → Registo**.
 
 ### 8. Consulta pública
-
-A consulta pública é deliberadamente limitada ao mínimo necessário para confirmar que um veículo pertence ao registo MobiGest e qual é o seu estado actual.
-
-#### Dados públicos por defeito
-
-| Campo | Público |
-|---|---|
-| Número MobiGest | Sim |
-| Tipo de veículo | Sim |
-| Marca | Sim |
-| Modelo | Sim |
-| Cor | Sim |
-| Ano do veículo | Sim, quando disponível |
-| Município | Sim |
-| Estado principal (Activa, Suspensa, Roubada, Apreendida, Cancelada) | Sim |
-| Nome do proprietário | Não |
-| BI / documento de identificação | Não |
-| NUIT | Não |
-| Telefone / contacto | Não |
-| Morada | Não |
-| Contactos adicionais | Não |
-| Posto administrativo | Não, por defeito |
-| Localidade/Bairro | Não |
-| Número de chassis | Não |
-| Número do quadro | Não |
-| Número do motor | Não |
-| Matrícula | Não, por defeito |
-| Documentos e fotografias | Não |
-| Histórico de proprietários | Não |
-| Histórico de fiscalização/ocorrências | Não |
-| Taxas, pagamentos e recibos | Não |
-| Utilizador que efectuou o registo | Não |
-| Identificadores internos do sistema | Não |
-
-O **número MobiGest** e o **QR Code** são identificadores concebidos para consulta pública. Os restantes dados pessoais e dados operacionais ficam protegidos na área autenticada.
-
-A exposição pública deve seguir o princípio de minimização: apresentar apenas informação necessária para a finalidade da consulta. Esta decisão é de desenho do produto e deverá ser validada com a entidade municipal responsável e com os requisitos legais aplicáveis antes da entrada em produção. Em Moçambique, o quadro de protecção de dados e privacidade continua a exigir atenção ao tratamento e divulgação de dados pessoais; o INTIC tem destacado princípios de finalidade, necessidade, confidencialidade e segurança. 
+A consulta pública mostra apenas o mínimo necessário: número MobiGest, tipo, marca, modelo, cor, ano quando disponível, município e estado. Dados pessoais, documentos, contactos, chassis, motor, pagamentos e histórico de fiscalização ficam protegidos.
 
 ### 9. Fiscalização
 
-### 9. Financeiro
-Interface preparada para taxas, registos, transferências, pagamentos, pendentes, recibos e relatórios de receita. Valores e regras deverão ser definidos antes da base de dados.
+O módulo de fiscalização permite verificar veículos no terreno, registar actos de fiscalização e acompanhar ocorrências, respeitando município e permissões do utilizador.
 
-### 10. Relatórios
+#### 9.1 Consulta rápida
+O fiscal pode pesquisar por:
+- número MobiGest;
+- QR Code;
+- outros identificadores permitidos pelo perfil.
+
+A consulta apresenta, conforme permissões:
+- número MobiGest;
+- tipo;
+- marca/modelo;
+- cor;
+- ano;
+- município;
+- estado actual;
+- situação documental necessária à fiscalização.
+
+Não apresenta por defeito dados pessoais, financeiros ou informação interna.
+
+#### 9.2 Nova fiscalização
+Fluxo:
+**Identificar veículo → Confirmar veículo → Verificar registo/documentação → Registar resultado → Observação → Evidência opcional → Finalizar**
+
+Cada fiscalização deve guardar:
+- veículo;
+- proprietário, quando necessário;
+- município;
+- posto administrativo;
+- localidade/bairro;
+- local;
+- data/hora;
+- fiscal responsável;
+- resultado;
+- observação;
+- evidências, quando existirem.
+
+#### 9.3 Resultados
+Resultados iniciais configuráveis:
+- Regular;
+- Irregularidade documental;
+- Registo suspenso;
+- Veículo reportado como roubado;
+- Veículo apreendido;
+- Dados divergentes;
+- QR Code inválido;
+- Registo inexistente;
+- Outro.
+
+Um resultado de fiscalização não significa automaticamente multa, apreensão ou alteração de estado.
+
+#### 9.4 Ocorrências
+Uma fiscalização pode gerar uma ocorrência:
+- Aberta;
+- Em análise;
+- Resolvida;
+- Cancelada.
+
+A ocorrência deve manter histórico e não pode ser apagada silenciosamente.
+
+#### 9.5 Evidências
+Podem ser anexados, quando configurado:
+- fotografia;
+- documento;
+- outro ficheiro.
+
+Cada evidência deve guardar tipo, nome, data, utilizador e ocorrência relacionada.
+
+#### 9.6 Estado do veículo
+A fiscalização não deve contornar o fluxo de alteração de estado. Quando necessário, deve usar a operação de alteração de estado já definida, guardando estado anterior, novo estado, motivo, utilizador, data/hora e referência da ocorrência.
+
+#### 9.7 Histórico
+Cada fiscalização deve aparecer no histórico do veículo e no histórico geral de fiscalização. O histórico deve ser pesquisável por número MobiGest e filtrável por município, tipo, resultado e período.
+
+#### 9.8 Perfis
+O Fiscal pode consultar veículos, ler QR Code, registar fiscalizações, criar ocorrências e adicionar evidências dentro do seu âmbito. Não pode gerir utilizadores, municípios, taxas ou apagar histórico. Alterações de estado dependem das permissões já definidas.
+
+#### 9.9 Auditoria e isolamento
+Toda fiscalização deve guardar utilizador, perfil, município, data/hora, veículo, acção e resultado. Os dados devem ficar isolados por município e preparados para RLS no Supabase.
+
+### 10. Financeiro
+Interface preparada para taxas, registos, transferências, pagamentos, pendentes, recibos e relatórios de receita. Valores e regras deverão ser definidos por município.
+
+### 11. Relatórios
 - Veículos por período
 - Veículos por tipo
 - Veículos por estado
@@ -252,42 +156,10 @@ Interface preparada para taxas, registos, transferências, pagamentos, pendentes
 - Veículos roubados
 - Receitas
 
-### 11. Utilizadores, perfis e segurança
+### 12. Utilizadores, perfis e segurança
+Cinco perfis: Super Administrador, Administrador Municipal, Técnico, Fiscal e Financeiro. O controlo efectivo será aplicado posteriormente com Auth, RLS e autorização no servidor.
 
-O modelo funcional fica fechado com cinco perfis:
-
-1. **Super Administrador** — acesso global, incluindo municípios, configuração geral, utilizadores e auditoria.
-2. **Administrador Municipal** — gere a operação do município atribuído e os utilizadores desse município.
-3. **Técnico** — regista, actualiza e valida processos dentro do seu âmbito.
-4. **Fiscal** — consulta veículos e proprietários dentro das permissões atribuídas e regista actos de fiscalização.
-5. **Financeiro** — gere taxas, pagamentos e informação financeira, com acesso de consulta aos dados necessários.
-
-### Âmbito territorial
-
-- Super Administrador: global.
-- Outros perfis: município obrigatório.
-- Quando aplicável, o utilizador pode ficar limitado a um posto administrativo.
-- Um utilizador não pode consultar ou alterar dados de outro município apenas por conhecer o identificador do registo.
-
-### Operações críticas
-
-As permissões deverão distinguir pelo menos:
-- consultar;
-- criar;
-- editar;
-- validar;
-- alterar estado;
-- transferir propriedade;
-- gerir utilizadores;
-- gerir municípios;
-- gerir financeiro;
-- consultar auditoria.
-
-A interface apresenta a matriz funcional; o controlo efectivo será aplicado no Supabase com Auth, RLS e regras de autorização no servidor.
-
-A aplicação está preparada para posteriormente aplicar isolamento por município e RLS no Supabase.
-
-### 12. Impressão
+### 13. Impressão
 - Ficha do veículo
 - QR Code
 - Identificação MobiGest
@@ -301,7 +173,7 @@ Novo registo → Tipo → Proprietário → Veículo → Localização → Docum
 QR/Número → Veículo → Estado público → Dados não sensíveis
 
 ### Fiscalização
-Pesquisar/QR → Confirmar veículo → Registar ocorrência → Actualizar histórico
+Pesquisar/QR → Confirmar veículo → Verificar situação → Registar fiscalização → Ocorrência, quando necessária → Histórico
 
 ### Transferência
 Veículo → Proprietário actual → Novo proprietário → Documentação → Confirmação → Histórico
@@ -313,15 +185,14 @@ Veículo → Alterar estado → Motivo/ocorrência → Utilizador → Data/hora 
 
 Antes de criar tabelas, confirmar:
 1. Campos obrigatórios de cada entidade.
-2. Formato definitivo do número MobiGest. **Concluído: MOBI-{CÓDIGO_MUNICÍPIO}-{SEQUÊNCIA_DE_6_DÍGITOS}.**
+2. Formato do número MobiGest.
 3. Municípios e postos administrativos.
-4. Estados e transições permitidas.
+4. Estados e transições.
 5. Regras de transferência.
-6. Documentos obrigatórios por tipo de veículo.
+6. Documentos obrigatórios por tipo.
 7. Informação visível na consulta pública.
 8. Taxas e pagamentos.
-9. Perfis e permissões definitivos.
+9. Perfis e permissões.
 10. Política de auditoria.
 11. Regras de isolamento entre municípios.
-
-Só depois destes pontos será criada a estrutura SQL, relações, índices, triggers, funções e RLS.
+12. Estrutura de fiscalização, ocorrências e evidências.
