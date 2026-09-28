@@ -46,15 +46,14 @@ const statusData = [
 
 function DashboardPage() {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   // As rotas /dashboard/bicicletas, /dashboard/carros e /dashboard/motorizadas
   // são filhas desta rota. O Dashboard geral não deve ficar por cima delas.
   if (location.pathname !== "/dashboard") {
     return <Outlet />;
   }
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
   const handleSignOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut({ scope: "local" });
