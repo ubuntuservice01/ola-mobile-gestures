@@ -158,15 +158,15 @@ function DashboardPage() {
 
 
               <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <Link to="/dashboard/motorizadas" className="block transition hover:-translate-y-0.5">
+                <a href="/dashboard/motorizadas" className="block transition hover:-translate-y-0.5">
                   <KpiCard icon={<Bike />} label="Motorizadas" value="1 284" change="+8,4%" detail="vs. mês anterior" />
-                </Link>
-                <Link to="/dashboard/carros" className="block transition hover:-translate-y-0.5">
+                </a>
+                <a href="/dashboard/carros" className="block transition hover:-translate-y-0.5">
                   <KpiCard icon={<CarFront />} label="Carros" value="486" change="+4,7%" detail="vs. mês anterior" />
-                </Link>
-                <Link to="/dashboard/bicicletas" className="block transition hover:-translate-y-0.5">
+                </a>
+                <a href="/dashboard/bicicletas" className="block transition hover:-translate-y-0.5">
                   <KpiCard icon={<Bike />} label="Bicicletas" value="792" change="+12,1%" detail="vs. mês anterior" />
-                </Link>
+                </a>
                 <KpiCard icon={<CircleCheck />} label="Total registado" value="2 562" change="+9,6%" detail="todos os tipos" />
               </section>
 
