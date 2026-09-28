@@ -10,12 +10,98 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
+import { Route as ConsultaRouteImport } from './routes/consulta'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DefinicoesRouteImport } from './routes/definicoes'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
+import { Route as FiscalizacaoRouteImport } from './routes/fiscalizacao'
+import { Route as LocalidadesRouteImport } from './routes/localidades'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MunicipiosRouteImport } from './routes/municipios'
+import { Route as NotificacoesRouteImport } from './routes/notificacoes'
+import { Route as NovaPasswordRouteImport } from './routes/nova-password'
+import { Route as PermissoesRouteImport } from './routes/permissoes'
+import { Route as PostosAdministrativosRouteImport } from './routes/postos-administrativos'
+import { Route as ProprietariosRouteImport } from './routes/proprietarios'
+import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
+import { Route as RegistosRouteImport } from './routes/registos'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as SuperAdminRouteImport } from './routes/super-admin'
+import { Route as UtilizadoresRouteImport } from './routes/utilizadores'
+import { Route as VeiculosRouteImport } from './routes/veiculos'
+import { Route as ConsultaCodigoRouteImport } from './routes/consulta/$codigo'
+import { Route as DashboardBicicletasRouteImport } from './routes/dashboard/bicicletas'
+import { Route as DashboardCarrosRouteImport } from './routes/dashboard/carros'
+import { Route as DashboardMotorizadasRouteImport } from './routes/dashboard/motorizadas'
+import { Route as DefinicoesDocumentosRouteImport } from './routes/definicoes/documentos'
+import { Route as DefinicoesNumeracaoRouteImport } from './routes/definicoes/numeracao'
+import { Route as DefinicoesTaxasRouteImport } from './routes/definicoes/taxas'
+import { Route as FinanceiroIdRouteImport } from './routes/financeiro/$id'
+import { Route as FinanceiroNovaRouteImport } from './routes/financeiro/nova'
+import { Route as FiscalizacaoHistoricoRouteImport } from './routes/fiscalizacao/historico'
+import { Route as FiscalizacaoNovaRouteImport } from './routes/fiscalizacao/nova'
+import { Route as LocalidadesIdRouteImport } from './routes/localidades/$id'
+import { Route as MunicipiosIdRouteImport } from './routes/municipios/$id'
+import { Route as PostosAdministrativosIdRouteImport } from './routes/postos-administrativos/$id'
+import { Route as ProprietariosIdRouteImport } from './routes/proprietarios/$id'
+import { Route as ProprietariosNovoRouteImport } from './routes/proprietarios/novo'
+import { Route as QCodigoRouteImport } from './routes/q/$codigo'
+import { Route as RegistosIdRouteImport } from './routes/registos/$id'
+import { Route as RegistosValidacaoRouteImport } from './routes/registos/validacao'
+import { Route as SuperAdminAcessoMunicipalRouteImport } from './routes/super-admin/acesso-municipal'
+import { Route as SuperAdminAuditoriaRouteImport } from './routes/super-admin/auditoria'
+import { Route as SuperAdminConfiguracoesRouteImport } from './routes/super-admin/configuracoes'
+import { Route as SuperAdminLicencasRouteImport } from './routes/super-admin/licencas'
+import { Route as SuperAdminMunicipiosRouteImport } from './routes/super-admin/municipios'
+import { Route as SuperAdminNotificacoesRouteImport } from './routes/super-admin/notificacoes'
+import { Route as SuperAdminPermissoesRouteImport } from './routes/super-admin/permissoes'
+import { Route as SuperAdminRelatoriosRouteImport } from './routes/super-admin/relatorios'
+import { Route as SuperAdminSaudeRouteImport } from './routes/super-admin/saude'
+import { Route as SuperAdminUtilizadoresRouteImport } from './routes/super-admin/utilizadores'
+import { Route as UtilizadoresIdRouteImport } from './routes/utilizadores/$id'
+import { Route as UtilizadoresNovoRouteImport } from './routes/utilizadores/novo'
+import { Route as VeiculosIdRouteImport } from './routes/veiculos/$id'
+import { Route as VeiculosNovoRouteImport } from './routes/veiculos/novo'
+import { Route as DashboardTipoStatusRouteImport } from './routes/dashboard/$tipo/$status'
+import { Route as FinanceiroReciboIdRouteImport } from './routes/financeiro/recibo/$id'
+import { Route as ImprimirQrIdRouteImport } from './routes/imprimir/qr/$id'
+import { Route as ImprimirVeiculoIdRouteImport } from './routes/imprimir/veiculo/$id'
+import { Route as ProprietariosIdDocumentosRouteImport } from './routes/proprietarios/$id/documentos'
+import { Route as ProprietariosIdEditarRouteImport } from './routes/proprietarios/$id/editar'
+import { Route as RegistosAprovadoIdRouteImport } from './routes/registos/aprovado/$id'
+import { Route as RegistosCorrecaoIdRouteImport } from './routes/registos/correcao/$id'
+import { Route as RegistosRejeitadoIdRouteImport } from './routes/registos/rejeitado/$id'
+import { Route as SuperAdminAcessoMunicipalIdRouteImport } from './routes/super-admin/acesso-municipal/$id'
+import { Route as SuperAdminLicencasIdRouteImport } from './routes/super-admin/licencas/$id'
+import { Route as SuperAdminLicencasNovoRouteImport } from './routes/super-admin/licencas/novo'
+import { Route as SuperAdminLicencasPlanosRouteImport } from './routes/super-admin/licencas/planos'
+import { Route as SuperAdminMunicipiosIdRouteImport } from './routes/super-admin/municipios/$id'
+import { Route as SuperAdminMunicipiosNovoRouteImport } from './routes/super-admin/municipios/novo'
+import { Route as SuperAdminPermissoesPerfilRouteImport } from './routes/super-admin/permissoes/$perfil'
+import { Route as SuperAdminUtilizadoresIdRouteImport } from './routes/super-admin/utilizadores/$id'
+import { Route as SuperAdminUtilizadoresNovoRouteImport } from './routes/super-admin/utilizadores/novo'
+import { Route as VeiculosIdDocumentosRouteImport } from './routes/veiculos/$id/documentos'
+import { Route as VeiculosIdEstadoRouteImport } from './routes/veiculos/$id/estado'
+import { Route as VeiculosIdHistoricoRouteImport } from './routes/veiculos/$id/historico'
+import { Route as VeiculosIdTransferirRouteImport } from './routes/veiculos/$id/transferir'
+import { Route as VeiculosNovoTipoRouteImport } from './routes/veiculos/novo/$tipo'
+import { Route as SuperAdminMunicipiosIdEditarRouteImport } from './routes/super-admin/municipios/$id/editar'
+import { Route as SuperAdminMunicipiosIdAdministradorNovoRouteImport } from './routes/super-admin/municipios/$id/administrador/novo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultaRoute = ConsultaRouteImport.update({
+  id: '/consulta',
+  path: '/consulta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -23,40 +109,907 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DefinicoesRoute = DefinicoesRouteImport.update({
+  id: '/definicoes',
+  path: '/definicoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FiscalizacaoRoute = FiscalizacaoRouteImport.update({
+  id: '/fiscalizacao',
+  path: '/fiscalizacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocalidadesRoute = LocalidadesRouteImport.update({
+  id: '/localidades',
+  path: '/localidades',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MunicipiosRoute = MunicipiosRouteImport.update({
+  id: '/municipios',
+  path: '/municipios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacoesRoute = NotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovaPasswordRoute = NovaPasswordRouteImport.update({
+  id: '/nova-password',
+  path: '/nova-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PermissoesRoute = PermissoesRouteImport.update({
+  id: '/permissoes',
+  path: '/permissoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostosAdministrativosRoute = PostosAdministrativosRouteImport.update({
+  id: '/postos-administrativos',
+  path: '/postos-administrativos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProprietariosRoute = ProprietariosRouteImport.update({
+  id: '/proprietarios',
+  path: '/proprietarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarPasswordRoute = RecuperarPasswordRouteImport.update({
+  id: '/recuperar-password',
+  path: '/recuperar-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegistosRoute = RegistosRouteImport.update({
+  id: '/registos',
+  path: '/registos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuperAdminRoute = SuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UtilizadoresRoute = UtilizadoresRouteImport.update({
+  id: '/utilizadores',
+  path: '/utilizadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeiculosRoute = VeiculosRouteImport.update({
+  id: '/veiculos',
+  path: '/veiculos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultaCodigoRoute = ConsultaCodigoRouteImport.update({
+  id: '/$codigo',
+  path: '/$codigo',
+  getParentRoute: () => ConsultaRoute,
+} as any)
+const DashboardBicicletasRoute = DashboardBicicletasRouteImport.update({
+  id: '/bicicletas',
+  path: '/bicicletas',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCarrosRoute = DashboardCarrosRouteImport.update({
+  id: '/carros',
+  path: '/carros',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMotorizadasRoute = DashboardMotorizadasRouteImport.update({
+  id: '/motorizadas',
+  path: '/motorizadas',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DefinicoesDocumentosRoute = DefinicoesDocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => DefinicoesRoute,
+} as any)
+const DefinicoesNumeracaoRoute = DefinicoesNumeracaoRouteImport.update({
+  id: '/numeracao',
+  path: '/numeracao',
+  getParentRoute: () => DefinicoesRoute,
+} as any)
+const DefinicoesTaxasRoute = DefinicoesTaxasRouteImport.update({
+  id: '/taxas',
+  path: '/taxas',
+  getParentRoute: () => DefinicoesRoute,
+} as any)
+const FinanceiroIdRoute = FinanceiroIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const FinanceiroNovaRoute = FinanceiroNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const FiscalizacaoHistoricoRoute = FiscalizacaoHistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
+  getParentRoute: () => FiscalizacaoRoute,
+} as any)
+const FiscalizacaoNovaRoute = FiscalizacaoNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => FiscalizacaoRoute,
+} as any)
+const LocalidadesIdRoute = LocalidadesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LocalidadesRoute,
+} as any)
+const MunicipiosIdRoute = MunicipiosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => MunicipiosRoute,
+} as any)
+const PostosAdministrativosIdRoute = PostosAdministrativosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PostosAdministrativosRoute,
+} as any)
+const ProprietariosIdRoute = ProprietariosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ProprietariosRoute,
+} as any)
+const ProprietariosNovoRoute = ProprietariosNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => ProprietariosRoute,
+} as any)
+const QCodigoRoute = QCodigoRouteImport.update({
+  id: '/q/$codigo',
+  path: '/q/$codigo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegistosIdRoute = RegistosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => RegistosRoute,
+} as any)
+const RegistosValidacaoRoute = RegistosValidacaoRouteImport.update({
+  id: '/validacao',
+  path: '/validacao',
+  getParentRoute: () => RegistosRoute,
+} as any)
+const SuperAdminAcessoMunicipalRoute =
+  SuperAdminAcessoMunicipalRouteImport.update({
+    id: '/acesso-municipal',
+    path: '/acesso-municipal',
+    getParentRoute: () => SuperAdminRoute,
+  } as any)
+const SuperAdminAuditoriaRoute = SuperAdminAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminConfiguracoesRoute = SuperAdminConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminLicencasRoute = SuperAdminLicencasRouteImport.update({
+  id: '/licencas',
+  path: '/licencas',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminMunicipiosRoute = SuperAdminMunicipiosRouteImport.update({
+  id: '/municipios',
+  path: '/municipios',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminNotificacoesRoute = SuperAdminNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminPermissoesRoute = SuperAdminPermissoesRouteImport.update({
+  id: '/permissoes',
+  path: '/permissoes',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminRelatoriosRoute = SuperAdminRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminSaudeRoute = SuperAdminSaudeRouteImport.update({
+  id: '/saude',
+  path: '/saude',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminUtilizadoresRoute = SuperAdminUtilizadoresRouteImport.update({
+  id: '/utilizadores',
+  path: '/utilizadores',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const UtilizadoresIdRoute = UtilizadoresIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => UtilizadoresRoute,
+} as any)
+const UtilizadoresNovoRoute = UtilizadoresNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => UtilizadoresRoute,
+} as any)
+const VeiculosIdRoute = VeiculosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VeiculosRoute,
+} as any)
+const VeiculosNovoRoute = VeiculosNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => VeiculosRoute,
+} as any)
+const DashboardTipoStatusRoute = DashboardTipoStatusRouteImport.update({
+  id: '/$tipo/$status',
+  path: '/$tipo/$status',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const FinanceiroReciboIdRoute = FinanceiroReciboIdRouteImport.update({
+  id: '/recibo/$id',
+  path: '/recibo/$id',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const ImprimirQrIdRoute = ImprimirQrIdRouteImport.update({
+  id: '/imprimir/qr/$id',
+  path: '/imprimir/qr/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImprimirVeiculoIdRoute = ImprimirVeiculoIdRouteImport.update({
+  id: '/imprimir/veiculo/$id',
+  path: '/imprimir/veiculo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProprietariosIdDocumentosRoute =
+  ProprietariosIdDocumentosRouteImport.update({
+    id: '/documentos',
+    path: '/documentos',
+    getParentRoute: () => ProprietariosIdRoute,
+  } as any)
+const ProprietariosIdEditarRoute = ProprietariosIdEditarRouteImport.update({
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => ProprietariosIdRoute,
+} as any)
+const RegistosAprovadoIdRoute = RegistosAprovadoIdRouteImport.update({
+  id: '/aprovado/$id',
+  path: '/aprovado/$id',
+  getParentRoute: () => RegistosRoute,
+} as any)
+const RegistosCorrecaoIdRoute = RegistosCorrecaoIdRouteImport.update({
+  id: '/correcao/$id',
+  path: '/correcao/$id',
+  getParentRoute: () => RegistosRoute,
+} as any)
+const RegistosRejeitadoIdRoute = RegistosRejeitadoIdRouteImport.update({
+  id: '/rejeitado/$id',
+  path: '/rejeitado/$id',
+  getParentRoute: () => RegistosRoute,
+} as any)
+const SuperAdminAcessoMunicipalIdRoute =
+  SuperAdminAcessoMunicipalIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => SuperAdminAcessoMunicipalRoute,
+  } as any)
+const SuperAdminLicencasIdRoute = SuperAdminLicencasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SuperAdminLicencasRoute,
+} as any)
+const SuperAdminLicencasNovoRoute = SuperAdminLicencasNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => SuperAdminLicencasRoute,
+} as any)
+const SuperAdminLicencasPlanosRoute =
+  SuperAdminLicencasPlanosRouteImport.update({
+    id: '/planos',
+    path: '/planos',
+    getParentRoute: () => SuperAdminLicencasRoute,
+  } as any)
+const SuperAdminMunicipiosIdRoute = SuperAdminMunicipiosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SuperAdminMunicipiosRoute,
+} as any)
+const SuperAdminMunicipiosNovoRoute =
+  SuperAdminMunicipiosNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => SuperAdminMunicipiosRoute,
+  } as any)
+const SuperAdminPermissoesPerfilRoute =
+  SuperAdminPermissoesPerfilRouteImport.update({
+    id: '/$perfil',
+    path: '/$perfil',
+    getParentRoute: () => SuperAdminPermissoesRoute,
+  } as any)
+const SuperAdminUtilizadoresIdRoute =
+  SuperAdminUtilizadoresIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => SuperAdminUtilizadoresRoute,
+  } as any)
+const SuperAdminUtilizadoresNovoRoute =
+  SuperAdminUtilizadoresNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => SuperAdminUtilizadoresRoute,
+  } as any)
+const VeiculosIdDocumentosRoute = VeiculosIdDocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => VeiculosIdRoute,
+} as any)
+const VeiculosIdEstadoRoute = VeiculosIdEstadoRouteImport.update({
+  id: '/estado',
+  path: '/estado',
+  getParentRoute: () => VeiculosIdRoute,
+} as any)
+const VeiculosIdHistoricoRoute = VeiculosIdHistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
+  getParentRoute: () => VeiculosIdRoute,
+} as any)
+const VeiculosIdTransferirRoute = VeiculosIdTransferirRouteImport.update({
+  id: '/transferir',
+  path: '/transferir',
+  getParentRoute: () => VeiculosIdRoute,
+} as any)
+const VeiculosNovoTipoRoute = VeiculosNovoTipoRouteImport.update({
+  id: '/$tipo',
+  path: '/$tipo',
+  getParentRoute: () => VeiculosNovoRoute,
+} as any)
+const SuperAdminMunicipiosIdEditarRoute =
+  SuperAdminMunicipiosIdEditarRouteImport.update({
+    id: '/editar',
+    path: '/editar',
+    getParentRoute: () => SuperAdminMunicipiosIdRoute,
+  } as any)
+const SuperAdminMunicipiosIdAdministradorNovoRoute =
+  SuperAdminMunicipiosIdAdministradorNovoRouteImport.update({
+    id: '/administrador/novo',
+    path: '/administrador/novo',
+    getParentRoute: () => SuperAdminMunicipiosIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/consulta': typeof ConsultaRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/definicoes': typeof DefinicoesRouteWithChildren
+  '/financeiro': typeof FinanceiroRouteWithChildren
+  '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/municipios': typeof MunicipiosRouteWithChildren
+  '/notificacoes': typeof NotificacoesRoute
+  '/nova-password': typeof NovaPasswordRoute
+  '/permissoes': typeof PermissoesRoute
+  '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
+  '/proprietarios': typeof ProprietariosRouteWithChildren
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/registos': typeof RegistosRouteWithChildren
+  '/relatorios': typeof RelatoriosRoute
+  '/super-admin': typeof SuperAdminRouteWithChildren
+  '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/veiculos': typeof VeiculosRouteWithChildren
+  '/consulta/$codigo': typeof ConsultaCodigoRoute
+  '/dashboard/bicicletas': typeof DashboardBicicletasRoute
+  '/dashboard/carros': typeof DashboardCarrosRoute
+  '/dashboard/motorizadas': typeof DashboardMotorizadasRoute
+  '/definicoes/documentos': typeof DefinicoesDocumentosRoute
+  '/definicoes/numeracao': typeof DefinicoesNumeracaoRoute
+  '/definicoes/taxas': typeof DefinicoesTaxasRoute
+  '/financeiro/$id': typeof FinanceiroIdRoute
+  '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
+  '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
+  '/localidades/$id': typeof LocalidadesIdRoute
+  '/municipios/$id': typeof MunicipiosIdRoute
+  '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
+  '/proprietarios/novo': typeof ProprietariosNovoRoute
+  '/q/$codigo': typeof QCodigoRoute
+  '/registos/$id': typeof RegistosIdRoute
+  '/registos/validacao': typeof RegistosValidacaoRoute
+  '/super-admin/acesso-municipal': typeof SuperAdminAcessoMunicipalRouteWithChildren
+  '/super-admin/auditoria': typeof SuperAdminAuditoriaRoute
+  '/super-admin/configuracoes': typeof SuperAdminConfiguracoesRoute
+  '/super-admin/licencas': typeof SuperAdminLicencasRouteWithChildren
+  '/super-admin/municipios': typeof SuperAdminMunicipiosRouteWithChildren
+  '/super-admin/notificacoes': typeof SuperAdminNotificacoesRoute
+  '/super-admin/permissoes': typeof SuperAdminPermissoesRouteWithChildren
+  '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
+  '/super-admin/saude': typeof SuperAdminSaudeRoute
+  '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/utilizadores/$id': typeof UtilizadoresIdRoute
+  '/utilizadores/novo': typeof UtilizadoresNovoRoute
+  '/veiculos/$id': typeof VeiculosIdRouteWithChildren
+  '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
+  '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
+  '/imprimir/qr/$id': typeof ImprimirQrIdRoute
+  '/imprimir/veiculo/$id': typeof ImprimirVeiculoIdRoute
+  '/proprietarios/$id/documentos': typeof ProprietariosIdDocumentosRoute
+  '/proprietarios/$id/editar': typeof ProprietariosIdEditarRoute
+  '/registos/aprovado/$id': typeof RegistosAprovadoIdRoute
+  '/registos/correcao/$id': typeof RegistosCorrecaoIdRoute
+  '/registos/rejeitado/$id': typeof RegistosRejeitadoIdRoute
+  '/super-admin/acesso-municipal/$id': typeof SuperAdminAcessoMunicipalIdRoute
+  '/super-admin/licencas/$id': typeof SuperAdminLicencasIdRoute
+  '/super-admin/licencas/novo': typeof SuperAdminLicencasNovoRoute
+  '/super-admin/licencas/planos': typeof SuperAdminLicencasPlanosRoute
+  '/super-admin/municipios/$id': typeof SuperAdminMunicipiosIdRouteWithChildren
+  '/super-admin/municipios/novo': typeof SuperAdminMunicipiosNovoRoute
+  '/super-admin/permissoes/$perfil': typeof SuperAdminPermissoesPerfilRoute
+  '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
+  '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
+  '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
+  '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
+  '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
+  '/veiculos/novo/$tipo': typeof VeiculosNovoTipoRoute
+  '/super-admin/municipios/$id/editar': typeof SuperAdminMunicipiosIdEditarRoute
+  '/super-admin/municipios/$id/administrador/novo': typeof SuperAdminMunicipiosIdAdministradorNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/consulta': typeof ConsultaRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/definicoes': typeof DefinicoesRouteWithChildren
+  '/financeiro': typeof FinanceiroRouteWithChildren
+  '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/municipios': typeof MunicipiosRouteWithChildren
+  '/notificacoes': typeof NotificacoesRoute
+  '/nova-password': typeof NovaPasswordRoute
+  '/permissoes': typeof PermissoesRoute
+  '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
+  '/proprietarios': typeof ProprietariosRouteWithChildren
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/registos': typeof RegistosRouteWithChildren
+  '/relatorios': typeof RelatoriosRoute
+  '/super-admin': typeof SuperAdminRouteWithChildren
+  '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/veiculos': typeof VeiculosRouteWithChildren
+  '/consulta/$codigo': typeof ConsultaCodigoRoute
+  '/dashboard/bicicletas': typeof DashboardBicicletasRoute
+  '/dashboard/carros': typeof DashboardCarrosRoute
+  '/dashboard/motorizadas': typeof DashboardMotorizadasRoute
+  '/definicoes/documentos': typeof DefinicoesDocumentosRoute
+  '/definicoes/numeracao': typeof DefinicoesNumeracaoRoute
+  '/definicoes/taxas': typeof DefinicoesTaxasRoute
+  '/financeiro/$id': typeof FinanceiroIdRoute
+  '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
+  '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
+  '/localidades/$id': typeof LocalidadesIdRoute
+  '/municipios/$id': typeof MunicipiosIdRoute
+  '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
+  '/proprietarios/novo': typeof ProprietariosNovoRoute
+  '/q/$codigo': typeof QCodigoRoute
+  '/registos/$id': typeof RegistosIdRoute
+  '/registos/validacao': typeof RegistosValidacaoRoute
+  '/super-admin/acesso-municipal': typeof SuperAdminAcessoMunicipalRouteWithChildren
+  '/super-admin/auditoria': typeof SuperAdminAuditoriaRoute
+  '/super-admin/configuracoes': typeof SuperAdminConfiguracoesRoute
+  '/super-admin/licencas': typeof SuperAdminLicencasRouteWithChildren
+  '/super-admin/municipios': typeof SuperAdminMunicipiosRouteWithChildren
+  '/super-admin/notificacoes': typeof SuperAdminNotificacoesRoute
+  '/super-admin/permissoes': typeof SuperAdminPermissoesRouteWithChildren
+  '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
+  '/super-admin/saude': typeof SuperAdminSaudeRoute
+  '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/utilizadores/$id': typeof UtilizadoresIdRoute
+  '/utilizadores/novo': typeof UtilizadoresNovoRoute
+  '/veiculos/$id': typeof VeiculosIdRouteWithChildren
+  '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
+  '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
+  '/imprimir/qr/$id': typeof ImprimirQrIdRoute
+  '/imprimir/veiculo/$id': typeof ImprimirVeiculoIdRoute
+  '/proprietarios/$id/documentos': typeof ProprietariosIdDocumentosRoute
+  '/proprietarios/$id/editar': typeof ProprietariosIdEditarRoute
+  '/registos/aprovado/$id': typeof RegistosAprovadoIdRoute
+  '/registos/correcao/$id': typeof RegistosCorrecaoIdRoute
+  '/registos/rejeitado/$id': typeof RegistosRejeitadoIdRoute
+  '/super-admin/acesso-municipal/$id': typeof SuperAdminAcessoMunicipalIdRoute
+  '/super-admin/licencas/$id': typeof SuperAdminLicencasIdRoute
+  '/super-admin/licencas/novo': typeof SuperAdminLicencasNovoRoute
+  '/super-admin/licencas/planos': typeof SuperAdminLicencasPlanosRoute
+  '/super-admin/municipios/$id': typeof SuperAdminMunicipiosIdRouteWithChildren
+  '/super-admin/municipios/novo': typeof SuperAdminMunicipiosNovoRoute
+  '/super-admin/permissoes/$perfil': typeof SuperAdminPermissoesPerfilRoute
+  '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
+  '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
+  '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
+  '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
+  '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
+  '/veiculos/novo/$tipo': typeof VeiculosNovoTipoRoute
+  '/super-admin/municipios/$id/editar': typeof SuperAdminMunicipiosIdEditarRoute
+  '/super-admin/municipios/$id/administrador/novo': typeof SuperAdminMunicipiosIdAdministradorNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/consulta': typeof ConsultaRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/definicoes': typeof DefinicoesRouteWithChildren
+  '/financeiro': typeof FinanceiroRouteWithChildren
+  '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/municipios': typeof MunicipiosRouteWithChildren
+  '/notificacoes': typeof NotificacoesRoute
+  '/nova-password': typeof NovaPasswordRoute
+  '/permissoes': typeof PermissoesRoute
+  '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
+  '/proprietarios': typeof ProprietariosRouteWithChildren
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/registos': typeof RegistosRouteWithChildren
+  '/relatorios': typeof RelatoriosRoute
+  '/super-admin': typeof SuperAdminRouteWithChildren
+  '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/veiculos': typeof VeiculosRouteWithChildren
+  '/consulta/$codigo': typeof ConsultaCodigoRoute
+  '/dashboard/bicicletas': typeof DashboardBicicletasRoute
+  '/dashboard/carros': typeof DashboardCarrosRoute
+  '/dashboard/motorizadas': typeof DashboardMotorizadasRoute
+  '/definicoes/documentos': typeof DefinicoesDocumentosRoute
+  '/definicoes/numeracao': typeof DefinicoesNumeracaoRoute
+  '/definicoes/taxas': typeof DefinicoesTaxasRoute
+  '/financeiro/$id': typeof FinanceiroIdRoute
+  '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
+  '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
+  '/localidades/$id': typeof LocalidadesIdRoute
+  '/municipios/$id': typeof MunicipiosIdRoute
+  '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
+  '/proprietarios/novo': typeof ProprietariosNovoRoute
+  '/q/$codigo': typeof QCodigoRoute
+  '/registos/$id': typeof RegistosIdRoute
+  '/registos/validacao': typeof RegistosValidacaoRoute
+  '/super-admin/acesso-municipal': typeof SuperAdminAcessoMunicipalRouteWithChildren
+  '/super-admin/auditoria': typeof SuperAdminAuditoriaRoute
+  '/super-admin/configuracoes': typeof SuperAdminConfiguracoesRoute
+  '/super-admin/licencas': typeof SuperAdminLicencasRouteWithChildren
+  '/super-admin/municipios': typeof SuperAdminMunicipiosRouteWithChildren
+  '/super-admin/notificacoes': typeof SuperAdminNotificacoesRoute
+  '/super-admin/permissoes': typeof SuperAdminPermissoesRouteWithChildren
+  '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
+  '/super-admin/saude': typeof SuperAdminSaudeRoute
+  '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/utilizadores/$id': typeof UtilizadoresIdRoute
+  '/utilizadores/novo': typeof UtilizadoresNovoRoute
+  '/veiculos/$id': typeof VeiculosIdRouteWithChildren
+  '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
+  '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
+  '/imprimir/qr/$id': typeof ImprimirQrIdRoute
+  '/imprimir/veiculo/$id': typeof ImprimirVeiculoIdRoute
+  '/proprietarios/$id/documentos': typeof ProprietariosIdDocumentosRoute
+  '/proprietarios/$id/editar': typeof ProprietariosIdEditarRoute
+  '/registos/aprovado/$id': typeof RegistosAprovadoIdRoute
+  '/registos/correcao/$id': typeof RegistosCorrecaoIdRoute
+  '/registos/rejeitado/$id': typeof RegistosRejeitadoIdRoute
+  '/super-admin/acesso-municipal/$id': typeof SuperAdminAcessoMunicipalIdRoute
+  '/super-admin/licencas/$id': typeof SuperAdminLicencasIdRoute
+  '/super-admin/licencas/novo': typeof SuperAdminLicencasNovoRoute
+  '/super-admin/licencas/planos': typeof SuperAdminLicencasPlanosRoute
+  '/super-admin/municipios/$id': typeof SuperAdminMunicipiosIdRouteWithChildren
+  '/super-admin/municipios/novo': typeof SuperAdminMunicipiosNovoRoute
+  '/super-admin/permissoes/$perfil': typeof SuperAdminPermissoesPerfilRoute
+  '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
+  '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
+  '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
+  '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
+  '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
+  '/veiculos/novo/$tipo': typeof VeiculosNovoTipoRoute
+  '/super-admin/municipios/$id/editar': typeof SuperAdminMunicipiosIdEditarRoute
+  '/super-admin/municipios/$id/administrador/novo': typeof SuperAdminMunicipiosIdAdministradorNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login'
+  fullPaths:
+    | '/'
+    | '/auditoria'
+    | '/consulta'
+    | '/dashboard'
+    | '/definicoes'
+    | '/financeiro'
+    | '/fiscalizacao'
+    | '/localidades'
+    | '/login'
+    | '/municipios'
+    | '/notificacoes'
+    | '/nova-password'
+    | '/permissoes'
+    | '/postos-administrativos'
+    | '/proprietarios'
+    | '/recuperar-password'
+    | '/registos'
+    | '/relatorios'
+    | '/super-admin'
+    | '/utilizadores'
+    | '/veiculos'
+    | '/consulta/$codigo'
+    | '/dashboard/bicicletas'
+    | '/dashboard/carros'
+    | '/dashboard/motorizadas'
+    | '/definicoes/documentos'
+    | '/definicoes/numeracao'
+    | '/definicoes/taxas'
+    | '/financeiro/$id'
+    | '/financeiro/nova'
+    | '/fiscalizacao/historico'
+    | '/fiscalizacao/nova'
+    | '/localidades/$id'
+    | '/municipios/$id'
+    | '/postos-administrativos/$id'
+    | '/proprietarios/$id'
+    | '/proprietarios/novo'
+    | '/q/$codigo'
+    | '/registos/$id'
+    | '/registos/validacao'
+    | '/super-admin/acesso-municipal'
+    | '/super-admin/auditoria'
+    | '/super-admin/configuracoes'
+    | '/super-admin/licencas'
+    | '/super-admin/municipios'
+    | '/super-admin/notificacoes'
+    | '/super-admin/permissoes'
+    | '/super-admin/relatorios'
+    | '/super-admin/saude'
+    | '/super-admin/utilizadores'
+    | '/utilizadores/$id'
+    | '/utilizadores/novo'
+    | '/veiculos/$id'
+    | '/veiculos/novo'
+    | '/dashboard/$tipo/$status'
+    | '/financeiro/recibo/$id'
+    | '/imprimir/qr/$id'
+    | '/imprimir/veiculo/$id'
+    | '/proprietarios/$id/documentos'
+    | '/proprietarios/$id/editar'
+    | '/registos/aprovado/$id'
+    | '/registos/correcao/$id'
+    | '/registos/rejeitado/$id'
+    | '/super-admin/acesso-municipal/$id'
+    | '/super-admin/licencas/$id'
+    | '/super-admin/licencas/novo'
+    | '/super-admin/licencas/planos'
+    | '/super-admin/municipios/$id'
+    | '/super-admin/municipios/novo'
+    | '/super-admin/permissoes/$perfil'
+    | '/super-admin/utilizadores/$id'
+    | '/super-admin/utilizadores/novo'
+    | '/veiculos/$id/documentos'
+    | '/veiculos/$id/estado'
+    | '/veiculos/$id/historico'
+    | '/veiculos/$id/transferir'
+    | '/veiculos/novo/$tipo'
+    | '/super-admin/municipios/$id/editar'
+    | '/super-admin/municipios/$id/administrador/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login'
-  id: '__root__' | '/' | '/dashboard' | '/login'
+  to:
+    | '/'
+    | '/auditoria'
+    | '/consulta'
+    | '/dashboard'
+    | '/definicoes'
+    | '/financeiro'
+    | '/fiscalizacao'
+    | '/localidades'
+    | '/login'
+    | '/municipios'
+    | '/notificacoes'
+    | '/nova-password'
+    | '/permissoes'
+    | '/postos-administrativos'
+    | '/proprietarios'
+    | '/recuperar-password'
+    | '/registos'
+    | '/relatorios'
+    | '/super-admin'
+    | '/utilizadores'
+    | '/veiculos'
+    | '/consulta/$codigo'
+    | '/dashboard/bicicletas'
+    | '/dashboard/carros'
+    | '/dashboard/motorizadas'
+    | '/definicoes/documentos'
+    | '/definicoes/numeracao'
+    | '/definicoes/taxas'
+    | '/financeiro/$id'
+    | '/financeiro/nova'
+    | '/fiscalizacao/historico'
+    | '/fiscalizacao/nova'
+    | '/localidades/$id'
+    | '/municipios/$id'
+    | '/postos-administrativos/$id'
+    | '/proprietarios/$id'
+    | '/proprietarios/novo'
+    | '/q/$codigo'
+    | '/registos/$id'
+    | '/registos/validacao'
+    | '/super-admin/acesso-municipal'
+    | '/super-admin/auditoria'
+    | '/super-admin/configuracoes'
+    | '/super-admin/licencas'
+    | '/super-admin/municipios'
+    | '/super-admin/notificacoes'
+    | '/super-admin/permissoes'
+    | '/super-admin/relatorios'
+    | '/super-admin/saude'
+    | '/super-admin/utilizadores'
+    | '/utilizadores/$id'
+    | '/utilizadores/novo'
+    | '/veiculos/$id'
+    | '/veiculos/novo'
+    | '/dashboard/$tipo/$status'
+    | '/financeiro/recibo/$id'
+    | '/imprimir/qr/$id'
+    | '/imprimir/veiculo/$id'
+    | '/proprietarios/$id/documentos'
+    | '/proprietarios/$id/editar'
+    | '/registos/aprovado/$id'
+    | '/registos/correcao/$id'
+    | '/registos/rejeitado/$id'
+    | '/super-admin/acesso-municipal/$id'
+    | '/super-admin/licencas/$id'
+    | '/super-admin/licencas/novo'
+    | '/super-admin/licencas/planos'
+    | '/super-admin/municipios/$id'
+    | '/super-admin/municipios/novo'
+    | '/super-admin/permissoes/$perfil'
+    | '/super-admin/utilizadores/$id'
+    | '/super-admin/utilizadores/novo'
+    | '/veiculos/$id/documentos'
+    | '/veiculos/$id/estado'
+    | '/veiculos/$id/historico'
+    | '/veiculos/$id/transferir'
+    | '/veiculos/novo/$tipo'
+    | '/super-admin/municipios/$id/editar'
+    | '/super-admin/municipios/$id/administrador/novo'
+  id:
+    | '__root__'
+    | '/'
+    | '/auditoria'
+    | '/consulta'
+    | '/dashboard'
+    | '/definicoes'
+    | '/financeiro'
+    | '/fiscalizacao'
+    | '/localidades'
+    | '/login'
+    | '/municipios'
+    | '/notificacoes'
+    | '/nova-password'
+    | '/permissoes'
+    | '/postos-administrativos'
+    | '/proprietarios'
+    | '/recuperar-password'
+    | '/registos'
+    | '/relatorios'
+    | '/super-admin'
+    | '/utilizadores'
+    | '/veiculos'
+    | '/consulta/$codigo'
+    | '/dashboard/bicicletas'
+    | '/dashboard/carros'
+    | '/dashboard/motorizadas'
+    | '/definicoes/documentos'
+    | '/definicoes/numeracao'
+    | '/definicoes/taxas'
+    | '/financeiro/$id'
+    | '/financeiro/nova'
+    | '/fiscalizacao/historico'
+    | '/fiscalizacao/nova'
+    | '/localidades/$id'
+    | '/municipios/$id'
+    | '/postos-administrativos/$id'
+    | '/proprietarios/$id'
+    | '/proprietarios/novo'
+    | '/q/$codigo'
+    | '/registos/$id'
+    | '/registos/validacao'
+    | '/super-admin/acesso-municipal'
+    | '/super-admin/auditoria'
+    | '/super-admin/configuracoes'
+    | '/super-admin/licencas'
+    | '/super-admin/municipios'
+    | '/super-admin/notificacoes'
+    | '/super-admin/permissoes'
+    | '/super-admin/relatorios'
+    | '/super-admin/saude'
+    | '/super-admin/utilizadores'
+    | '/utilizadores/$id'
+    | '/utilizadores/novo'
+    | '/veiculos/$id'
+    | '/veiculos/novo'
+    | '/dashboard/$tipo/$status'
+    | '/financeiro/recibo/$id'
+    | '/imprimir/qr/$id'
+    | '/imprimir/veiculo/$id'
+    | '/proprietarios/$id/documentos'
+    | '/proprietarios/$id/editar'
+    | '/registos/aprovado/$id'
+    | '/registos/correcao/$id'
+    | '/registos/rejeitado/$id'
+    | '/super-admin/acesso-municipal/$id'
+    | '/super-admin/licencas/$id'
+    | '/super-admin/licencas/novo'
+    | '/super-admin/licencas/planos'
+    | '/super-admin/municipios/$id'
+    | '/super-admin/municipios/novo'
+    | '/super-admin/permissoes/$perfil'
+    | '/super-admin/utilizadores/$id'
+    | '/super-admin/utilizadores/novo'
+    | '/veiculos/$id/documentos'
+    | '/veiculos/$id/estado'
+    | '/veiculos/$id/historico'
+    | '/veiculos/$id/transferir'
+    | '/veiculos/novo/$tipo'
+    | '/super-admin/municipios/$id/editar'
+    | '/super-admin/municipios/$id/administrador/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  AuditoriaRoute: typeof AuditoriaRoute
+  ConsultaRoute: typeof ConsultaRouteWithChildren
+  DashboardRoute: typeof DashboardRouteWithChildren
+  DefinicoesRoute: typeof DefinicoesRouteWithChildren
+  FinanceiroRoute: typeof FinanceiroRouteWithChildren
+  FiscalizacaoRoute: typeof FiscalizacaoRouteWithChildren
+  LocalidadesRoute: typeof LocalidadesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MunicipiosRoute: typeof MunicipiosRouteWithChildren
+  NotificacoesRoute: typeof NotificacoesRoute
+  NovaPasswordRoute: typeof NovaPasswordRoute
+  PermissoesRoute: typeof PermissoesRoute
+  PostosAdministrativosRoute: typeof PostosAdministrativosRouteWithChildren
+  ProprietariosRoute: typeof ProprietariosRouteWithChildren
+  RecuperarPasswordRoute: typeof RecuperarPasswordRoute
+  RegistosRoute: typeof RegistosRouteWithChildren
+  RelatoriosRoute: typeof RelatoriosRoute
+  SuperAdminRoute: typeof SuperAdminRouteWithChildren
+  UtilizadoresRoute: typeof UtilizadoresRouteWithChildren
+  VeiculosRoute: typeof VeiculosRouteWithChildren
+  QCodigoRoute: typeof QCodigoRoute
+  ImprimirQrIdRoute: typeof ImprimirQrIdRoute
+  ImprimirVeiculoIdRoute: typeof ImprimirVeiculoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +1021,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consulta': {
+      id: '/consulta'
+      path: '/consulta'
+      fullPath: '/consulta'
+      preLoaderRoute: typeof ConsultaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/definicoes': {
+      id: '/definicoes'
+      path: '/definicoes'
+      fullPath: '/definicoes'
+      preLoaderRoute: typeof DefinicoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fiscalizacao': {
+      id: '/fiscalizacao'
+      path: '/fiscalizacao'
+      fullPath: '/fiscalizacao'
+      preLoaderRoute: typeof FiscalizacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/localidades': {
+      id: '/localidades'
+      path: '/localidades'
+      fullPath: '/localidades'
+      preLoaderRoute: typeof LocalidadesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -82,13 +1077,859 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/municipios': {
+      id: '/municipios'
+      path: '/municipios'
+      fullPath: '/municipios'
+      preLoaderRoute: typeof MunicipiosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificacoes': {
+      id: '/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof NotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nova-password': {
+      id: '/nova-password'
+      path: '/nova-password'
+      fullPath: '/nova-password'
+      preLoaderRoute: typeof NovaPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/permissoes': {
+      id: '/permissoes'
+      path: '/permissoes'
+      fullPath: '/permissoes'
+      preLoaderRoute: typeof PermissoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/postos-administrativos': {
+      id: '/postos-administrativos'
+      path: '/postos-administrativos'
+      fullPath: '/postos-administrativos'
+      preLoaderRoute: typeof PostosAdministrativosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proprietarios': {
+      id: '/proprietarios'
+      path: '/proprietarios'
+      fullPath: '/proprietarios'
+      preLoaderRoute: typeof ProprietariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-password': {
+      id: '/recuperar-password'
+      path: '/recuperar-password'
+      fullPath: '/recuperar-password'
+      preLoaderRoute: typeof RecuperarPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registos': {
+      id: '/registos'
+      path: '/registos'
+      fullPath: '/registos'
+      preLoaderRoute: typeof RegistosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/super-admin': {
+      id: '/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof SuperAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/utilizadores': {
+      id: '/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/utilizadores'
+      preLoaderRoute: typeof UtilizadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veiculos': {
+      id: '/veiculos'
+      path: '/veiculos'
+      fullPath: '/veiculos'
+      preLoaderRoute: typeof VeiculosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consulta/$codigo': {
+      id: '/consulta/$codigo'
+      path: '/$codigo'
+      fullPath: '/consulta/$codigo'
+      preLoaderRoute: typeof ConsultaCodigoRouteImport
+      parentRoute: typeof ConsultaRoute
+    }
+    '/dashboard/bicicletas': {
+      id: '/dashboard/bicicletas'
+      path: '/bicicletas'
+      fullPath: '/dashboard/bicicletas'
+      preLoaderRoute: typeof DashboardBicicletasRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/carros': {
+      id: '/dashboard/carros'
+      path: '/carros'
+      fullPath: '/dashboard/carros'
+      preLoaderRoute: typeof DashboardCarrosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/motorizadas': {
+      id: '/dashboard/motorizadas'
+      path: '/motorizadas'
+      fullPath: '/dashboard/motorizadas'
+      preLoaderRoute: typeof DashboardMotorizadasRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/definicoes/documentos': {
+      id: '/definicoes/documentos'
+      path: '/documentos'
+      fullPath: '/definicoes/documentos'
+      preLoaderRoute: typeof DefinicoesDocumentosRouteImport
+      parentRoute: typeof DefinicoesRoute
+    }
+    '/definicoes/numeracao': {
+      id: '/definicoes/numeracao'
+      path: '/numeracao'
+      fullPath: '/definicoes/numeracao'
+      preLoaderRoute: typeof DefinicoesNumeracaoRouteImport
+      parentRoute: typeof DefinicoesRoute
+    }
+    '/definicoes/taxas': {
+      id: '/definicoes/taxas'
+      path: '/taxas'
+      fullPath: '/definicoes/taxas'
+      preLoaderRoute: typeof DefinicoesTaxasRouteImport
+      parentRoute: typeof DefinicoesRoute
+    }
+    '/financeiro/$id': {
+      id: '/financeiro/$id'
+      path: '/$id'
+      fullPath: '/financeiro/$id'
+      preLoaderRoute: typeof FinanceiroIdRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/financeiro/nova': {
+      id: '/financeiro/nova'
+      path: '/nova'
+      fullPath: '/financeiro/nova'
+      preLoaderRoute: typeof FinanceiroNovaRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/fiscalizacao/historico': {
+      id: '/fiscalizacao/historico'
+      path: '/historico'
+      fullPath: '/fiscalizacao/historico'
+      preLoaderRoute: typeof FiscalizacaoHistoricoRouteImport
+      parentRoute: typeof FiscalizacaoRoute
+    }
+    '/fiscalizacao/nova': {
+      id: '/fiscalizacao/nova'
+      path: '/nova'
+      fullPath: '/fiscalizacao/nova'
+      preLoaderRoute: typeof FiscalizacaoNovaRouteImport
+      parentRoute: typeof FiscalizacaoRoute
+    }
+    '/localidades/$id': {
+      id: '/localidades/$id'
+      path: '/$id'
+      fullPath: '/localidades/$id'
+      preLoaderRoute: typeof LocalidadesIdRouteImport
+      parentRoute: typeof LocalidadesRoute
+    }
+    '/municipios/$id': {
+      id: '/municipios/$id'
+      path: '/$id'
+      fullPath: '/municipios/$id'
+      preLoaderRoute: typeof MunicipiosIdRouteImport
+      parentRoute: typeof MunicipiosRoute
+    }
+    '/postos-administrativos/$id': {
+      id: '/postos-administrativos/$id'
+      path: '/$id'
+      fullPath: '/postos-administrativos/$id'
+      preLoaderRoute: typeof PostosAdministrativosIdRouteImport
+      parentRoute: typeof PostosAdministrativosRoute
+    }
+    '/proprietarios/$id': {
+      id: '/proprietarios/$id'
+      path: '/$id'
+      fullPath: '/proprietarios/$id'
+      preLoaderRoute: typeof ProprietariosIdRouteImport
+      parentRoute: typeof ProprietariosRoute
+    }
+    '/proprietarios/novo': {
+      id: '/proprietarios/novo'
+      path: '/novo'
+      fullPath: '/proprietarios/novo'
+      preLoaderRoute: typeof ProprietariosNovoRouteImport
+      parentRoute: typeof ProprietariosRoute
+    }
+    '/q/$codigo': {
+      id: '/q/$codigo'
+      path: '/q/$codigo'
+      fullPath: '/q/$codigo'
+      preLoaderRoute: typeof QCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registos/$id': {
+      id: '/registos/$id'
+      path: '/$id'
+      fullPath: '/registos/$id'
+      preLoaderRoute: typeof RegistosIdRouteImport
+      parentRoute: typeof RegistosRoute
+    }
+    '/registos/validacao': {
+      id: '/registos/validacao'
+      path: '/validacao'
+      fullPath: '/registos/validacao'
+      preLoaderRoute: typeof RegistosValidacaoRouteImport
+      parentRoute: typeof RegistosRoute
+    }
+    '/super-admin/acesso-municipal': {
+      id: '/super-admin/acesso-municipal'
+      path: '/acesso-municipal'
+      fullPath: '/super-admin/acesso-municipal'
+      preLoaderRoute: typeof SuperAdminAcessoMunicipalRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/auditoria': {
+      id: '/super-admin/auditoria'
+      path: '/auditoria'
+      fullPath: '/super-admin/auditoria'
+      preLoaderRoute: typeof SuperAdminAuditoriaRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/configuracoes': {
+      id: '/super-admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/super-admin/configuracoes'
+      preLoaderRoute: typeof SuperAdminConfiguracoesRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/licencas': {
+      id: '/super-admin/licencas'
+      path: '/licencas'
+      fullPath: '/super-admin/licencas'
+      preLoaderRoute: typeof SuperAdminLicencasRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/municipios': {
+      id: '/super-admin/municipios'
+      path: '/municipios'
+      fullPath: '/super-admin/municipios'
+      preLoaderRoute: typeof SuperAdminMunicipiosRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/notificacoes': {
+      id: '/super-admin/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/super-admin/notificacoes'
+      preLoaderRoute: typeof SuperAdminNotificacoesRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/permissoes': {
+      id: '/super-admin/permissoes'
+      path: '/permissoes'
+      fullPath: '/super-admin/permissoes'
+      preLoaderRoute: typeof SuperAdminPermissoesRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/relatorios': {
+      id: '/super-admin/relatorios'
+      path: '/relatorios'
+      fullPath: '/super-admin/relatorios'
+      preLoaderRoute: typeof SuperAdminRelatoriosRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/saude': {
+      id: '/super-admin/saude'
+      path: '/saude'
+      fullPath: '/super-admin/saude'
+      preLoaderRoute: typeof SuperAdminSaudeRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/utilizadores': {
+      id: '/super-admin/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/super-admin/utilizadores'
+      preLoaderRoute: typeof SuperAdminUtilizadoresRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/utilizadores/$id': {
+      id: '/utilizadores/$id'
+      path: '/$id'
+      fullPath: '/utilizadores/$id'
+      preLoaderRoute: typeof UtilizadoresIdRouteImport
+      parentRoute: typeof UtilizadoresRoute
+    }
+    '/utilizadores/novo': {
+      id: '/utilizadores/novo'
+      path: '/novo'
+      fullPath: '/utilizadores/novo'
+      preLoaderRoute: typeof UtilizadoresNovoRouteImport
+      parentRoute: typeof UtilizadoresRoute
+    }
+    '/veiculos/$id': {
+      id: '/veiculos/$id'
+      path: '/$id'
+      fullPath: '/veiculos/$id'
+      preLoaderRoute: typeof VeiculosIdRouteImport
+      parentRoute: typeof VeiculosRoute
+    }
+    '/veiculos/novo': {
+      id: '/veiculos/novo'
+      path: '/novo'
+      fullPath: '/veiculos/novo'
+      preLoaderRoute: typeof VeiculosNovoRouteImport
+      parentRoute: typeof VeiculosRoute
+    }
+    '/dashboard/$tipo/$status': {
+      id: '/dashboard/$tipo/$status'
+      path: '/$tipo/$status'
+      fullPath: '/dashboard/$tipo/$status'
+      preLoaderRoute: typeof DashboardTipoStatusRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/financeiro/recibo/$id': {
+      id: '/financeiro/recibo/$id'
+      path: '/recibo/$id'
+      fullPath: '/financeiro/recibo/$id'
+      preLoaderRoute: typeof FinanceiroReciboIdRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/imprimir/qr/$id': {
+      id: '/imprimir/qr/$id'
+      path: '/imprimir/qr/$id'
+      fullPath: '/imprimir/qr/$id'
+      preLoaderRoute: typeof ImprimirQrIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/imprimir/veiculo/$id': {
+      id: '/imprimir/veiculo/$id'
+      path: '/imprimir/veiculo/$id'
+      fullPath: '/imprimir/veiculo/$id'
+      preLoaderRoute: typeof ImprimirVeiculoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proprietarios/$id/documentos': {
+      id: '/proprietarios/$id/documentos'
+      path: '/documentos'
+      fullPath: '/proprietarios/$id/documentos'
+      preLoaderRoute: typeof ProprietariosIdDocumentosRouteImport
+      parentRoute: typeof ProprietariosIdRoute
+    }
+    '/proprietarios/$id/editar': {
+      id: '/proprietarios/$id/editar'
+      path: '/editar'
+      fullPath: '/proprietarios/$id/editar'
+      preLoaderRoute: typeof ProprietariosIdEditarRouteImport
+      parentRoute: typeof ProprietariosIdRoute
+    }
+    '/registos/aprovado/$id': {
+      id: '/registos/aprovado/$id'
+      path: '/aprovado/$id'
+      fullPath: '/registos/aprovado/$id'
+      preLoaderRoute: typeof RegistosAprovadoIdRouteImport
+      parentRoute: typeof RegistosRoute
+    }
+    '/registos/correcao/$id': {
+      id: '/registos/correcao/$id'
+      path: '/correcao/$id'
+      fullPath: '/registos/correcao/$id'
+      preLoaderRoute: typeof RegistosCorrecaoIdRouteImport
+      parentRoute: typeof RegistosRoute
+    }
+    '/registos/rejeitado/$id': {
+      id: '/registos/rejeitado/$id'
+      path: '/rejeitado/$id'
+      fullPath: '/registos/rejeitado/$id'
+      preLoaderRoute: typeof RegistosRejeitadoIdRouteImport
+      parentRoute: typeof RegistosRoute
+    }
+    '/super-admin/acesso-municipal/$id': {
+      id: '/super-admin/acesso-municipal/$id'
+      path: '/$id'
+      fullPath: '/super-admin/acesso-municipal/$id'
+      preLoaderRoute: typeof SuperAdminAcessoMunicipalIdRouteImport
+      parentRoute: typeof SuperAdminAcessoMunicipalRoute
+    }
+    '/super-admin/licencas/$id': {
+      id: '/super-admin/licencas/$id'
+      path: '/$id'
+      fullPath: '/super-admin/licencas/$id'
+      preLoaderRoute: typeof SuperAdminLicencasIdRouteImport
+      parentRoute: typeof SuperAdminLicencasRoute
+    }
+    '/super-admin/licencas/novo': {
+      id: '/super-admin/licencas/novo'
+      path: '/novo'
+      fullPath: '/super-admin/licencas/novo'
+      preLoaderRoute: typeof SuperAdminLicencasNovoRouteImport
+      parentRoute: typeof SuperAdminLicencasRoute
+    }
+    '/super-admin/licencas/planos': {
+      id: '/super-admin/licencas/planos'
+      path: '/planos'
+      fullPath: '/super-admin/licencas/planos'
+      preLoaderRoute: typeof SuperAdminLicencasPlanosRouteImport
+      parentRoute: typeof SuperAdminLicencasRoute
+    }
+    '/super-admin/municipios/$id': {
+      id: '/super-admin/municipios/$id'
+      path: '/$id'
+      fullPath: '/super-admin/municipios/$id'
+      preLoaderRoute: typeof SuperAdminMunicipiosIdRouteImport
+      parentRoute: typeof SuperAdminMunicipiosRoute
+    }
+    '/super-admin/municipios/novo': {
+      id: '/super-admin/municipios/novo'
+      path: '/novo'
+      fullPath: '/super-admin/municipios/novo'
+      preLoaderRoute: typeof SuperAdminMunicipiosNovoRouteImport
+      parentRoute: typeof SuperAdminMunicipiosRoute
+    }
+    '/super-admin/permissoes/$perfil': {
+      id: '/super-admin/permissoes/$perfil'
+      path: '/$perfil'
+      fullPath: '/super-admin/permissoes/$perfil'
+      preLoaderRoute: typeof SuperAdminPermissoesPerfilRouteImport
+      parentRoute: typeof SuperAdminPermissoesRoute
+    }
+    '/super-admin/utilizadores/$id': {
+      id: '/super-admin/utilizadores/$id'
+      path: '/$id'
+      fullPath: '/super-admin/utilizadores/$id'
+      preLoaderRoute: typeof SuperAdminUtilizadoresIdRouteImport
+      parentRoute: typeof SuperAdminUtilizadoresRoute
+    }
+    '/super-admin/utilizadores/novo': {
+      id: '/super-admin/utilizadores/novo'
+      path: '/novo'
+      fullPath: '/super-admin/utilizadores/novo'
+      preLoaderRoute: typeof SuperAdminUtilizadoresNovoRouteImport
+      parentRoute: typeof SuperAdminUtilizadoresRoute
+    }
+    '/veiculos/$id/documentos': {
+      id: '/veiculos/$id/documentos'
+      path: '/documentos'
+      fullPath: '/veiculos/$id/documentos'
+      preLoaderRoute: typeof VeiculosIdDocumentosRouteImport
+      parentRoute: typeof VeiculosIdRoute
+    }
+    '/veiculos/$id/estado': {
+      id: '/veiculos/$id/estado'
+      path: '/estado'
+      fullPath: '/veiculos/$id/estado'
+      preLoaderRoute: typeof VeiculosIdEstadoRouteImport
+      parentRoute: typeof VeiculosIdRoute
+    }
+    '/veiculos/$id/historico': {
+      id: '/veiculos/$id/historico'
+      path: '/historico'
+      fullPath: '/veiculos/$id/historico'
+      preLoaderRoute: typeof VeiculosIdHistoricoRouteImport
+      parentRoute: typeof VeiculosIdRoute
+    }
+    '/veiculos/$id/transferir': {
+      id: '/veiculos/$id/transferir'
+      path: '/transferir'
+      fullPath: '/veiculos/$id/transferir'
+      preLoaderRoute: typeof VeiculosIdTransferirRouteImport
+      parentRoute: typeof VeiculosIdRoute
+    }
+    '/veiculos/novo/$tipo': {
+      id: '/veiculos/novo/$tipo'
+      path: '/$tipo'
+      fullPath: '/veiculos/novo/$tipo'
+      preLoaderRoute: typeof VeiculosNovoTipoRouteImport
+      parentRoute: typeof VeiculosNovoRoute
+    }
+    '/super-admin/municipios/$id/editar': {
+      id: '/super-admin/municipios/$id/editar'
+      path: '/editar'
+      fullPath: '/super-admin/municipios/$id/editar'
+      preLoaderRoute: typeof SuperAdminMunicipiosIdEditarRouteImport
+      parentRoute: typeof SuperAdminMunicipiosIdRoute
+    }
+    '/super-admin/municipios/$id/administrador/novo': {
+      id: '/super-admin/municipios/$id/administrador/novo'
+      path: '/administrador/novo'
+      fullPath: '/super-admin/municipios/$id/administrador/novo'
+      preLoaderRoute: typeof SuperAdminMunicipiosIdAdministradorNovoRouteImport
+      parentRoute: typeof SuperAdminMunicipiosIdRoute
+    }
   }
 }
 
+interface ConsultaRouteChildren {
+  ConsultaCodigoRoute: typeof ConsultaCodigoRoute
+}
+
+const ConsultaRouteChildren: ConsultaRouteChildren = {
+  ConsultaCodigoRoute: ConsultaCodigoRoute,
+}
+
+const ConsultaRouteWithChildren = ConsultaRoute._addFileChildren(
+  ConsultaRouteChildren,
+)
+
+interface DashboardRouteChildren {
+  DashboardBicicletasRoute: typeof DashboardBicicletasRoute
+  DashboardCarrosRoute: typeof DashboardCarrosRoute
+  DashboardMotorizadasRoute: typeof DashboardMotorizadasRoute
+  DashboardTipoStatusRoute: typeof DashboardTipoStatusRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardBicicletasRoute: DashboardBicicletasRoute,
+  DashboardCarrosRoute: DashboardCarrosRoute,
+  DashboardMotorizadasRoute: DashboardMotorizadasRoute,
+  DashboardTipoStatusRoute: DashboardTipoStatusRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+interface DefinicoesRouteChildren {
+  DefinicoesDocumentosRoute: typeof DefinicoesDocumentosRoute
+  DefinicoesNumeracaoRoute: typeof DefinicoesNumeracaoRoute
+  DefinicoesTaxasRoute: typeof DefinicoesTaxasRoute
+}
+
+const DefinicoesRouteChildren: DefinicoesRouteChildren = {
+  DefinicoesDocumentosRoute: DefinicoesDocumentosRoute,
+  DefinicoesNumeracaoRoute: DefinicoesNumeracaoRoute,
+  DefinicoesTaxasRoute: DefinicoesTaxasRoute,
+}
+
+const DefinicoesRouteWithChildren = DefinicoesRoute._addFileChildren(
+  DefinicoesRouteChildren,
+)
+
+interface FinanceiroRouteChildren {
+  FinanceiroIdRoute: typeof FinanceiroIdRoute
+  FinanceiroNovaRoute: typeof FinanceiroNovaRoute
+  FinanceiroReciboIdRoute: typeof FinanceiroReciboIdRoute
+}
+
+const FinanceiroRouteChildren: FinanceiroRouteChildren = {
+  FinanceiroIdRoute: FinanceiroIdRoute,
+  FinanceiroNovaRoute: FinanceiroNovaRoute,
+  FinanceiroReciboIdRoute: FinanceiroReciboIdRoute,
+}
+
+const FinanceiroRouteWithChildren = FinanceiroRoute._addFileChildren(
+  FinanceiroRouteChildren,
+)
+
+interface FiscalizacaoRouteChildren {
+  FiscalizacaoHistoricoRoute: typeof FiscalizacaoHistoricoRoute
+  FiscalizacaoNovaRoute: typeof FiscalizacaoNovaRoute
+}
+
+const FiscalizacaoRouteChildren: FiscalizacaoRouteChildren = {
+  FiscalizacaoHistoricoRoute: FiscalizacaoHistoricoRoute,
+  FiscalizacaoNovaRoute: FiscalizacaoNovaRoute,
+}
+
+const FiscalizacaoRouteWithChildren = FiscalizacaoRoute._addFileChildren(
+  FiscalizacaoRouteChildren,
+)
+
+interface LocalidadesRouteChildren {
+  LocalidadesIdRoute: typeof LocalidadesIdRoute
+}
+
+const LocalidadesRouteChildren: LocalidadesRouteChildren = {
+  LocalidadesIdRoute: LocalidadesIdRoute,
+}
+
+const LocalidadesRouteWithChildren = LocalidadesRoute._addFileChildren(
+  LocalidadesRouteChildren,
+)
+
+interface MunicipiosRouteChildren {
+  MunicipiosIdRoute: typeof MunicipiosIdRoute
+}
+
+const MunicipiosRouteChildren: MunicipiosRouteChildren = {
+  MunicipiosIdRoute: MunicipiosIdRoute,
+}
+
+const MunicipiosRouteWithChildren = MunicipiosRoute._addFileChildren(
+  MunicipiosRouteChildren,
+)
+
+interface PostosAdministrativosRouteChildren {
+  PostosAdministrativosIdRoute: typeof PostosAdministrativosIdRoute
+}
+
+const PostosAdministrativosRouteChildren: PostosAdministrativosRouteChildren = {
+  PostosAdministrativosIdRoute: PostosAdministrativosIdRoute,
+}
+
+const PostosAdministrativosRouteWithChildren =
+  PostosAdministrativosRoute._addFileChildren(
+    PostosAdministrativosRouteChildren,
+  )
+
+interface ProprietariosIdRouteChildren {
+  ProprietariosIdDocumentosRoute: typeof ProprietariosIdDocumentosRoute
+  ProprietariosIdEditarRoute: typeof ProprietariosIdEditarRoute
+}
+
+const ProprietariosIdRouteChildren: ProprietariosIdRouteChildren = {
+  ProprietariosIdDocumentosRoute: ProprietariosIdDocumentosRoute,
+  ProprietariosIdEditarRoute: ProprietariosIdEditarRoute,
+}
+
+const ProprietariosIdRouteWithChildren = ProprietariosIdRoute._addFileChildren(
+  ProprietariosIdRouteChildren,
+)
+
+interface ProprietariosRouteChildren {
+  ProprietariosIdRoute: typeof ProprietariosIdRouteWithChildren
+  ProprietariosNovoRoute: typeof ProprietariosNovoRoute
+}
+
+const ProprietariosRouteChildren: ProprietariosRouteChildren = {
+  ProprietariosIdRoute: ProprietariosIdRouteWithChildren,
+  ProprietariosNovoRoute: ProprietariosNovoRoute,
+}
+
+const ProprietariosRouteWithChildren = ProprietariosRoute._addFileChildren(
+  ProprietariosRouteChildren,
+)
+
+interface RegistosRouteChildren {
+  RegistosIdRoute: typeof RegistosIdRoute
+  RegistosValidacaoRoute: typeof RegistosValidacaoRoute
+  RegistosAprovadoIdRoute: typeof RegistosAprovadoIdRoute
+  RegistosCorrecaoIdRoute: typeof RegistosCorrecaoIdRoute
+  RegistosRejeitadoIdRoute: typeof RegistosRejeitadoIdRoute
+}
+
+const RegistosRouteChildren: RegistosRouteChildren = {
+  RegistosIdRoute: RegistosIdRoute,
+  RegistosValidacaoRoute: RegistosValidacaoRoute,
+  RegistosAprovadoIdRoute: RegistosAprovadoIdRoute,
+  RegistosCorrecaoIdRoute: RegistosCorrecaoIdRoute,
+  RegistosRejeitadoIdRoute: RegistosRejeitadoIdRoute,
+}
+
+const RegistosRouteWithChildren = RegistosRoute._addFileChildren(
+  RegistosRouteChildren,
+)
+
+interface SuperAdminAcessoMunicipalRouteChildren {
+  SuperAdminAcessoMunicipalIdRoute: typeof SuperAdminAcessoMunicipalIdRoute
+}
+
+const SuperAdminAcessoMunicipalRouteChildren: SuperAdminAcessoMunicipalRouteChildren =
+  {
+    SuperAdminAcessoMunicipalIdRoute: SuperAdminAcessoMunicipalIdRoute,
+  }
+
+const SuperAdminAcessoMunicipalRouteWithChildren =
+  SuperAdminAcessoMunicipalRoute._addFileChildren(
+    SuperAdminAcessoMunicipalRouteChildren,
+  )
+
+interface SuperAdminLicencasRouteChildren {
+  SuperAdminLicencasIdRoute: typeof SuperAdminLicencasIdRoute
+  SuperAdminLicencasNovoRoute: typeof SuperAdminLicencasNovoRoute
+  SuperAdminLicencasPlanosRoute: typeof SuperAdminLicencasPlanosRoute
+}
+
+const SuperAdminLicencasRouteChildren: SuperAdminLicencasRouteChildren = {
+  SuperAdminLicencasIdRoute: SuperAdminLicencasIdRoute,
+  SuperAdminLicencasNovoRoute: SuperAdminLicencasNovoRoute,
+  SuperAdminLicencasPlanosRoute: SuperAdminLicencasPlanosRoute,
+}
+
+const SuperAdminLicencasRouteWithChildren =
+  SuperAdminLicencasRoute._addFileChildren(SuperAdminLicencasRouteChildren)
+
+interface SuperAdminMunicipiosIdRouteChildren {
+  SuperAdminMunicipiosIdEditarRoute: typeof SuperAdminMunicipiosIdEditarRoute
+  SuperAdminMunicipiosIdAdministradorNovoRoute: typeof SuperAdminMunicipiosIdAdministradorNovoRoute
+}
+
+const SuperAdminMunicipiosIdRouteChildren: SuperAdminMunicipiosIdRouteChildren =
+  {
+    SuperAdminMunicipiosIdEditarRoute: SuperAdminMunicipiosIdEditarRoute,
+    SuperAdminMunicipiosIdAdministradorNovoRoute:
+      SuperAdminMunicipiosIdAdministradorNovoRoute,
+  }
+
+const SuperAdminMunicipiosIdRouteWithChildren =
+  SuperAdminMunicipiosIdRoute._addFileChildren(
+    SuperAdminMunicipiosIdRouteChildren,
+  )
+
+interface SuperAdminMunicipiosRouteChildren {
+  SuperAdminMunicipiosIdRoute: typeof SuperAdminMunicipiosIdRouteWithChildren
+  SuperAdminMunicipiosNovoRoute: typeof SuperAdminMunicipiosNovoRoute
+}
+
+const SuperAdminMunicipiosRouteChildren: SuperAdminMunicipiosRouteChildren = {
+  SuperAdminMunicipiosIdRoute: SuperAdminMunicipiosIdRouteWithChildren,
+  SuperAdminMunicipiosNovoRoute: SuperAdminMunicipiosNovoRoute,
+}
+
+const SuperAdminMunicipiosRouteWithChildren =
+  SuperAdminMunicipiosRoute._addFileChildren(SuperAdminMunicipiosRouteChildren)
+
+interface SuperAdminPermissoesRouteChildren {
+  SuperAdminPermissoesPerfilRoute: typeof SuperAdminPermissoesPerfilRoute
+}
+
+const SuperAdminPermissoesRouteChildren: SuperAdminPermissoesRouteChildren = {
+  SuperAdminPermissoesPerfilRoute: SuperAdminPermissoesPerfilRoute,
+}
+
+const SuperAdminPermissoesRouteWithChildren =
+  SuperAdminPermissoesRoute._addFileChildren(SuperAdminPermissoesRouteChildren)
+
+interface SuperAdminUtilizadoresRouteChildren {
+  SuperAdminUtilizadoresIdRoute: typeof SuperAdminUtilizadoresIdRoute
+  SuperAdminUtilizadoresNovoRoute: typeof SuperAdminUtilizadoresNovoRoute
+}
+
+const SuperAdminUtilizadoresRouteChildren: SuperAdminUtilizadoresRouteChildren =
+  {
+    SuperAdminUtilizadoresIdRoute: SuperAdminUtilizadoresIdRoute,
+    SuperAdminUtilizadoresNovoRoute: SuperAdminUtilizadoresNovoRoute,
+  }
+
+const SuperAdminUtilizadoresRouteWithChildren =
+  SuperAdminUtilizadoresRoute._addFileChildren(
+    SuperAdminUtilizadoresRouteChildren,
+  )
+
+interface SuperAdminRouteChildren {
+  SuperAdminAcessoMunicipalRoute: typeof SuperAdminAcessoMunicipalRouteWithChildren
+  SuperAdminAuditoriaRoute: typeof SuperAdminAuditoriaRoute
+  SuperAdminConfiguracoesRoute: typeof SuperAdminConfiguracoesRoute
+  SuperAdminLicencasRoute: typeof SuperAdminLicencasRouteWithChildren
+  SuperAdminMunicipiosRoute: typeof SuperAdminMunicipiosRouteWithChildren
+  SuperAdminNotificacoesRoute: typeof SuperAdminNotificacoesRoute
+  SuperAdminPermissoesRoute: typeof SuperAdminPermissoesRouteWithChildren
+  SuperAdminRelatoriosRoute: typeof SuperAdminRelatoriosRoute
+  SuperAdminSaudeRoute: typeof SuperAdminSaudeRoute
+  SuperAdminUtilizadoresRoute: typeof SuperAdminUtilizadoresRouteWithChildren
+}
+
+const SuperAdminRouteChildren: SuperAdminRouteChildren = {
+  SuperAdminAcessoMunicipalRoute: SuperAdminAcessoMunicipalRouteWithChildren,
+  SuperAdminAuditoriaRoute: SuperAdminAuditoriaRoute,
+  SuperAdminConfiguracoesRoute: SuperAdminConfiguracoesRoute,
+  SuperAdminLicencasRoute: SuperAdminLicencasRouteWithChildren,
+  SuperAdminMunicipiosRoute: SuperAdminMunicipiosRouteWithChildren,
+  SuperAdminNotificacoesRoute: SuperAdminNotificacoesRoute,
+  SuperAdminPermissoesRoute: SuperAdminPermissoesRouteWithChildren,
+  SuperAdminRelatoriosRoute: SuperAdminRelatoriosRoute,
+  SuperAdminSaudeRoute: SuperAdminSaudeRoute,
+  SuperAdminUtilizadoresRoute: SuperAdminUtilizadoresRouteWithChildren,
+}
+
+const SuperAdminRouteWithChildren = SuperAdminRoute._addFileChildren(
+  SuperAdminRouteChildren,
+)
+
+interface UtilizadoresRouteChildren {
+  UtilizadoresIdRoute: typeof UtilizadoresIdRoute
+  UtilizadoresNovoRoute: typeof UtilizadoresNovoRoute
+}
+
+const UtilizadoresRouteChildren: UtilizadoresRouteChildren = {
+  UtilizadoresIdRoute: UtilizadoresIdRoute,
+  UtilizadoresNovoRoute: UtilizadoresNovoRoute,
+}
+
+const UtilizadoresRouteWithChildren = UtilizadoresRoute._addFileChildren(
+  UtilizadoresRouteChildren,
+)
+
+interface VeiculosIdRouteChildren {
+  VeiculosIdDocumentosRoute: typeof VeiculosIdDocumentosRoute
+  VeiculosIdEstadoRoute: typeof VeiculosIdEstadoRoute
+  VeiculosIdHistoricoRoute: typeof VeiculosIdHistoricoRoute
+  VeiculosIdTransferirRoute: typeof VeiculosIdTransferirRoute
+}
+
+const VeiculosIdRouteChildren: VeiculosIdRouteChildren = {
+  VeiculosIdDocumentosRoute: VeiculosIdDocumentosRoute,
+  VeiculosIdEstadoRoute: VeiculosIdEstadoRoute,
+  VeiculosIdHistoricoRoute: VeiculosIdHistoricoRoute,
+  VeiculosIdTransferirRoute: VeiculosIdTransferirRoute,
+}
+
+const VeiculosIdRouteWithChildren = VeiculosIdRoute._addFileChildren(
+  VeiculosIdRouteChildren,
+)
+
+interface VeiculosNovoRouteChildren {
+  VeiculosNovoTipoRoute: typeof VeiculosNovoTipoRoute
+}
+
+const VeiculosNovoRouteChildren: VeiculosNovoRouteChildren = {
+  VeiculosNovoTipoRoute: VeiculosNovoTipoRoute,
+}
+
+const VeiculosNovoRouteWithChildren = VeiculosNovoRoute._addFileChildren(
+  VeiculosNovoRouteChildren,
+)
+
+interface VeiculosRouteChildren {
+  VeiculosIdRoute: typeof VeiculosIdRouteWithChildren
+  VeiculosNovoRoute: typeof VeiculosNovoRouteWithChildren
+}
+
+const VeiculosRouteChildren: VeiculosRouteChildren = {
+  VeiculosIdRoute: VeiculosIdRouteWithChildren,
+  VeiculosNovoRoute: VeiculosNovoRouteWithChildren,
+}
+
+const VeiculosRouteWithChildren = VeiculosRoute._addFileChildren(
+  VeiculosRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  AuditoriaRoute: AuditoriaRoute,
+  ConsultaRoute: ConsultaRouteWithChildren,
+  DashboardRoute: DashboardRouteWithChildren,
+  DefinicoesRoute: DefinicoesRouteWithChildren,
+  FinanceiroRoute: FinanceiroRouteWithChildren,
+  FiscalizacaoRoute: FiscalizacaoRouteWithChildren,
+  LocalidadesRoute: LocalidadesRouteWithChildren,
   LoginRoute: LoginRoute,
+  MunicipiosRoute: MunicipiosRouteWithChildren,
+  NotificacoesRoute: NotificacoesRoute,
+  NovaPasswordRoute: NovaPasswordRoute,
+  PermissoesRoute: PermissoesRoute,
+  PostosAdministrativosRoute: PostosAdministrativosRouteWithChildren,
+  ProprietariosRoute: ProprietariosRouteWithChildren,
+  RecuperarPasswordRoute: RecuperarPasswordRoute,
+  RegistosRoute: RegistosRouteWithChildren,
+  RelatoriosRoute: RelatoriosRoute,
+  SuperAdminRoute: SuperAdminRouteWithChildren,
+  UtilizadoresRoute: UtilizadoresRouteWithChildren,
+  VeiculosRoute: VeiculosRouteWithChildren,
+  QCodigoRoute: QCodigoRoute,
+  ImprimirQrIdRoute: ImprimirQrIdRoute,
+  ImprimirVeiculoIdRoute: ImprimirVeiculoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
