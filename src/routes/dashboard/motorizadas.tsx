@@ -54,7 +54,7 @@ function MotorizadasDashboard() {
             </div>
           </div>
         </div>
-        <Link to="/veiculos/novo/motorizada" className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
+        <Link to="/veiculos/novo/$tipo" params={{ tipo: "motorizada" }} className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
           <FilePlus2 className="h-4 w-4" />
           Registar motorizada
         </Link>
