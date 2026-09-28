@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -45,6 +45,14 @@ const statusData = [
 ];
 
 function DashboardPage() {
+  const location = useLocation();
+
+  // As rotas /dashboard/bicicletas, /dashboard/carros e /dashboard/motorizadas
+  // são filhas desta rota. O Dashboard geral não deve ficar por cima delas.
+  if (location.pathname !== "/dashboard") {
+    return <Outlet />;
+  }
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const handleSignOut = async () => {
