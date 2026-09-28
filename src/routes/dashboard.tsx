@@ -148,10 +148,10 @@ function DashboardPage() {
                   <p className="text-sm text-slate-500">Visão geral da gestão de mobilidade</p>
                   <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Resumo do município</h2>
                 </div>
-                <Link to="/veiculos/novo" className="inline-flex w-fit items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700">
+                <a href="/veiculos/novo" className="inline-flex w-fit items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700">
                   <FilePlus2 className="h-4 w-4" />
                   Registar veículo
-                </Link>
+                </a>
               </div>
 
               <DashboardFinance />
@@ -220,9 +220,9 @@ function DashboardPage() {
                     <h3 className="font-semibold text-slate-900">Estado dos veículos</h3>
                     <p className="mt-1 text-sm text-slate-500">A situação actual dos veículos registados</p>
                   </div>
-                  <Link to="/veiculos" className="inline-flex items-center gap-1 text-sm font-semibold text-sky-600 hover:text-sky-700">
+                  <a href="/veiculos" className="inline-flex items-center gap-1 text-sm font-semibold text-sky-600 hover:text-sky-700">
                     Ver veículos <ChevronRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -251,7 +251,7 @@ function DashboardPage() {
                       <h3 className="font-semibold text-slate-900">Registos recentes</h3>
                       <p className="mt-1 text-sm text-slate-500">Últimos movimentos no sistema</p>
                     </div>
-                    <Link to="/registos" className="text-sm font-semibold text-sky-600 hover:text-sky-700">Ver todos</Link>
+                    <a href="/registos" className="text-sm font-semibold text-sky-600 hover:text-sky-700">Ver todos</a>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[760px] text-left">
@@ -306,9 +306,9 @@ function DashboardPage() {
 
 function NavItem({ to, icon, label, active = false }: { to: string; icon: React.ReactNode; label: string; active?: boolean }) {
   return (
-    <Link to={to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? "bg-sky-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}>
+    <a href={to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? "bg-sky-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}>
       {icon}<span>{label}</span>
-    </Link>
+    </a>
   );
 }
 
