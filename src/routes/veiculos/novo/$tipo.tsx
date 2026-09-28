@@ -34,7 +34,6 @@ function RegistoVeiculo() {
             <Field label="Número do documento" placeholder="Número do documento" required/><Field label="Telefone" placeholder="+258 ..." required/>
             <Field label="NUIT" placeholder="Opcional"/><Field label="Morada" placeholder="Bairro, avenida ou localidade" required/>
           </div>
-        </Card>
 
         <div className="mt-7 border-t border-slate-100 pt-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
