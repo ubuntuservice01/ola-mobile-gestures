@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, Bell, Check, CheckCircle2, Clock3, Filter, Info, Mail, Search, ShieldAlert, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
+import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 
 export const Route = createFileRoute("/super-admin/notificacoes")({ component: SuperAdminNotificacoes });
 

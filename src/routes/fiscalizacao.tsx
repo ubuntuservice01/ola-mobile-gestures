@@ -16,11 +16,8 @@ function Fiscalizacao() {
       <PageHeader
         title="Fiscalização"
         description="Consulte um veículo, registe uma fiscalização e acompanhe ocorrências."
-        actions={
-          <Link to="/fiscalizacao/nova" className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white">
-            <Plus className="h-4 w-4" /> Nova fiscalização
-          </Link>
-        }
+        action="Nova fiscalização"
+        actionTo="/fiscalizacao/nova"
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, FileCheck2, Save } from "lucide-react";
-import { MobiGestShell, Card } from "../../components/MobiGestShell";
+import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 
 export const Route = createFileRoute("/registos/correcao/$id")({ component: Correcao });
 
