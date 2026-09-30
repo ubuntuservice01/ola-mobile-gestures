@@ -36,7 +36,7 @@ function PermissoesGlobais(){
    <div className="border-b border-slate-100 p-5"><h2 className="font-semibold">Matriz global de operações</h2><p className="mt-1 text-sm text-slate-500">Define quais operações podem existir em cada módulo. O âmbito territorial é uma camada adicional.</p></div>
    <table className="min-w-[1150px] w-full text-left text-sm">
     <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-5 py-4">Módulo</th>{actions.map(a=><th key={a} className="px-4 py-4">{a}</th>)}</tr></thead>
-    <tbody>{matrix.map(([module,values])=><tr key={module} className="border-t border-slate-100"><td className="px-5 py-4 font-semibold">{module}</td>{(values as string[]).map((v,i)=><td key={i} className="px-4 py-4">{v==="—"?<span className="text-slate-300">—</span>:<Check className="h-4 w-4 text-emerald-500"/>}</td>)}</tr>)}</tbody>
+    <tbody>{matrix.map(([module,values])=><tr key={String(module)} className="border-t border-slate-100"><td className="px-5 py-4 font-semibold">{module}</td>{(values as string[]).map((v,i)=><td key={i} className="px-4 py-4">{v==="—"?<span className="text-slate-300">—</span>:<Check className="h-4 w-4 text-emerald-500"/>}</td>)}</tr>)}</tbody>
    </table>
   </SuperCard>
 
