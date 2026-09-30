@@ -76,12 +76,12 @@ function ValidacaoRegisto() {
                 <p className="mt-2 text-sm font-semibold">Aprovar</p>
                 <p className="mt-1 text-xs text-slate-500">Permitir a emissão do registo MobiGest.</p>
               </Link>
-              <Link to="/registos/correcao/1284" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left hover:border-amber-400">
+              <Link to="/registos/correcao/$id" params={{ id: "1284" }} className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left hover:border-amber-400">
                 <FileCheck2 className="h-5 w-5 text-amber-600" />
                 <p className="mt-2 text-sm font-semibold">Solicitar correcção</p>
                 <p className="mt-1 text-xs text-slate-500">Devolver o processo para completar informação.</p>
               </Link>
-              <Link to="/registos/rejeitado/1284" className="rounded-xl border border-red-200 bg-red-50 p-4 text-left hover:border-red-400">
+              <Link to="/registos/rejeitado/$id" params={{ id: "1284" }} className="rounded-xl border border-red-200 bg-red-50 p-4 text-left hover:border-red-400">
                 <XCircle className="h-5 w-5 text-red-600" />
                 <p className="mt-2 text-sm font-semibold">Rejeitar</p>
                 <p className="mt-1 text-xs text-slate-500">Registar a razão da rejeição.</p>

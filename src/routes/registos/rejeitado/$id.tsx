@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Save, XCircle } from "lucide-react";
-import { MobiGestShell, Card } from "../../components/MobiGestShell";
+import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 
 export const Route = createFileRoute("/registos/rejeitado/$id")({ component: Rejeitado });
 
