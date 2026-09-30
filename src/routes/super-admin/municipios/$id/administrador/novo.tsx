@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, KeyRound, Mail, MapPin, ShieldCheck, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { SuperAdminShell, SuperCard } from "../../../../components/SuperAdminShell";
+import { SuperAdminShell, SuperCard } from "../../../../../components/SuperAdminShell";
 
 export const Route = createFileRoute("/super-admin/municipios/$id/administrador/novo")({
   component: NovoAdministradorMunicipal,
