@@ -6,6 +6,12 @@ import { createManagedUser, type ManagedUserRole } from "../../lib/admin-users";
 import { loadAccessProfile } from "../../lib/access-control";
 import { loadCurrentMunicipalAccess, type MunicipalAccessSession } from "../../lib/municipal-access";
 import { supabase } from "../../lib/supabase";
+import {
+  LoadingButton,
+  SkeletonCard,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatDateTime } from "../../lib/format";
 
 export const Route = createFileRoute("/utilizadores/novo")({
   component: NovoUtilizador,
@@ -157,13 +163,15 @@ function NovoUtilizador() {
       setCreatedUserId(result.id ?? null);
       setActivationCode(result.activationCode ?? null);
       setActivationExpiresAt(result.activationExpiresAt ?? null);
+      notify.success("Utilizador criado", "O código de activação foi gerado com sucesso.");
     } catch (error) {
       console.error("Falha ao criar utilizador municipal:", error);
-      setCreateError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar o utilizador.",
-      );
+          : "Não foi possível criar o utilizador.";
+      setCreateError(message);
+      notify.error("Não foi possível criar o utilizador", message);
     } finally {
       setCreating(false);
     }
@@ -195,7 +203,7 @@ function NovoUtilizador() {
             </p>
             {activationExpiresAt && (
               <p className="mt-2 text-xs text-sky-700">
-                Validade: {new Date(activationExpiresAt).toLocaleString("pt-MZ")}
+                Validade: {formatDateTime(activationExpiresAt)}
               </p>
             )}
           </div>
@@ -236,7 +244,10 @@ function NovoUtilizador() {
         </div>
 
         {loading ? (
-          <p className="mt-7 text-sm text-slate-500">A carregar contexto municipal...</p>
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         ) : loadError ? (
           <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
             {loadError}
@@ -328,15 +339,15 @@ function NovoUtilizador() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={!canSubmit}
+              <LoadingButton
                 onClick={submit}
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
-              >
-                <KeyRound className="h-4 w-4" />
-                {creating ? "A criar e gerar código..." : "Criar utilizador e gerar código"}
-              </button>
+                disabled={!canSubmit}
+                state={creating ? "loading" : "idle"}
+                idleLabel="Criar utilizador e gerar código"
+                loadingLabel="A criar e gerar código..."
+                icon={<KeyRound className="h-4 w-4" />}
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </>
         )}
