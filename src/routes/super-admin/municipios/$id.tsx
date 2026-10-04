@@ -1,3 +1,4 @@
+import { RouteIndexBoundary } from "../../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -19,7 +20,7 @@ import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell"
 import { supabase } from "../../../lib/supabase";
 
 export const Route = createFileRoute("/super-admin/municipios/$id")({
-  component: MunicipioGlobal,
+  component: MunicipioGlobalRouteBoundary,
 });
 
 type MunicipalityDetail = {
@@ -475,4 +476,9 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="mt-1 break-words text-sm font-semibold">{value}</p>
     </div>
   );
+}
+
+
+function MunicipioGlobalRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/municipios/$id"><MunicipioGlobal /></RouteIndexBoundary>;
 }
