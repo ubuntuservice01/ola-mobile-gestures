@@ -7,6 +7,7 @@ import {
   Info,
   Loader2,
   SearchX,
+  X,
 } from "lucide-react";
 import {
   type ButtonHTMLAttributes,
@@ -601,6 +602,53 @@ export const notify = {
     toast.info(message, { description });
   },
 };
+
+export type ActiveFilterChip = {
+  id: string;
+  label: string;
+  onRemove: () => void;
+};
+
+export function FilterChips({
+  items,
+  onClear,
+}: {
+  items: ActiveFilterChip[];
+  onClear?: () => void;
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+      <span className="text-xs font-medium text-slate-400">
+        Filtros activos:
+      </span>
+
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={item.onRemove}
+          className="mobigest-button inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-white"
+          aria-label={"Remover filtro " + item.label}
+        >
+          {item.label}
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ))}
+
+      {onClear && items.length > 1 && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="mobigest-interactive ml-1 text-xs font-semibold text-sky-700 hover:text-sky-800"
+        >
+          Limpar filtros
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function PaginationBar({
   page,
