@@ -17,7 +17,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, ReactNode, useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { loadAccessProfile } from "../lib/access-control";
 import {
@@ -595,7 +595,7 @@ function SectionTitle({
   title,
   description,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 }) {
@@ -617,7 +617,7 @@ function Metric({
 }: {
   label: string;
   value: number;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <Card className="p-5">
@@ -639,7 +639,7 @@ function MoneyMetric({
 }: {
   label: string;
   value: number;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <Card className="p-5">
@@ -760,7 +760,7 @@ function QuickLink({
   value,
 }: {
   to: "/postos-administrativos" | "/localidades";
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
   value: number;
