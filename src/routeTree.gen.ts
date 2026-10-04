@@ -18,6 +18,7 @@ import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FiscalizacaoRouteImport } from './routes/fiscalizacao'
 import { Route as LocalidadesRouteImport } from './routes/localidades'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MultasRouteImport } from './routes/multas'
 import { Route as MunicipiosRouteImport } from './routes/municipios'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as NovaPasswordRouteImport } from './routes/nova-password'
@@ -28,6 +29,7 @@ import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-passwo
 import { Route as RegistosRouteImport } from './routes/registos'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as SuperAdminRouteImport } from './routes/super-admin'
+import { Route as TaxistasRouteImport } from './routes/taxistas'
 import { Route as UtilizadoresRouteImport } from './routes/utilizadores'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
 import { Route as ConsultaCodigoRouteImport } from './routes/consulta/$codigo'
@@ -42,6 +44,8 @@ import { Route as FinanceiroNovaRouteImport } from './routes/financeiro/nova'
 import { Route as FiscalizacaoHistoricoRouteImport } from './routes/fiscalizacao/historico'
 import { Route as FiscalizacaoNovaRouteImport } from './routes/fiscalizacao/nova'
 import { Route as LocalidadesIdRouteImport } from './routes/localidades/$id'
+import { Route as MultasNovaRouteImport } from './routes/multas/nova'
+import { Route as MultasTiposRouteImport } from './routes/multas/tipos'
 import { Route as MunicipiosIdRouteImport } from './routes/municipios/$id'
 import { Route as PostosAdministrativosIdRouteImport } from './routes/postos-administrativos/$id'
 import { Route as ProprietariosIdRouteImport } from './routes/proprietarios/$id'
@@ -59,6 +63,7 @@ import { Route as SuperAdminPermissoesRouteImport } from './routes/super-admin/p
 import { Route as SuperAdminRelatoriosRouteImport } from './routes/super-admin/relatorios'
 import { Route as SuperAdminSaudeRouteImport } from './routes/super-admin/saude'
 import { Route as SuperAdminUtilizadoresRouteImport } from './routes/super-admin/utilizadores'
+import { Route as TaxistasNovoRouteImport } from './routes/taxistas/novo'
 import { Route as UtilizadoresIdRouteImport } from './routes/utilizadores/$id'
 import { Route as UtilizadoresNovoRouteImport } from './routes/utilizadores/novo'
 import { Route as VeiculosIdRouteImport } from './routes/veiculos/$id'
@@ -134,6 +139,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MultasRoute = MultasRouteImport.update({
+  id: '/multas',
+  path: '/multas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MunicipiosRoute = MunicipiosRouteImport.update({
   id: '/municipios',
   path: '/municipios',
@@ -182,6 +192,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const SuperAdminRoute = SuperAdminRouteImport.update({
   id: '/super-admin',
   path: '/super-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxistasRoute = TaxistasRouteImport.update({
+  id: '/taxistas',
+  path: '/taxistas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UtilizadoresRoute = UtilizadoresRouteImport.update({
@@ -253,6 +268,16 @@ const LocalidadesIdRoute = LocalidadesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => LocalidadesRoute,
+} as any)
+const MultasNovaRoute = MultasNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => MultasRoute,
+} as any)
+const MultasTiposRoute = MultasTiposRouteImport.update({
+  id: '/tipos',
+  path: '/tipos',
+  getParentRoute: () => MultasRoute,
 } as any)
 const MunicipiosIdRoute = MunicipiosIdRouteImport.update({
   id: '/$id',
@@ -339,6 +364,11 @@ const SuperAdminUtilizadoresRoute = SuperAdminUtilizadoresRouteImport.update({
   id: '/utilizadores',
   path: '/utilizadores',
   getParentRoute: () => SuperAdminRoute,
+} as any)
+const TaxistasNovoRoute = TaxistasNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => TaxistasRoute,
 } as any)
 const UtilizadoresIdRoute = UtilizadoresIdRouteImport.update({
   id: '/$id',
@@ -505,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
@@ -515,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
+  '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
@@ -529,6 +561,8 @@ export interface FileRoutesByFullPath {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/multas/nova': typeof MultasNovaRoute
+  '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
@@ -546,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
@@ -586,6 +621,7 @@ export interface FileRoutesByTo {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
@@ -596,6 +632,7 @@ export interface FileRoutesByTo {
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
+  '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
@@ -610,6 +647,8 @@ export interface FileRoutesByTo {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/multas/nova': typeof MultasNovaRoute
+  '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
@@ -627,6 +666,7 @@ export interface FileRoutesByTo {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
@@ -668,6 +708,7 @@ export interface FileRoutesById {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
@@ -678,6 +719,7 @@ export interface FileRoutesById {
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
+  '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
@@ -692,6 +734,8 @@ export interface FileRoutesById {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/multas/nova': typeof MultasNovaRoute
+  '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
@@ -709,6 +753,7 @@ export interface FileRoutesById {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
@@ -751,6 +796,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/multas'
     | '/municipios'
     | '/notificacoes'
     | '/nova-password'
@@ -761,6 +807,7 @@ export interface FileRouteTypes {
     | '/registos'
     | '/relatorios'
     | '/super-admin'
+    | '/taxistas'
     | '/utilizadores'
     | '/veiculos'
     | '/consulta/$codigo'
@@ -775,6 +822,8 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/multas/nova'
+    | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
     | '/proprietarios/$id'
@@ -792,6 +841,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
     | '/veiculos/$id'
@@ -832,6 +882,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/multas'
     | '/municipios'
     | '/notificacoes'
     | '/nova-password'
@@ -842,6 +893,7 @@ export interface FileRouteTypes {
     | '/registos'
     | '/relatorios'
     | '/super-admin'
+    | '/taxistas'
     | '/utilizadores'
     | '/veiculos'
     | '/consulta/$codigo'
@@ -856,6 +908,8 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/multas/nova'
+    | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
     | '/proprietarios/$id'
@@ -873,6 +927,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
     | '/veiculos/$id'
@@ -913,6 +968,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/multas'
     | '/municipios'
     | '/notificacoes'
     | '/nova-password'
@@ -923,6 +979,7 @@ export interface FileRouteTypes {
     | '/registos'
     | '/relatorios'
     | '/super-admin'
+    | '/taxistas'
     | '/utilizadores'
     | '/veiculos'
     | '/consulta/$codigo'
@@ -937,6 +994,8 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/multas/nova'
+    | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
     | '/proprietarios/$id'
@@ -954,6 +1013,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
     | '/veiculos/$id'
@@ -995,6 +1055,7 @@ export interface RootRouteChildren {
   FiscalizacaoRoute: typeof FiscalizacaoRouteWithChildren
   LocalidadesRoute: typeof LocalidadesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MultasRoute: typeof MultasRouteWithChildren
   MunicipiosRoute: typeof MunicipiosRouteWithChildren
   NotificacoesRoute: typeof NotificacoesRoute
   NovaPasswordRoute: typeof NovaPasswordRoute
@@ -1005,6 +1066,7 @@ export interface RootRouteChildren {
   RegistosRoute: typeof RegistosRouteWithChildren
   RelatoriosRoute: typeof RelatoriosRoute
   SuperAdminRoute: typeof SuperAdminRouteWithChildren
+  TaxistasRoute: typeof TaxistasRouteWithChildren
   UtilizadoresRoute: typeof UtilizadoresRouteWithChildren
   VeiculosRoute: typeof VeiculosRouteWithChildren
   QCodigoRoute: typeof QCodigoRoute
@@ -1077,6 +1139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/multas': {
+      id: '/multas'
+      path: '/multas'
+      fullPath: '/multas'
+      preLoaderRoute: typeof MultasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/municipios': {
       id: '/municipios'
       path: '/municipios'
@@ -1145,6 +1214,13 @@ declare module '@tanstack/react-router' {
       path: '/super-admin'
       fullPath: '/super-admin'
       preLoaderRoute: typeof SuperAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxistas': {
+      id: '/taxistas'
+      path: '/taxistas'
+      fullPath: '/taxistas'
+      preLoaderRoute: typeof TaxistasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/utilizadores': {
@@ -1244,6 +1320,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/localidades/$id'
       preLoaderRoute: typeof LocalidadesIdRouteImport
       parentRoute: typeof LocalidadesRoute
+    }
+    '/multas/nova': {
+      id: '/multas/nova'
+      path: '/nova'
+      fullPath: '/multas/nova'
+      preLoaderRoute: typeof MultasNovaRouteImport
+      parentRoute: typeof MultasRoute
+    }
+    '/multas/tipos': {
+      id: '/multas/tipos'
+      path: '/tipos'
+      fullPath: '/multas/tipos'
+      preLoaderRoute: typeof MultasTiposRouteImport
+      parentRoute: typeof MultasRoute
     }
     '/municipios/$id': {
       id: '/municipios/$id'
@@ -1363,6 +1453,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/super-admin/utilizadores'
       preLoaderRoute: typeof SuperAdminUtilizadoresRouteImport
       parentRoute: typeof SuperAdminRoute
+    }
+    '/taxistas/novo': {
+      id: '/taxistas/novo'
+      path: '/novo'
+      fullPath: '/taxistas/novo'
+      preLoaderRoute: typeof TaxistasNovoRouteImport
+      parentRoute: typeof TaxistasRoute
     }
     '/utilizadores/$id': {
       id: '/utilizadores/$id'
@@ -1658,6 +1755,19 @@ const LocalidadesRouteWithChildren = LocalidadesRoute._addFileChildren(
   LocalidadesRouteChildren,
 )
 
+interface MultasRouteChildren {
+  MultasNovaRoute: typeof MultasNovaRoute
+  MultasTiposRoute: typeof MultasTiposRoute
+}
+
+const MultasRouteChildren: MultasRouteChildren = {
+  MultasNovaRoute: MultasNovaRoute,
+  MultasTiposRoute: MultasTiposRoute,
+}
+
+const MultasRouteWithChildren =
+  MultasRoute._addFileChildren(MultasRouteChildren)
+
 interface MunicipiosRouteChildren {
   MunicipiosIdRoute: typeof MunicipiosIdRoute
 }
@@ -1847,6 +1957,18 @@ const SuperAdminRouteWithChildren = SuperAdminRoute._addFileChildren(
   SuperAdminRouteChildren,
 )
 
+interface TaxistasRouteChildren {
+  TaxistasNovoRoute: typeof TaxistasNovoRoute
+}
+
+const TaxistasRouteChildren: TaxistasRouteChildren = {
+  TaxistasNovoRoute: TaxistasNovoRoute,
+}
+
+const TaxistasRouteWithChildren = TaxistasRoute._addFileChildren(
+  TaxistasRouteChildren,
+)
+
 interface UtilizadoresRouteChildren {
   UtilizadoresIdRoute: typeof UtilizadoresIdRoute
   UtilizadoresNovoRoute: typeof UtilizadoresNovoRoute
@@ -1915,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   FiscalizacaoRoute: FiscalizacaoRouteWithChildren,
   LocalidadesRoute: LocalidadesRouteWithChildren,
   LoginRoute: LoginRoute,
+  MultasRoute: MultasRouteWithChildren,
   MunicipiosRoute: MunicipiosRouteWithChildren,
   NotificacoesRoute: NotificacoesRoute,
   NovaPasswordRoute: NovaPasswordRoute,
@@ -1925,6 +2048,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegistosRoute: RegistosRouteWithChildren,
   RelatoriosRoute: RelatoriosRoute,
   SuperAdminRoute: SuperAdminRouteWithChildren,
+  TaxistasRoute: TaxistasRouteWithChildren,
   UtilizadoresRoute: UtilizadoresRouteWithChildren,
   VeiculosRoute: VeiculosRouteWithChildren,
   QCodigoRoute: QCodigoRoute,
