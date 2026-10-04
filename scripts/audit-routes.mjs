@@ -17,10 +17,12 @@ const routeFiles = walk(path.join(srcRoot, "routes"));
 const scanFiles = scanRoots.flatMap(walk);
 
 const routePatterns = new Set();
+const routeSources = new Map();
 for (const file of routeFiles) {
   const source = fs.readFileSync(file, "utf8");
   for (const match of source.matchAll(/createFileRoute\(\s*["'`]([^"'`]+)["'`]\s*\)/g)) {
     routePatterns.add(match[1]);
+    routeSources.set(match[1], { file, source });
   }
 }
 
@@ -43,7 +45,27 @@ function hasRoute(target) {
 }
 
 const broken = [];
+const nestedRouteErrors = [];
 const inertButtons = [];
+
+for (const [pattern, info] of routeSources.entries()) {
+  const hasChildren = [...routePatterns].some(
+    (candidate) => candidate !== pattern && candidate.startsWith(pattern + "/"),
+  );
+
+  if (!hasChildren) continue;
+
+  const rendersChildren =
+    info.source.includes("RouteIndexBoundary") ||
+    /<Outlet\b/.test(info.source);
+
+  if (!rendersChildren) {
+    nestedRouteErrors.push({
+      file: path.relative(process.cwd(), info.file).replaceAll("\\", "/"),
+      pattern,
+    });
+  }
+}
 
 for (const file of scanFiles) {
   const source = fs.readFileSync(file, "utf8");
@@ -77,12 +99,26 @@ if (inertButtons.length) {
   }
 }
 
+if (nestedRouteErrors.length) {
+  console.error("\n[route-audit] Rotas-pai com filhos sem Outlet/boundary:");
+  for (const item of nestedRouteErrors) {
+    console.error("  - " + item.file + " (" + item.pattern + ")");
+  }
+}
+
 if (broken.length) {
   console.error("\n[route-audit] Links internos sem rota correspondente:");
   for (const item of broken) {
     console.error("  - " + item.file + " -> " + item.target);
   }
+}
+
+if (broken.length || nestedRouteErrors.length) {
   process.exit(1);
 }
 
-console.log("[route-audit] OK: " + routePatterns.size + " rotas conhecidas; nenhum link literal quebrado.");
+console.log(
+  "[route-audit] OK: " +
+    routePatterns.size +
+    " rotas conhecidas; links literais e hierarquia de rotas válidos.",
+);
