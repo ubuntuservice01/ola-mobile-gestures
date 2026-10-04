@@ -850,6 +850,30 @@ begin
       decision_observation = trim(p_observation),
       validated_by = v_actor
     where id = v_registration.id;
+
+    if v_registration.registration_type = 'registo_inicial' then
+      update public.vehicles
+      set status = 'cancelada',
+          updated_by = v_actor
+      where id = v_vehicle.id;
+
+      insert into public.vehicle_status_history (
+        vehicle_id,
+        previous_status,
+        new_status,
+        reason,
+        occurrence_reference,
+        changed_by
+      )
+      values (
+        v_vehicle.id,
+        v_vehicle.status,
+        'cancelada',
+        'Registo inicial rejeitado: ' || trim(p_observation),
+        v_registration.reference,
+        v_actor
+      );
+    end if;
   end if;
 
   insert into public.registration_decisions (
