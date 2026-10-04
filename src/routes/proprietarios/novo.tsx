@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createOwner } from "../../lib/owners";
 import { supabase } from "../../lib/supabase";
+import {
+  LoadingButton,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/proprietarios/novo")({
   component: NovoProp,
@@ -117,13 +121,15 @@ function NovoProp() {
       });
 
       setCreatedId(id);
+      notify.success("Proprietário criado", "O cadastro foi guardado com sucesso.");
     } catch (error) {
       console.error("Falha ao criar proprietário:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível guardar o proprietário.",
-      );
+          : "Não foi possível guardar o proprietário.";
+      setErrorMessage(message);
+      notify.error("Não foi possível guardar o proprietário", message);
     } finally {
       setSaving(false);
     }
@@ -302,15 +308,15 @@ function NovoProp() {
           >
             Cancelar
           </Link>
-          <button
-            type="button"
-            disabled={fullName.trim().length < 3 || saving}
+          <LoadingButton
             onClick={save}
-            className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-          >
-            <Save className="h-4 w-4" />
-            {saving ? "A guardar..." : "Guardar proprietário"}
-          </button>
+            disabled={fullName.trim().length < 3}
+            state={saving ? "loading" : "idle"}
+            idleLabel="Guardar proprietário"
+            loadingLabel="A guardar..."
+            icon={<Save className="h-4 w-4" />}
+            className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+          />
         </div>
       </Card>
     </MobiGestShell>
