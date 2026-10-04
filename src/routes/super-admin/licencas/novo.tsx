@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
 import { createLicense } from "../../../lib/licenses";
 import { supabase } from "../../../lib/supabase";
+import {
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  notify,
+} from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/licencas/novo")({
   component: NovaLicenca,
@@ -45,6 +53,7 @@ function NovaLicenca() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -105,7 +114,7 @@ function NovaLicenca() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const selectedMunicipality = municipalities.find(
     (municipality) => municipality.id === municipalityId,
@@ -165,6 +174,11 @@ function NovaLicenca() {
         notes: notes.trim() || null,
       });
 
+      notify.success(
+        "Licença criada",
+        "A licença municipal foi registada com sucesso.",
+      );
+
       await navigate({
         to: "/super-admin/licencas/$id",
         params: { id: licenseId },
@@ -172,11 +186,9 @@ function NovaLicenca() {
       });
     } catch (error) {
       console.error("Falha ao criar licença:", error);
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível criar a licença.",
-      );
+      const safeMessage = "Não foi possível criar a licença.";
+      setSaveError(safeMessage);
+      notify.error("Licença não criada", safeMessage);
     } finally {
       setSaving(false);
     }
@@ -210,29 +222,35 @@ function NovaLicenca() {
         </div>
 
         {loading ? (
-          <p className="mt-7 text-sm text-slate-500">
-            A carregar municípios e planos...
-          </p>
+          <div className="mt-7 grid gap-4 sm:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         ) : loadError ? (
-          <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="mt-7">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         ) : municipalities.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-            Todos os municípios disponíveis já possuem uma licença corrente.
-            Edite, renove ou cancele a licença existente antes de criar outra.
-          </div>
+          <EmptyState
+            title="Nenhum município disponível para nova licença"
+            description="Todos os municípios disponíveis já possuem uma licença corrente. Edite, renove ou cancele a licença existente antes de criar outra."
+          />
         ) : plans.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-            Não existem planos activos.{" "}
-            <Link
-              to="/super-admin/licencas/planos"
-              className="font-semibold underline"
-            >
-              Criar plano
-            </Link>
-            .
-          </div>
+          <EmptyState
+            title="Não existem planos activos"
+            description="Crie ou active um plano de licença antes de emitir uma licença municipal."
+            action={
+              <Link
+                to="/super-admin/licencas/planos"
+                className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                Gerir planos
+              </Link>
+            }
+          />
         ) : (
           <>
             <div className="mt-7 grid gap-5 md:grid-cols-2">
@@ -413,18 +431,24 @@ function NovaLicenca() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={!canSave}
+              <LoadingButton
                 onClick={save}
-                className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                {saving ? "A criar..." : "Criar licença"}
-              </button>
+                disabled={!canSave}
+                state={saving ? "loading" : "idle"}
+                idleLabel="Criar licença"
+                loadingLabel="A criar licença..."
+                icon={<KeyRound className="h-4 w-4" />}
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </>
         )}
       </SuperCard>
+
+      <ProcessingOverlay
+        open={saving}
+        message="A emitir a licença municipal..."
+      />
     </SuperAdminShell>
   );
 }
