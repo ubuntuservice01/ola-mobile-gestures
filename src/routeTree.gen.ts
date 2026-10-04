@@ -65,6 +65,7 @@ import { Route as SuperAdminPermissoesRouteImport } from './routes/super-admin/p
 import { Route as SuperAdminRelatoriosRouteImport } from './routes/super-admin/relatorios'
 import { Route as SuperAdminSaudeRouteImport } from './routes/super-admin/saude'
 import { Route as SuperAdminUtilizadoresRouteImport } from './routes/super-admin/utilizadores'
+import { Route as TaxistasIdRouteImport } from './routes/taxistas/$id'
 import { Route as TaxistasNovoRouteImport } from './routes/taxistas/novo'
 import { Route as UtilizadoresIdRouteImport } from './routes/utilizadores/$id'
 import { Route as UtilizadoresNovoRouteImport } from './routes/utilizadores/novo'
@@ -379,6 +380,11 @@ const SuperAdminUtilizadoresRoute = SuperAdminUtilizadoresRouteImport.update({
   path: '/utilizadores',
   getParentRoute: () => SuperAdminRoute,
 } as any)
+const TaxistasIdRoute = TaxistasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TaxistasRoute,
+} as any)
 const TaxistasNovoRoute = TaxistasNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -601,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/$id': typeof TaxistasIdRoute
   '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
@@ -690,6 +697,7 @@ export interface FileRoutesByTo {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/$id': typeof TaxistasIdRoute
   '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
@@ -780,6 +788,7 @@ export interface FileRoutesById {
   '/super-admin/relatorios': typeof SuperAdminRelatoriosRoute
   '/super-admin/saude': typeof SuperAdminSaudeRoute
   '/super-admin/utilizadores': typeof SuperAdminUtilizadoresRouteWithChildren
+  '/taxistas/$id': typeof TaxistasIdRoute
   '/taxistas/novo': typeof TaxistasNovoRoute
   '/utilizadores/$id': typeof UtilizadoresIdRoute
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
@@ -871,6 +880,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/$id'
     | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
@@ -960,6 +970,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/$id'
     | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
@@ -1049,6 +1060,7 @@ export interface FileRouteTypes {
     | '/super-admin/relatorios'
     | '/super-admin/saude'
     | '/super-admin/utilizadores'
+    | '/taxistas/$id'
     | '/taxistas/novo'
     | '/utilizadores/$id'
     | '/utilizadores/novo'
@@ -1504,6 +1516,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/super-admin/utilizadores'
       preLoaderRoute: typeof SuperAdminUtilizadoresRouteImport
       parentRoute: typeof SuperAdminRoute
+    }
+    '/taxistas/$id': {
+      id: '/taxistas/$id'
+      path: '/$id'
+      fullPath: '/taxistas/$id'
+      preLoaderRoute: typeof TaxistasIdRouteImport
+      parentRoute: typeof TaxistasRoute
     }
     '/taxistas/novo': {
       id: '/taxistas/novo'
@@ -2020,10 +2039,12 @@ const SuperAdminRouteWithChildren = SuperAdminRoute._addFileChildren(
 )
 
 interface TaxistasRouteChildren {
+  TaxistasIdRoute: typeof TaxistasIdRoute
   TaxistasNovoRoute: typeof TaxistasNovoRoute
 }
 
 const TaxistasRouteChildren: TaxistasRouteChildren = {
+  TaxistasIdRoute: TaxistasIdRoute,
   TaxistasNovoRoute: TaxistasNovoRoute,
 }
 
