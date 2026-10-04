@@ -1,9 +1,19 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, QrCode, Search, UserRoundCheck } from "lucide-react";
+import { Eye, QrCode, Search, UserRoundCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  IconTooltip,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
 
 export const Route = createFileRoute("/taxistas")({
   component: TaxistasRouteBoundary,
@@ -29,6 +39,8 @@ function Taxistas() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -124,7 +136,7 @@ function Taxistas() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(
     () =>
@@ -140,12 +152,12 @@ function Taxistas() {
           .toLowerCase();
 
         return (
-          haystack.includes(query.trim().toLowerCase()) &&
+          haystack.includes(debouncedQuery.trim().toLowerCase()) &&
           (typeFilter === "todos" || row.driver_type === typeFilter) &&
           (statusFilter === "todos" || row.status === statusFilter)
         );
       }),
-    [rows, query, typeFilter, statusFilter],
+    [rows, debouncedQuery, typeFilter, statusFilter],
   );
 
   return (
@@ -161,27 +173,27 @@ function Taxistas() {
       />
 
       <div className="mb-5 grid gap-4 sm:grid-cols-3">
-        <Metric label="Registados" value={loading ? "—" : String(rows.length)} />
-        <Metric
-          label="Activos"
-          value={
-            loading
-              ? "—"
-              : String(rows.filter((row) => row.status === "activo").length)
-          }
-        />
-        <Metric
-          label="Suspensos / bloqueados"
-          value={
-            loading
-              ? "—"
-              : String(
-                  rows.filter((row) =>
-                    ["suspenso", "bloqueado"].includes(row.status),
-                  ).length,
-                )
-          }
-        />
+        {loading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Metric label="Registados" value={rows.length} />
+            <Metric
+              label="Activos"
+              value={rows.filter((row) => row.status === "activo").length}
+            />
+            <Metric
+              label="Suspensos / bloqueados"
+              value={
+                rows.filter((row) =>
+                  ["suspenso", "bloqueado"].includes(row.status),
+                ).length
+              }
+            />
+          </>
+        )}
       </div>
 
       <Card>
@@ -221,15 +233,69 @@ function Taxistas() {
           </select>
         </div>
 
+        {(query.trim() ||
+          typeFilter !== "todos" ||
+          statusFilter !== "todos") && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {typeFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setTypeFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {driverTypeLabel(typeFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {statusFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {driverStatusLabel(statusFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setTypeFilter("todos");
+                setStatusFilter("todos");
+              }}
+              className="text-xs font-semibold text-sky-700 hover:text-sky-800"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 {[
                   "Referência",
@@ -251,21 +317,40 @@ function Taxistas() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-500">
-                    A carregar taxistas/condutores...
+                  <td colSpan={8} className="p-4">
+                    <SkeletonTable rows={6} columns={8} />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-500">
-                    {rows.length === 0
-                      ? "Ainda não existem taxistas/condutores registados."
-                      : "Nenhum registo corresponde aos filtros."}
+                  <td colSpan={8}>
+                    <EmptyState
+                      title={
+                        rows.length === 0
+                          ? "Ainda não existem taxistas/condutores registados"
+                          : "Nenhum registo encontrado"
+                      }
+                      description={
+                        rows.length === 0
+                          ? "Registe o primeiro condutor para gerar a identificação profissional."
+                          : "Tente alterar a pesquisa ou limpar os filtros."
+                      }
+                      action={
+                        rows.length === 0 ? (
+                          <Link
+                            to="/taxistas/novo"
+                            className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                          >
+                            + Novo taxista / condutor
+                          </Link>
+                        ) : undefined
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/70">
+                  <tr key={row.id} className="mobigest-table-row hover:bg-slate-50/70">
                     <td className="px-5 py-4 font-bold text-sky-700">
                       {row.reference}
                     </td>
@@ -281,22 +366,26 @@ function Taxistas() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex gap-2">
-                        <Link
-                          to="/taxistas/$id"
-                          params={{ id: row.id }}
-                          title="QR Code / ficha"
-                          className="rounded-lg p-2 text-sky-600 hover:bg-sky-50"
-                        >
-                          <QrCode className="h-4 w-4" />
-                        </Link>
-                        <Link
-                          to="/taxistas/$id"
-                          params={{ id: row.id }}
-                          title="Ver ficha"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
+                        <IconTooltip label="QR Code / ficha">
+                          <Link
+                            to="/taxistas/$id"
+                            params={{ id: row.id }}
+                            className="rounded-lg p-2 text-sky-600 hover:bg-sky-50"
+                            aria-label={"Abrir QR e ficha de " + row.full_name}
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </Link>
+                        </IconTooltip>
+                        <IconTooltip label="Ver ficha">
+                          <Link
+                            to="/taxistas/$id"
+                            params={{ id: row.id }}
+                            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                            aria-label={"Ver ficha de " + row.full_name}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </IconTooltip>
                       </div>
                     </td>
                   </tr>
@@ -320,29 +409,7 @@ function driverTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    activo: "Activo",
-    suspenso: "Suspenso",
-    bloqueado: "Bloqueado",
-    inactivo: "Inactivo",
-  };
-
-  const className =
-    status === "activo"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "suspenso"
-        ? "bg-amber-50 text-amber-700"
-        : "bg-rose-50 text-rose-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: { label: string; value: number }) {
   return (
     <Card className="p-5">
       <div className="flex items-center gap-3">
@@ -351,11 +418,23 @@ function Metric({ label, value }: { label: string; value: string }) {
         </span>
         <div>
           <p className="text-xs text-slate-500">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-2xl font-bold">
+            <AnimatedNumber value={value} />
+          </p>
         </div>
       </div>
     </Card>
   );
+}
+
+function driverStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    activo: "Activo",
+    suspenso: "Suspenso",
+    bloqueado: "Bloqueado",
+    inactivo: "Inactivo",
+  };
+  return labels[status] ?? status;
 }
 
 function TaxistasRouteBoundary() {
