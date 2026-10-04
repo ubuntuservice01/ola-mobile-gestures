@@ -124,6 +124,47 @@ insert into public.role_permissions(role,permission_id,allowed)
 select 'financeiro',id,true from public.permissions where code in ('drivers.view','fines.view')
 on conflict(role,permission_id) do update set allowed=true;
 
+-- Integridade multi-municipio: impede associacoes entre registos de municipios diferentes.
+create or replace function public.validate_driver_vehicle_scope() returns trigger
+language plpgsql set search_path='' as $
+declare d_municipality uuid; v_municipality uuid;
+begin
+  select municipality_id into d_municipality from public.drivers where id=new.driver_id;
+  select municipality_id into v_municipality from public.vehicles where id=new.vehicle_id;
+  if d_municipality is null or v_municipality is null or new.municipality_id <> d_municipality or new.municipality_id <> v_municipality then
+    raise exception 'Condutor e veiculo devem pertencer ao mesmo municipio do vinculo';
+  end if;
+  return new;
+end; $;
+
+create trigger driver_vehicles_validate_scope
+before insert or update on public.driver_vehicles
+for each row execute function public.validate_driver_vehicle_scope();
+
+create or replace function public.validate_fine_scope() returns trigger
+language plpgsql set search_path='' as $
+declare d_municipality uuid; v_municipality uuid; ft_municipality uuid; f_municipality uuid;
+begin
+  select municipality_id into d_municipality from public.drivers where id=new.driver_id;
+  select municipality_id into ft_municipality from public.fine_types where id=new.fine_type_id;
+  if d_municipality is null or ft_municipality is null or new.municipality_id <> d_municipality or new.municipality_id <> ft_municipality then
+    raise exception 'Condutor e tipo de multa devem pertencer ao mesmo municipio da multa';
+  end if;
+  if new.vehicle_id is not null then
+    select municipality_id into v_municipality from public.vehicles where id=new.vehicle_id;
+    if v_municipality is null or new.municipality_id <> v_municipality then raise exception 'Veiculo deve pertencer ao mesmo municipio da multa'; end if;
+  end if;
+  if new.fiscal_id is not null then
+    select municipality_id into f_municipality from public.profiles where id=new.fiscal_id;
+    if f_municipality is null or new.municipality_id <> f_municipality then raise exception 'Fiscal deve pertencer ao mesmo municipio da multa'; end if;
+  end if;
+  return new;
+end; $;
+
+create trigger fines_validate_scope
+before insert or update on public.fines
+for each row execute function public.validate_fine_scope();
+
 create or replace function private.driver_in_scope(driver_uuid uuid) returns boolean
 language sql stable security definer set search_path='' as $$
  select exists(select 1 from public.drivers d where d.id=driver_uuid and (select private.same_municipality(d.municipality_id)));
