@@ -306,6 +306,24 @@ a:focus-visible,
   body {
     background: white !important;
   }
+
+  body:has(.driver-qr-print-card) * {
+    visibility: hidden;
+  }
+
+  body:has(.driver-qr-print-card) .driver-qr-print-card,
+  body:has(.driver-qr-print-card) .driver-qr-print-card * {
+    visibility: visible;
+  }
+
+  body:has(.driver-qr-print-card) .driver-qr-print-card {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+  }
 }
 
 /* MobiGest shared interaction utilities */
