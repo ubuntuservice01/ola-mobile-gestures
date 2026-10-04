@@ -94,8 +94,7 @@ export function SuperAdminShell({
                 key={to}
                 to={to}
                 onClick={() => setOpen(false)}
-                activeOptions={{ exact: to === "/super-admin" }}
-                activeProps={{ className: "bg-sky-600 text-white" }}
+              activeProps={{ className: "bg-sky-600 text-white" }}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
@@ -110,8 +109,7 @@ export function SuperAdminShell({
             <Link
               to="/super-admin/relatorios"
               onClick={() => setOpen(false)}
-              activeOptions={{ exact: to === "/super-admin" }}
-                activeProps={{ className: "bg-sky-600 text-white" }}
+              activeProps={{ className: "bg-sky-600 text-white" }}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
             >
               <BarChart3 className="h-4 w-4" />
@@ -121,8 +119,7 @@ export function SuperAdminShell({
             <Link
               to="/super-admin/notificacoes"
               onClick={() => setOpen(false)}
-              activeOptions={{ exact: to === "/super-admin" }}
-                activeProps={{ className: "bg-sky-600 text-white" }}
+              activeProps={{ className: "bg-sky-600 text-white" }}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
             >
               <Bell className="h-4 w-4" />
@@ -134,8 +131,7 @@ export function SuperAdminShell({
                 key={to}
                 to={to}
                 onClick={() => setOpen(false)}
-                activeOptions={{ exact: to === "/super-admin" }}
-                activeProps={{ className: "bg-sky-600 text-white" }}
+              activeProps={{ className: "bg-sky-600 text-white" }}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
