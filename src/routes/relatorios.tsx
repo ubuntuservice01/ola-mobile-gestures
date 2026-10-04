@@ -9,7 +9,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   MobiGestShell,
   PageHeader,
@@ -428,7 +428,7 @@ function Metric({
   title,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   value: string;
 }) {
@@ -448,7 +448,7 @@ function ReportCard({
   title,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   value: string;
 }) {
