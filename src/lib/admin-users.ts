@@ -39,6 +39,7 @@ export async function createManagedUser(input: {
   role: ManagedUserRole;
   municipalityId: string;
   administrativePostId?: string | null;
+  accessSessionId?: string | null;
 }) {
   return invokeAdminUsers({
     action: "create",
@@ -48,6 +49,7 @@ export async function createManagedUser(input: {
     role: input.role,
     municipalityId: input.municipalityId,
     administrativePostId: input.administrativePostId ?? null,
+    accessSessionId: input.accessSessionId ?? null,
   });
 }
 
@@ -58,6 +60,7 @@ export async function updateManagedUser(input: {
   role: ManagedUserRole;
   municipalityId: string;
   administrativePostId?: string | null;
+  accessSessionId?: string | null;
 }) {
   return invokeAdminUsers({
     action: "update_profile",
@@ -67,6 +70,7 @@ export async function updateManagedUser(input: {
     role: input.role,
     municipalityId: input.municipalityId,
     administrativePostId: input.administrativePostId ?? null,
+    accessSessionId: input.accessSessionId ?? null,
   });
 }
 
@@ -74,11 +78,13 @@ export async function setManagedUserStatus(input: {
   userId: string;
   status: "activo" | "suspenso" | "inactivo";
   reason: string;
+  accessSessionId?: string | null;
 }) {
   return invokeAdminUsers({
     action: "set_status",
     userId: input.userId,
     status: input.status,
     reason: input.reason,
+    accessSessionId: input.accessSessionId ?? null,
   });
 }
