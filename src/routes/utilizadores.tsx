@@ -9,6 +9,7 @@ import { supabase } from "../lib/supabase";
 import {
   EmptyState,
   NetworkErrorState,
+  PaginationBar,
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
@@ -41,6 +42,7 @@ function UsersPage() {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("todos");
   const [reloadKey, setReloadKey] = useState(0);
+  const [page, setPage] = useState(1);
   const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
@@ -120,6 +122,18 @@ function UsersPage() {
       return matchesQuery && matchesRole;
     });
   }, [debouncedQuery, roleFilter, rows]);
+  const PAGE_SIZE = 20;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagedRows = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, roleFilter]);
+
 
   return (
     <MobiGestShell
@@ -210,7 +224,7 @@ function UsersPage() {
             }
           />
         ) : (
-          filtered.map((row) => (
+          pagedRows.map((row) => (
             <Link
               to="/utilizadores/$id"
               params={{ id: row.id }}
@@ -245,6 +259,14 @@ function UsersPage() {
               <ChevronRight className="h-4 w-4 text-slate-300" />
             </Link>
           ))
+        )}
+        {!loading && filtered.length > 0 && (
+          <PaginationBar
+            page={safePage}
+            pageSize={PAGE_SIZE}
+            totalItems={filtered.length}
+            onPageChange={setPage}
+          />
         )}
       </Card>
     </MobiGestShell>
