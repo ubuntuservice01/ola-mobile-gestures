@@ -12,6 +12,7 @@ const rows = [
   ["Validação", "gerir", "validar", "—", "—", "—"],
   ["Documentos", "gerir", "gerir", "consultar/validar", "consultar", "consultar"],
   ["Fiscalização", "gerir", "consultar", "registar/editar", "consultar", "consultar"],
+  ["Multas", "gerir", "gerir tipos/consultar", "registar/consultar", "gerir pagamentos", "consultar"],
   ["Transferências", "gerir", "aprovar", "consultar", "—", "consultar"],
   ["Financeiro", "gerir", "consultar", "—", "gerir", "consultar"],
   ["Relatórios", "gerir", "gerir", "consultar", "consultar", "consultar"],
