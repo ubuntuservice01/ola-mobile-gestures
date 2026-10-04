@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CarFront, Edit3, FileText, History, MapPin, Printer, QrCode, ShieldAlert, UserRound } from "lucide-react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 
-export const Route = createFileRoute("/veiculos/$id")({ component: Detalhe });
+export const Route = createFileRoute("/veiculos/$id")({ component: DetalheRouteBoundary });
 
 function Detalhe() {
   const { id } = Route.useParams();
@@ -48,3 +49,8 @@ function Detalhe() {
 }
 function SectionTitle({title}:{title:string}){return <h3 className="mt-8 font-semibold first:mt-0">{title}</h3>}
 function Info({label,value}:{label:string;value:string}){return <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-400">{label}</p><p className="mt-1 text-sm font-semibold text-slate-700">{value}</p></div>}
+
+
+function DetalheRouteBoundary() {
+  return <RouteIndexBoundary pattern="/veiculos/$id"><Detalhe /></RouteIndexBoundary>;
+}
