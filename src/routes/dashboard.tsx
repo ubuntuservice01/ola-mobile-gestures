@@ -1,3 +1,4 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -25,7 +26,7 @@ import { DashboardFinance } from "../components/financeiro/DashboardFinance";
 import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/dashboard")({
-  component: DashboardPage,
+  component: DashboardPageRouteBoundary,
 });
 
 const recentRegistrations = [
@@ -372,4 +373,9 @@ function QuickAction({ to, icon, title, text }: { to: string; icon: React.ReactN
       <span><span className="block text-sm font-semibold text-slate-700">{title}</span><span className="mt-0.5 block text-xs text-slate-400">{text}</span></span>
     </Link>
   );
+}
+
+
+function DashboardPageRouteBoundary() {
+  return <RouteIndexBoundary pattern="/dashboard"><DashboardPage /></RouteIndexBoundary>;
 }
