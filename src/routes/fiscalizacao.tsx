@@ -8,9 +8,19 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card, PageHeader } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { formatDateTime } from "../lib/format";
 
 export const Route = createFileRoute("/fiscalizacao")({
   component: FiscalizacaoRouteBoundary,
@@ -49,6 +59,7 @@ function Fiscalizacao() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -155,7 +166,7 @@ function Fiscalizacao() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const metrics = useMemo(
     () => ({
@@ -238,14 +249,14 @@ function Fiscalizacao() {
                 className="h-12 flex-1 bg-transparent px-3 outline-none"
               />
             </div>
-            <button
-              type="button"
-              disabled={!searchCode.trim() || searching}
+            <LoadingButton
               onClick={searchVehicle}
-              className="rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {searching ? "A consultar..." : "Consultar"}
-            </button>
+              disabled={!searchCode.trim()}
+              state={searching ? "loading" : "idle"}
+              idleLabel="Consultar"
+              loadingLabel="A consultar registos..."
+              className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+            />
           </div>
 
           {searchError && (
@@ -285,21 +296,29 @@ function Fiscalizacao() {
           )}
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            <Metric
-              icon={<ClipboardList />}
-              label="Últimas carregadas"
-              value={loading ? "—" : String(metrics.total)}
-            />
-            <Metric
-              icon={<CheckCircle2 />}
-              label="Regulares"
-              value={loading ? "—" : String(metrics.regular)}
-            />
-            <Metric
-              icon={<ShieldAlert />}
-              label="Com ocorrência"
-              value={loading ? "—" : String(metrics.occurrence)}
-            />
+            {loading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))
+            ) : (
+              <>
+                <Metric
+                  icon={<ClipboardList />}
+                  label="Últimas carregadas"
+                  value={metrics.total}
+                />
+                <Metric
+                  icon={<CheckCircle2 />}
+                  label="Regulares"
+                  value={metrics.regular}
+                />
+                <Metric
+                  icon={<ShieldAlert />}
+                  label="Com ocorrência"
+                  value={metrics.occurrence}
+                />
+              </>
+            )}
           </div>
         </Card>
 
@@ -325,17 +344,31 @@ function Fiscalizacao() {
         </div>
 
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         {loading ? (
-          <div className="p-8 text-sm text-slate-500">A carregar...</div>
-        ) : rows.length === 0 ? (
-          <div className="p-8 text-sm text-slate-500">
-            Ainda não existem fiscalizações.
+          <div className="p-4">
+            <SkeletonTable rows={5} columns={5} />
           </div>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="Ainda não existem fiscalizações"
+            description="Quando a primeira fiscalização for registada, o histórico recente aparecerá aqui."
+            action={
+              <Link
+                to="/fiscalizacao/nova"
+                className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                Nova fiscalização
+              </Link>
+            }
+          />
         ) : (
           <div className="divide-y divide-slate-100">
             {rows.map((row) => (
@@ -343,7 +376,7 @@ function Fiscalizacao() {
                 key={row.id}
                 to="/fiscalizacao/$id"
                 params={{ id: row.id }}
-                className="grid gap-3 p-5 hover:bg-slate-50 md:grid-cols-[1.2fr_1fr_1.1fr_1fr_auto] md:items-center"
+                className="mobigest-table-row grid gap-3 p-5 hover:bg-slate-50 md:grid-cols-[1.2fr_1fr_1.1fr_1fr_auto] md:items-center"
               >
                 <div>
                   <p className="text-sm font-semibold">{row.vehicleNumber}</p>
@@ -351,13 +384,13 @@ function Fiscalizacao() {
                     {row.vehicleLabel}
                   </p>
                 </div>
-                <ResultBadge result={row.result} />
+                <StatusBadge status={row.result} />
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
                   <MapPin className="h-3.5 w-3.5" />
                   {row.postName}
                 </div>
                 <div className="text-xs text-slate-500">
-                  {new Date(row.occurred_at).toLocaleString("pt-MZ")}
+                  {formatDateTime(row.occurred_at)}
                 </div>
                 <span className="text-xs text-slate-400">
                   {row.evidence_count} evid.
@@ -376,39 +409,18 @@ function Metric({
   label,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
-  value: string;
+  value: number;
 }) {
   return (
     <div className="rounded-xl bg-slate-50 p-4">
       <span className="text-sky-600">{icon}</span>
       <p className="mt-2 text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-bold">{value}</p>
+      <p className="mt-1 text-xl font-bold">
+        <AnimatedNumber value={value} />
+      </p>
     </div>
-  );
-}
-
-function ResultBadge({ result }: { result: string }) {
-  const labels: Record<string, string> = {
-    regular: "Regular",
-    irregular: "Irregular",
-    pendente: "Pendente",
-    nao_localizado: "Não localizado",
-    outro: "Outro",
-  };
-
-  const className =
-    result === "regular"
-      ? "bg-emerald-50 text-emerald-700"
-      : result === "irregular"
-        ? "bg-amber-50 text-amber-700"
-        : "bg-slate-100 text-slate-600";
-
-  return (
-    <span className={"w-fit rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[result] ?? result}
-    </span>
   );
 }
 
