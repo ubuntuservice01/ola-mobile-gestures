@@ -12,7 +12,7 @@ const rows = [
   ["Validação", "gerir", "validar", "—", "—", "—"],
   ["Documentos", "gerir", "gerir", "consultar/validar", "consultar", "consultar"],
   ["Fiscalização", "gerir", "consultar", "registar/editar", "consultar", "consultar"],
-  ["Multas", "gerir", "gerir tipos/consultar", "registar/consultar", "gerir pagamentos", "consultar"],
+  ["Multas", "gerir", "gerir tipos/consultar", "consultar", "registar/consultar", "gerir pagamentos"],
   ["Transferências", "gerir", "aprovar", "consultar", "—", "consultar"],
   ["Financeiro", "gerir", "consultar", "—", "gerir", "consultar"],
   ["Relatórios", "gerir", "gerir", "consultar", "consultar", "consultar"],
@@ -80,7 +80,7 @@ function Permissoes() {
         </div>
         <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
           <ShieldCheck className="mr-2 inline h-4 w-4" />
-          <b>Segurança:</b> a matriz visual é a referência funcional. No Supabase, o controlo efectivo será feito com Auth, RLS e regras de autorização no servidor.
+          <b>Segurança:</b> a matriz visual é a referência funcional. No Supabase, o controlo efectivo é aplicado com Auth, RLS e regras de autorização no servidor.
         </div>
       </div>
     </MobiGestShell>
