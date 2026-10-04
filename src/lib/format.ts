@@ -36,3 +36,7 @@ export function formatMt(value: number | string | null | undefined) {
     }).format(Number(value || 0)) + " MT"
   );
 }
+
+export function formatMoneyMt(value: number | string | null | undefined) {
+  return formatMt(value);
+}
