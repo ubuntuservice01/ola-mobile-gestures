@@ -1,7 +1,7 @@
 import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Bike, CarFront } from "lucide-react";
-import { MobiGestShell } from "../../components/MobiGestShell";
+import { MobiGestShell, Card } from "../../components/MobiGestShell";
 
 export const Route = createFileRoute("/veiculos/novo")({ component: NovoRegistoRouteBoundary });
 
@@ -34,16 +34,19 @@ function NovoRegisto() {
               key={id}
               to="/veiculos/novo/$tipo"
               params={{ tipo: id }}
-              className="group rounded-2xl border border-slate-200 bg-white p-7 transition hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg"
+              className="group"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                <Icon className="h-7 w-7" />
-              </div>
-              <h3 className="mt-6 font-semibold">{name}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">{desc}</p>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sky-600">
-                Abrir formulário <ArrowRight className="h-4 w-4" />
-              </span>
+              <Card className="mobigest-card-interactive h-full cursor-pointer p-7 hover:border-sky-300">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition-transform duration-200 group-hover:scale-105">
+                  <Icon className="h-7 w-7" />
+                </div>
+                <h3 className="mt-6 font-semibold">{name}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{desc}</p>
+                <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sky-600">
+                  Abrir formulário
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </span>
+              </Card>
             </Link>
           ))}
         </div>
