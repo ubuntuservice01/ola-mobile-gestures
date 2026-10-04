@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
   ArrowRight,
@@ -66,21 +66,21 @@ function MobiGestHome() {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <button
-                type="button"
+              <Link
+                to="/login"
                 className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
               >
                 Aceder ao sistema
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
 
-              <button
-                type="button"
+              <Link
+                to="/consulta"
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-500 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white"
               >
                 <Search className="h-4 w-4" />
                 Consulta pública
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -104,10 +104,10 @@ function MobiGestHome() {
 
       <section className="relative z-10 mx-auto -mt-8 max-w-7xl px-6 lg:px-10">
         <div className="grid rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/10 md:grid-cols-4 md:p-7">
-          <Stat icon={<Bike />} value="1 284" label="Motorizadas registadas" />
-          <Stat icon={<CarFront />} value="486" label="Carros registados" />
-          <Stat icon={<Bike />} value="792" label="Bicicletas registadas" />
-          <Stat icon={<ShieldCheck />} value="100%" label="Gestão segura e organizada" />
+          <Stat icon={<Bike />} value="MobiGest" label="Identificação única de veículos" />
+          <Stat icon={<CarFront />} value="QR" label="Verificação pública do registo" />
+          <Stat icon={<UserRound />} value="MTX / CDT" label="Identificação de condutores" />
+          <Stat icon={<ShieldCheck />} value="Municipal" label="Gestão por município e perfil" />
         </div>
       </section>
 
