@@ -10,6 +10,7 @@ import {
   profileAccessProblem,
 } from "../lib/access-control";
 import { supabase } from "../lib/supabase";
+import { loadCurrentMunicipalAccess } from "../lib/municipal-access";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -90,11 +91,18 @@ function LoginPage() {
                     return;
                   }
 
+                  const municipalAccess =
+                    profile.role === "super_admin"
+                      ? await loadCurrentMunicipalAccess()
+                      : null;
+                  const hasMunicipalAccess = Boolean(municipalAccess);
+
                   const redirect = new URLSearchParams(window.location.search).get("redirect");
                   const destination =
-                    isSafeInternalPath(redirect) && isPathAllowedForProfile(redirect, profile)
+                    isSafeInternalPath(redirect) &&
+                    isPathAllowedForProfile(redirect, profile, hasMunicipalAccess)
                       ? redirect
-                      : defaultRouteForProfile(profile);
+                      : defaultRouteForProfile(profile, hasMunicipalAccess);
 
                   window.location.replace(destination);
                 }}
