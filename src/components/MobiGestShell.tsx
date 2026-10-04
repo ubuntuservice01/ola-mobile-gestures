@@ -396,7 +396,7 @@ export function MobiGestShell({
                 </div>
               </Link>
 
-              <IconTooltip label="Terminar sessão" side="top">
+              <IconTooltip label="Terminar sessão">
                 <button
                   type="button"
                   onClick={handleSignOut}
@@ -450,7 +450,7 @@ export function MobiGestShell({
           </div>
 
           <div className="flex items-center gap-3">
-            <IconTooltip label="Notificações" side="bottom">
+            <IconTooltip label="Notificações">
               <Link
                 to="/notificacoes"
                 className="mobigest-interactive relative rounded-xl border border-slate-200 p-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
