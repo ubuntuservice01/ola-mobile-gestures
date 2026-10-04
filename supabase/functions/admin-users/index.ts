@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 
+type AdminClient = ReturnType<typeof createClient<any>>;
+
 type Role = "super_admin" | "admin_municipal" | "tecnico" | "fiscal" | "financeiro";
 type Status = "activo" | "suspenso" | "inactivo";
 
@@ -79,7 +81,7 @@ function canManageTarget(actor: ActorProfile, targetRole: Role, municipalityId: 
 
 
 async function validateSuperAdminMunicipalSession(
-  admin: ReturnType<typeof createClient>,
+  admin: AdminClient,
   actor: ActorProfile,
   accessSessionId: string | null,
   municipalityId: string | null,
@@ -119,7 +121,7 @@ async function validateSuperAdminMunicipalSession(
 }
 
 async function validateTerritory(
-  admin: ReturnType<typeof createClient>,
+  admin: AdminClient,
   municipalityId: string,
   postId: string | null,
 ) {
@@ -159,7 +161,7 @@ async function validateTerritory(
 }
 
 async function audit(
-  admin: ReturnType<typeof createClient>,
+  admin: AdminClient,
   actor: ActorProfile,
   municipalityId: string | null,
   action: string,
