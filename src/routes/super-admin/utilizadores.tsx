@@ -1,9 +1,19 @@
 import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, Filter, Search, ShieldCheck, UserRound, UsersRound } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Eye, Filter, Search, ShieldCheck, UserRound, UsersRound, X } from "lucide-react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 import { supabase } from "../../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  IconTooltip,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../../components/mobigest/Experience";
+import { useDebouncedValue } from "../../hooks/use-debounced-value";
 
 export const Route = createFileRoute("/super-admin/utilizadores")({
   component: UtilizadoresGlobaisRouteBoundary,
@@ -39,6 +49,8 @@ function UtilizadoresGlobais() {
   const [status, setStatus] = useState("Todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -89,7 +101,7 @@ function UtilizadoresGlobais() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(
     () =>
@@ -103,12 +115,12 @@ function UtilizadoresGlobais() {
           .toLowerCase();
 
         return (
-          haystack.includes(query.trim().toLowerCase()) &&
+          haystack.includes(debouncedQuery.trim().toLowerCase()) &&
           (profile === "Todos" || user.role === profile) &&
           (status === "Todos" || user.status === status)
         );
       }),
-    [users, query, profile, status],
+    [users, debouncedQuery, profile, status],
   );
 
   const municipalityCount = new Set(
@@ -137,17 +149,25 @@ function UtilizadoresGlobais() {
       </div>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <Mini icon={<UsersRound />} value={loading ? "—" : String(users.length)} label="Perfis registados" />
-        <Mini
-          icon={<ShieldCheck />}
-          value={loading ? "—" : String(users.filter((user) => user.status === "activo").length)}
-          label="Activos"
-        />
-        <Mini
-          icon={<UserRound />}
-          value={loading ? "—" : String(municipalityCount)}
-          label="Municípios com utilizadores"
-        />
+        {loading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Mini icon={<UsersRound />} value={users.length} label="Perfis registados" />
+            <Mini
+              icon={<ShieldCheck />}
+              value={users.filter((user) => user.status === "activo").length}
+              label="Activos"
+            />
+            <Mini
+              icon={<UserRound />}
+              value={municipalityCount}
+              label="Municípios com utilizadores"
+            />
+          </>
+        )}
       </div>
 
       <SuperCard className="mb-6 p-4">
@@ -189,11 +209,52 @@ function UtilizadoresGlobais() {
             <option value="inactivo">Inactivo</option>
           </select>
         </div>
+
+        {(query.trim() || profile !== "Todos" || status !== "Todos") && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {profile !== "Todos" && (
+              <button
+                type="button"
+                onClick={() => setProfile("Todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                {ROLE_LABELS[profile] ?? profile}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {status !== "Todos" && (
+              <button
+                type="button"
+                onClick={() => setStatus("Todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                {STATUS_LABELS[status] ?? status}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        )}
       </SuperCard>
 
       {loadError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-5">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
@@ -207,18 +268,41 @@ function UtilizadoresGlobais() {
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar utilizadores...
+          <div className="p-4">
+            <SkeletonTable rows={6} columns={5} />
           </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={
+              users.length === 0
+                ? "Ainda não existem utilizadores"
+                : "Nenhum utilizador encontrado"
+            }
+            description={
+              users.length === 0
+                ? "Crie a primeira identidade autorizada da plataforma."
+                : "Tente alterar a pesquisa ou os filtros."
+            }
+            action={
+              users.length === 0 ? (
+                <Link
+                  to="/super-admin/utilizadores/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Novo utilizador
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
           filtered.map((user) => (
             <div
               key={user.id}
-              className="grid gap-3 border-b border-slate-100 px-6 py-5 md:grid-cols-[1.6fr_1.2fr_1.4fr_auto_auto] md:items-center"
+              className="mobigest-table-row grid gap-3 border-b border-slate-100 px-6 py-5 md:grid-cols-[1.6fr_1.2fr_1.4fr_auto_auto] md:items-center"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                  <UserRound className="h-4 w-4 text-slate-500" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+                  {initials(user.name)}
                 </div>
                 <div>
                   <p className="text-sm font-semibold">{user.name}</p>
@@ -232,40 +316,29 @@ function UtilizadoresGlobais() {
 
               <p className="text-sm text-slate-600">{user.municipality}</p>
 
-              <span
-                className={
-                  "w-fit rounded-full px-3 py-1 text-xs font-semibold " +
-                  (user.status === "activo"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : user.status === "suspenso"
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-rose-50 text-rose-700")
-                }
-              >
-                {STATUS_LABELS[user.status] ?? user.status}
-              </span>
+              <StatusBadge
+                status={user.status}
+                label={STATUS_LABELS[user.status] ?? user.status}
+              />
 
-              <Link
-                to="/super-admin/utilizadores/$id"
-                params={{ id: user.id }}
-                className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-sky-700"
-              >
-                <Eye className="h-4 w-4" /> Ver
-              </Link>
+              <IconTooltip label="Ver utilizador">
+                <Link
+                  to="/super-admin/utilizadores/$id"
+                  params={{ id: user.id }}
+                  className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-sky-700"
+                >
+                  <Eye className="h-4 w-4" /> Ver
+                </Link>
+              </IconTooltip>
             </div>
           ))
         )}
 
-        {!loading && filtered.length === 0 && (
-          <div className="p-10 text-center text-sm text-slate-500">
-            Nenhum utilizador corresponde aos filtros.
-          </div>
-        )}
       </SuperCard>
 
       <div className="mt-5 rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm text-sky-900">
         <ShieldCheck className="mr-2 inline h-4 w-4" />
-        <b>Segurança:</b> os perfis apresentados vêm do Supabase e estão sujeitos às regras RBAC e RLS. Novas identidades são criadas pelo serviço administrativo protegido, com convite do Supabase Auth e perfil municipal associado.
+        <b>Segurança:</b> os perfis apresentados vêm do Supabase e estão sujeitos às regras RBAC e RLS. Novas identidades são criadas pelo serviço administrativo protegido e activadas por código de uso único, sem convite por email.
       </div>
     </SuperAdminShell>
   );
@@ -276,17 +349,29 @@ function Mini({
   value,
   label,
 }: {
-  icon: React.ReactNode;
-  value: string;
+  icon: ReactNode;
+  value: number;
   label: string;
 }) {
   return (
     <SuperCard className="p-4">
       <span className="text-sky-600">{icon}</span>
-      <p className="mt-2 text-xl font-bold">{value}</p>
+      <p className="mt-2 text-xl font-bold">
+        <AnimatedNumber value={value} />
+      </p>
       <p className="text-xs text-slate-500">{label}</p>
     </SuperCard>
   );
+}
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 function UtilizadoresGlobaisRouteBoundary() {
