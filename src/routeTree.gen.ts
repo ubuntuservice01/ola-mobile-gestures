@@ -44,10 +44,12 @@ import { Route as FinanceiroNovaRouteImport } from './routes/financeiro/nova'
 import { Route as FiscalizacaoHistoricoRouteImport } from './routes/fiscalizacao/historico'
 import { Route as FiscalizacaoNovaRouteImport } from './routes/fiscalizacao/nova'
 import { Route as LocalidadesIdRouteImport } from './routes/localidades/$id'
+import { Route as LocalidadesNovoRouteImport } from './routes/localidades/novo'
 import { Route as MultasNovaRouteImport } from './routes/multas/nova'
 import { Route as MultasTiposRouteImport } from './routes/multas/tipos'
 import { Route as MunicipiosIdRouteImport } from './routes/municipios/$id'
 import { Route as PostosAdministrativosIdRouteImport } from './routes/postos-administrativos/$id'
+import { Route as PostosAdministrativosNovoRouteImport } from './routes/postos-administrativos/novo'
 import { Route as ProprietariosIdRouteImport } from './routes/proprietarios/$id'
 import { Route as ProprietariosNovoRouteImport } from './routes/proprietarios/novo'
 import { Route as QCodigoRouteImport } from './routes/q/$codigo'
@@ -269,6 +271,11 @@ const LocalidadesIdRoute = LocalidadesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => LocalidadesRoute,
 } as any)
+const LocalidadesNovoRoute = LocalidadesNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => LocalidadesRoute,
+} as any)
 const MultasNovaRoute = MultasNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
@@ -289,6 +296,12 @@ const PostosAdministrativosIdRoute = PostosAdministrativosIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => PostosAdministrativosRoute,
 } as any)
+const PostosAdministrativosNovoRoute =
+  PostosAdministrativosNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => PostosAdministrativosRoute,
+  } as any)
 const ProprietariosIdRoute = ProprietariosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -561,10 +574,12 @@ export interface FileRoutesByFullPath {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/localidades/novo': typeof LocalidadesNovoRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/postos-administrativos/novo': typeof PostosAdministrativosNovoRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
   '/proprietarios/novo': typeof ProprietariosNovoRoute
   '/q/$codigo': typeof QCodigoRoute
@@ -647,10 +662,12 @@ export interface FileRoutesByTo {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/localidades/novo': typeof LocalidadesNovoRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/postos-administrativos/novo': typeof PostosAdministrativosNovoRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
   '/proprietarios/novo': typeof ProprietariosNovoRoute
   '/q/$codigo': typeof QCodigoRoute
@@ -734,10 +751,12 @@ export interface FileRoutesById {
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
+  '/localidades/novo': typeof LocalidadesNovoRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
   '/postos-administrativos/$id': typeof PostosAdministrativosIdRoute
+  '/postos-administrativos/novo': typeof PostosAdministrativosNovoRoute
   '/proprietarios/$id': typeof ProprietariosIdRouteWithChildren
   '/proprietarios/novo': typeof ProprietariosNovoRoute
   '/q/$codigo': typeof QCodigoRoute
@@ -822,10 +841,12 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/localidades/novo'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
+    | '/postos-administrativos/novo'
     | '/proprietarios/$id'
     | '/proprietarios/novo'
     | '/q/$codigo'
@@ -908,10 +929,12 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/localidades/novo'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
+    | '/postos-administrativos/novo'
     | '/proprietarios/$id'
     | '/proprietarios/novo'
     | '/q/$codigo'
@@ -994,10 +1017,12 @@ export interface FileRouteTypes {
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
+    | '/localidades/novo'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
     | '/postos-administrativos/$id'
+    | '/postos-administrativos/novo'
     | '/proprietarios/$id'
     | '/proprietarios/novo'
     | '/q/$codigo'
@@ -1321,6 +1346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalidadesIdRouteImport
       parentRoute: typeof LocalidadesRoute
     }
+    '/localidades/novo': {
+      id: '/localidades/novo'
+      path: '/novo'
+      fullPath: '/localidades/novo'
+      preLoaderRoute: typeof LocalidadesNovoRouteImport
+      parentRoute: typeof LocalidadesRoute
+    }
     '/multas/nova': {
       id: '/multas/nova'
       path: '/nova'
@@ -1347,6 +1379,13 @@ declare module '@tanstack/react-router' {
       path: '/$id'
       fullPath: '/postos-administrativos/$id'
       preLoaderRoute: typeof PostosAdministrativosIdRouteImport
+      parentRoute: typeof PostosAdministrativosRoute
+    }
+    '/postos-administrativos/novo': {
+      id: '/postos-administrativos/novo'
+      path: '/novo'
+      fullPath: '/postos-administrativos/novo'
+      preLoaderRoute: typeof PostosAdministrativosNovoRouteImport
       parentRoute: typeof PostosAdministrativosRoute
     }
     '/proprietarios/$id': {
@@ -1745,10 +1784,12 @@ const FiscalizacaoRouteWithChildren = FiscalizacaoRoute._addFileChildren(
 
 interface LocalidadesRouteChildren {
   LocalidadesIdRoute: typeof LocalidadesIdRoute
+  LocalidadesNovoRoute: typeof LocalidadesNovoRoute
 }
 
 const LocalidadesRouteChildren: LocalidadesRouteChildren = {
   LocalidadesIdRoute: LocalidadesIdRoute,
+  LocalidadesNovoRoute: LocalidadesNovoRoute,
 }
 
 const LocalidadesRouteWithChildren = LocalidadesRoute._addFileChildren(
@@ -1782,10 +1823,12 @@ const MunicipiosRouteWithChildren = MunicipiosRoute._addFileChildren(
 
 interface PostosAdministrativosRouteChildren {
   PostosAdministrativosIdRoute: typeof PostosAdministrativosIdRoute
+  PostosAdministrativosNovoRoute: typeof PostosAdministrativosNovoRoute
 }
 
 const PostosAdministrativosRouteChildren: PostosAdministrativosRouteChildren = {
   PostosAdministrativosIdRoute: PostosAdministrativosIdRoute,
+  PostosAdministrativosNovoRoute: PostosAdministrativosNovoRoute,
 }
 
 const PostosAdministrativosRouteWithChildren =
