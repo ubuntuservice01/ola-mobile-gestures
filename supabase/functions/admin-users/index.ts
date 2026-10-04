@@ -324,10 +324,22 @@ Deno.serve(async (request) => {
         });
 
       if (inviteError || !inviteData.user) {
-        const message = inviteError?.message?.toLowerCase().includes("already")
-          ? "Já existe uma conta com este email."
-          : "Não foi possível criar e convidar o utilizador.";
-        return response(request, 400, { error: message });
+        const rawMessage = inviteError?.message?.toLowerCase() ?? "";
+        const rawCode = (inviteError as { code?: string } | null)?.code ?? "";
+
+        const message =
+          rawCode === "over_email_send_rate_limit" ||
+          rawMessage.includes("rate limit") ||
+          rawMessage.includes("email send")
+            ? "O limite temporário de envio de emails do Supabase foi atingido. Aguarde alguns minutos e tente novamente."
+            : rawMessage.includes("already")
+              ? "Já existe uma conta com este email."
+              : "Não foi possível criar e convidar o utilizador.";
+
+        return response(request, 400, {
+          error: message,
+          code: rawCode || "INVITE_FAILED",
+        });
       }
 
       const newUserId = inviteData.user.id;
