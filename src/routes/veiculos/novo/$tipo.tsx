@@ -17,6 +17,7 @@ import {
   EmptyState,
   LoadingButton,
   NetworkErrorState,
+  ProcessingOverlay,
   SkeletonCard,
   notify,
 } from "../../../components/mobigest/Experience";
@@ -738,6 +739,11 @@ function RegistoVeiculo() {
           </>
         )}
       </div>
+
+      <ProcessingOverlay
+        open={saving}
+        message="A concluir o registo e criar o processo municipal..."
+      />
     </MobiGestShell>
   );
 }
