@@ -10,6 +10,16 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  notify,
+} from "../../components/mobigest/Experience";
+import { useDebouncedValue } from "../../hooks/use-debounced-value";
+import { formatDateTime } from "../../lib/format";
+import {
   actionLabel,
   exportAuditCsv,
   loadGlobalAuditLogs,
@@ -33,6 +43,8 @@ function AuditoriaGlobal() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -61,7 +73,7 @@ function AuditoriaGlobal() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const municipalities = useMemo(
     () =>
@@ -90,7 +102,7 @@ function AuditoriaGlobal() {
   );
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = debouncedQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
       const haystack = [
@@ -121,7 +133,7 @@ function AuditoriaGlobal() {
     });
   }, [
     rows,
-    query,
+    debouncedQuery,
     municipalityFilter,
     roleFilter,
     moduleFilter,
@@ -165,22 +177,24 @@ function AuditoriaGlobal() {
       subtitle="Visão global e imutável dos eventos registados na plataforma."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          label="Eventos hoje"
-          value={loading ? "—" : String(metrics.today)}
-        />
-        <Kpi
-          label="Eventos com alteração"
-          value={loading ? "—" : String(metrics.changes)}
-        />
-        <Kpi
-          label="Utilizadores no histórico"
-          value={loading ? "—" : String(metrics.actors)}
-        />
-        <Kpi
-          label="Resultados não concluídos"
-          value={loading ? "—" : String(metrics.failures)}
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Kpi label="Eventos hoje" value={metrics.today} />
+            <Kpi label="Eventos com alteração" value={metrics.changes} />
+            <Kpi
+              label="Utilizadores no histórico"
+              value={metrics.actors}
+            />
+            <Kpi
+              label="Resultados não concluídos"
+              value={metrics.failures}
+            />
+          </>
+        )}
       </div>
 
       <SuperCard className="mt-6 overflow-hidden">
@@ -216,13 +230,17 @@ function AuditoriaGlobal() {
             <button
               type="button"
               disabled={filtered.length === 0}
-              onClick={() =>
+              onClick={() => {
                 exportAuditCsv(
                   filtered,
                   "auditoria-global-" +
                     new Date().toISOString().slice(0, 10) +
                     ".csv",
-                )
+                );
+                notify.success(
+                  "Auditoria global exportada",
+                  "O ficheiro CSV foi preparado com sucesso.",
+                );
               }
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-600 disabled:opacity-40"
             >
@@ -314,28 +332,57 @@ function AuditoriaGlobal() {
         )}
 
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar auditoria global...
+          <div className="p-4">
+            <SkeletonTable rows={8} columns={6} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            {rows.length === 0
-              ? "Ainda não existem eventos de auditoria."
-              : "Nenhum evento corresponde aos filtros."}
-          </div>
+          <EmptyState
+            icon={<Activity className="h-5 w-5" />}
+            title={
+              rows.length === 0
+                ? "Ainda não existem eventos de auditoria"
+                : "Nenhum evento corresponde aos filtros"
+            }
+            description={
+              rows.length === 0
+                ? "Os eventos globais da plataforma aparecerão aqui à medida que forem registados."
+                : "Altere a pesquisa ou limpe os filtros para consultar outros eventos."
+            }
+            action={
+              rows.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setMunicipalityFilter("todos");
+                    setRoleFilter("todos");
+                    setModuleFilter("todos");
+                    setResultFilter("todos");
+                    setDateFilter("");
+                  }}
+                  className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                >
+                  Limpar filtros
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((row) => (
               <div key={row.id}>
                 <div className="grid gap-3 px-5 py-5 md:grid-cols-[1.05fr_1.2fr_1fr_1.2fr_1fr_auto] md:items-center">
                   <span className="text-xs text-slate-500">
-                    {new Date(row.created_at).toLocaleString("pt-MZ")}
+                    {formatDateTime(row.created_at)}
                   </span>
 
                   <div>
@@ -496,11 +543,13 @@ function moduleLabel(module: string) {
   return labels[module] ?? actionLabel(module);
 }
 
-function Kpi({ label, value }: { label: string; value: string }) {
+function Kpi({ label, value }: { label: string; value: number }) {
   return (
     <SuperCard className="p-5">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
+      <p className="mt-2 text-2xl font-bold">
+        <AnimatedNumber value={value} />
+      </p>
       <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
         <Activity className="h-3 w-3" />
         histórico carregado
