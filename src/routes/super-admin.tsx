@@ -232,7 +232,8 @@ function SuperAdminDashboard() {
               {municipalities.map((municipality) => (
                 <Link
                   key={municipality.id}
-                  to="/super-admin/municipios"
+                  to="/super-admin/municipios/$id"
+                  params={{ id: municipality.id }}
                   className="flex items-center gap-4 px-6 py-5 hover:bg-slate-50"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
@@ -262,7 +263,16 @@ function SuperAdminDashboard() {
               warning={Boolean(loadError)}
             />
             <StatusRow icon={<ShieldCheck />} label="Autenticação" value="Sessão validada" />
-            <StatusRow icon={<ShieldCheck />} label="RLS" value="Activo" />
+            <Link
+              to="/super-admin/saude"
+              className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50"
+            >
+              <span className="text-sky-600">
+                <ShieldCheck />
+              </span>
+              <span className="flex-1 text-sm font-medium">RLS e segurança</span>
+              <span className="text-xs font-semibold text-sky-700">Ver diagnóstico</span>
+            </Link>
           </div>
 
           <div className="mt-6 rounded-xl bg-slate-50 p-4">
@@ -277,7 +287,7 @@ function SuperAdminDashboard() {
 
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         <QuickLink to="/super-admin/utilizadores" icon={<Users />} title="Gerir utilizadores" description="Contas globais e atribuição aos municípios." />
-        <QuickLink to="/super-admin/permissoes" icon={<ShieldCheck />} title="Perfis e permissões" description="Definir o que cada perfil pode executar." />
+        <QuickLink to="/super-admin/permissoes" icon={<ShieldCheck />} title="Perfis e permissões" description="Consultar o RBAC efectivo aplicado pelo servidor." />
         <QuickLink to="/super-admin/licencas" icon={<KeyRound />} title="Licenças MobiGest" description="Planos, validade e utilização por município." />
         <QuickLink to="/super-admin/relatorios" icon={<BarChart3 />} title="Relatórios globais" description="Indicadores consolidados de toda a plataforma." />
         <QuickLink to="/super-admin/auditoria" icon={<Activity />} title="Auditoria global" description="Acompanhar alterações e actividades críticas." />
