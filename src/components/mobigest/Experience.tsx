@@ -1,6 +1,8 @@
 import {
   AlertTriangle,
   Check,
+  ChevronLeft,
+  ChevronRight,
   CircleAlert,
   Info,
   Loader2,
@@ -599,6 +601,65 @@ export const notify = {
     toast.info(message, { description });
   },
 };
+
+export function PaginationBar({
+  page,
+  pageSize,
+  totalItems,
+  onPageChange,
+}: {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const firstItem = totalItems === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const lastItem = Math.min(safePage * pageSize, totalItems);
+
+  if (totalItems <= pageSize) {
+    return (
+      <div className="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">
+        {totalItems} resultado{totalItems === 1 ? "" : "s"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-slate-500">
+        A mostrar {firstItem}–{lastItem} de {totalItems}
+      </p>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.max(1, safePage - 1))}
+          disabled={safePage <= 1}
+          className="mobigest-button inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+          Anterior
+        </button>
+
+        <span className="min-w-20 text-center text-xs font-medium text-slate-500">
+          {safePage} / {totalPages}
+        </span>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
+          disabled={safePage >= totalPages}
+          className="mobigest-button inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+        >
+          Seguinte
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function NetworkErrorState({
   message = "Não foi possível carregar os dados.",
