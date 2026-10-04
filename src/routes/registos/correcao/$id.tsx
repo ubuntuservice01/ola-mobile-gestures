@@ -204,8 +204,8 @@ function DecisionPage() {
             </label>
 
             <div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
-              A decisão será gravada em <b>registration_decisions</b>, associada ao
-              utilizador autenticado e registada também na auditoria.
+              A decisão ficará associada ao utilizador responsável e será registada
+              no histórico de auditoria do processo.
             </div>
 
             {actionError && (
