@@ -1,11 +1,18 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, ShieldCheck, UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronRight, Search, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { loadAccessProfile } from "../lib/access-control";
 import { loadCurrentMunicipalAccess } from "../lib/municipal-access";
 import { supabase } from "../lib/supabase";
+import {
+  EmptyState,
+  NetworkErrorState,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
 
 export const Route = createFileRoute("/utilizadores")({
   component: UsersPageRouteBoundary,
@@ -31,6 +38,10 @@ function UsersPage() {
   const [canCreate, setCanCreate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -90,7 +101,25 @@ function UsersPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
+
+  const filtered = useMemo(() => {
+    const normalized = debouncedQuery.trim().toLowerCase();
+
+    return rows.filter((row) => {
+      const matchesQuery =
+        !normalized ||
+        [row.full_name, row.phone ?? "", ROLE_LABELS[row.role] ?? row.role]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalized);
+
+      const matchesRole =
+        roleFilter === "todos" || row.role === roleFilter;
+
+      return matchesQuery && matchesRole;
+    });
+  }, [debouncedQuery, roleFilter, rows]);
 
   return (
     <MobiGestShell
@@ -116,30 +145,80 @@ function UsersPage() {
       </div>
 
       {loadError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-5">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
       <Card className="overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <label className="flex min-w-0 flex-1 items-center rounded-xl border border-slate-200 px-3 sm:max-w-md">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Pesquisar por nome, contacto ou função..."
+              className="h-10 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none"
+            />
+          </label>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="todos">Todas as funções</option>
+              <option value="admin_municipal">Administrador Municipal</option>
+              <option value="tecnico">Técnico</option>
+              <option value="fiscal">Fiscal</option>
+              <option value="financeiro">Financeiro</option>
+            </select>
+            <span className="whitespace-nowrap text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+          </div>
+        </div>
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar utilizadores...
+          <div className="p-4">
+            <SkeletonTable rows={5} columns={4} />
           </div>
-        ) : rows.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            Ainda não existem utilizadores municipais visíveis neste contexto.
-          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={
+              rows.length === 0
+                ? "Ainda não existem utilizadores municipais"
+                : "Nenhum utilizador encontrado"
+            }
+            description={
+              rows.length === 0
+                ? "Crie o primeiro utilizador autorizado para este município."
+                : "Altere a pesquisa ou os filtros para encontrar outros utilizadores."
+            }
+            action={
+              canCreate && rows.length === 0 ? (
+                <Link
+                  to="/utilizadores/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  + Novo utilizador
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
-          rows.map((row) => (
+          filtered.map((row) => (
             <Link
               to="/utilizadores/$id"
               params={{ id: row.id }}
-              className="flex items-center gap-4 border-b border-slate-100 p-5 hover:bg-slate-50"
+              className="mobigest-table-row flex items-center gap-4 border-b border-slate-100 p-5 hover:bg-slate-50"
               key={row.id}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100">
-                <UserRound className="h-5 w-5 text-slate-600" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+                {initials(row.full_name)}
               </div>
 
               <div className="min-w-0 flex-1">
@@ -153,21 +232,8 @@ function UsersPage() {
                 {ROLE_LABELS[row.role] ?? row.role}
               </span>
 
-              <span
-                className={
-                  "hidden rounded-full px-3 py-1 text-xs font-semibold sm:inline-flex " +
-                  (row.status === "activo"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : row.status === "suspenso"
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-rose-50 text-rose-700")
-                }
-              >
-                {row.status === "activo"
-                  ? "Activo"
-                  : row.status === "suspenso"
-                    ? "Suspenso"
-                    : "Inactivo"}
+              <span className="hidden sm:inline-flex">
+                <StatusBadge status={row.status} />
               </span>
 
               <ShieldCheck
@@ -183,6 +249,16 @@ function UsersPage() {
       </Card>
     </MobiGestShell>
   );
+}
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 function UsersPageRouteBoundary() {
