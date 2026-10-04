@@ -34,9 +34,9 @@ import {
   municipalityLogoUrl,
 } from "../lib/municipality-settings";
 import {
-  AppTooltip,
+  IconTooltip,
   PageTransition,
-} from "./MobiGestFeedback";
+} from "./mobigest/Experience";
 import {
   loadRbac,
   permissionCodeSet,
@@ -396,7 +396,7 @@ export function MobiGestShell({
                 </div>
               </Link>
 
-              <AppTooltip label="Terminar sessão" side="top">
+              <IconTooltip label="Terminar sessão" side="top">
                 <button
                   type="button"
                   onClick={handleSignOut}
@@ -406,7 +406,7 @@ export function MobiGestShell({
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
-              </AppTooltip>
+              </IconTooltip>
             </div>
           </div>
         </div>
@@ -450,7 +450,7 @@ export function MobiGestShell({
           </div>
 
           <div className="flex items-center gap-3">
-            <AppTooltip label="Notificações" side="bottom">
+            <IconTooltip label="Notificações" side="bottom">
               <Link
                 to="/notificacoes"
                 className="mobigest-interactive relative rounded-xl border border-slate-200 p-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
@@ -463,7 +463,7 @@ export function MobiGestShell({
                   </span>
                 )}
               </Link>
-            </AppTooltip>
+            </IconTooltip>
             <Link
               to="/perfil"
               className="hidden items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50 sm:flex"
