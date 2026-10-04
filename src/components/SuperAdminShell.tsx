@@ -7,7 +7,6 @@ import {
   Bell,
   Building2,
   ChevronDown,
-  FileBarChart,
   LockKeyhole,
   HeartPulse,
   KeyRound,
@@ -144,14 +143,6 @@ export function SuperAdminShell({
               <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Operação
               </p>
-              <Link
-                to="/relatorios"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
-              >
-                <FileBarChart className="h-4 w-4" />
-                Relatórios
-              </Link>
               <Link
                 to="/super-admin/acesso-municipal"
                 onClick={() => setOpen(false)}
