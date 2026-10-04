@@ -12,6 +12,16 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { setFineCaseStatus } from "../../lib/enforcement";
 import { supabase } from "../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatDateTime, formatMoneyMt } from "../../lib/format";
 
 export const Route = createFileRoute("/multas/$id")({
   component: FineDetail,
@@ -82,6 +92,7 @@ function FineDetail() {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [confirmingStatus, setConfirmingStatus] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -226,14 +237,16 @@ function FineDetail() {
       });
 
       setMessage("Estado administrativo da multa actualizado.");
+      notify.success(
+        "Estado da multa actualizado",
+        nextStatus ? statusLabel(nextStatus) : undefined,
+      );
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao alterar estado da multa:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível alterar o estado da multa.",
-      );
+      const safeMessage = "Não foi possível alterar o estado da multa.";
+      setActionError(safeMessage);
+      notify.error("Estado não actualizado", safeMessage);
     } finally {
       setSavingStatus(false);
     }
@@ -253,13 +266,15 @@ function FineDetail() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">
-          A carregar multa...
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !fine ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Multa não encontrada."}
-        </Card>
+        <NetworkErrorState
+          message={loadError ?? "Multa não encontrada."}
+          onRetry={() => setRefreshToken((value) => value + 1)}
+        />
       ) : (
         <div className="space-y-6">
           {actionError && (
@@ -285,7 +300,7 @@ function FineDetail() {
                     {fine.reference}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    {new Date(fine.occurred_at).toLocaleString("pt-MZ")}
+                    {formatDateTime(fine.occurred_at)}
                   </p>
                 </div>
                 <StatusBadge status={fine.status} />
@@ -302,7 +317,7 @@ function FineDetail() {
                 />
                 <Info
                   label="Valor aplicado"
-                  value={formatMoney(fine.applied_amount)}
+                  value={formatMoneyMt(fine.applied_amount)}
                 />
                 <Info
                   label="Condutor"
@@ -382,7 +397,7 @@ function FineDetail() {
                 <ReceiptText className="h-5 w-5 text-sky-600" />
                 <p className="mt-3 text-xs text-slate-400">Multa</p>
                 <p className="mt-1 text-lg font-bold">
-                  {formatMoney(fine.applied_amount)}
+                  {formatMoneyMt(fine.applied_amount)}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
                   {statusLabel(fine.status)}
@@ -396,7 +411,7 @@ function FineDetail() {
                 {charge ? (
                   <>
                     <p className="mt-1 text-lg font-bold">
-                      {formatMoney(charge.amount)}
+                      {formatMoneyMt(charge.amount)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {chargeStatusLabel(charge.status)}
@@ -479,24 +494,55 @@ function FineDetail() {
               </div>
 
               <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  disabled={
-                    !nextStatus ||
-                    reason.trim().length < 4 ||
-                    savingStatus
-                  }
-                  onClick={applyStatus}
-                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Save className="h-4 w-4" />
-                  {savingStatus ? "A guardar..." : "Guardar estado"}
-                </button>
+                <LoadingButton
+                  onClick={() => setConfirmingStatus(true)}
+                  disabled={!nextStatus || reason.trim().length < 4}
+                  state={savingStatus ? "loading" : "idle"}
+                  idleLabel="Guardar estado"
+                  loadingLabel="A guardar..."
+                  icon={<Save className="h-4 w-4" />}
+                  className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+                />
               </div>
             </Card>
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmingStatus}
+        onOpenChange={(open) => {
+          if (!open && !savingStatus) setConfirmingStatus(false);
+        }}
+        title={
+          nextStatus === "anulada"
+            ? "Anular esta multa?"
+            : nextStatus === "em_recurso"
+              ? "Colocar esta multa em recurso?"
+              : "Actualizar o estado da multa?"
+        }
+        description={
+          nextStatus === "anulada"
+            ? "A multa será marcada como anulada. A cobrança e o histórico devem permanecer preservados conforme as regras financeiras."
+            : "O novo estado administrativo será registado com o motivo informado e ficará disponível na auditoria."
+        }
+        confirmLabel={
+          nextStatus === "anulada"
+            ? "Anular multa"
+            : "Actualizar estado"
+        }
+        destructive={nextStatus === "anulada"}
+        busy={savingStatus}
+        onConfirm={async () => {
+          await applyStatus();
+          setConfirmingStatus(false);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={savingStatus}
+        message="A actualizar o estado administrativo da multa..."
+      />
     </MobiGestShell>
   );
 }
@@ -507,23 +553,6 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-slate-400">{label}</p>
       <p className="mt-1 break-words text-sm font-semibold">{value}</p>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const className =
-    status === "paga"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "anulada"
-        ? "bg-rose-50 text-rose-700"
-        : status === "em_recurso"
-          ? "bg-sky-50 text-sky-700"
-          : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-3 py-1.5 text-xs font-semibold " + className}>
-      {statusLabel(status)}
-    </span>
   );
 }
 
@@ -556,13 +585,4 @@ function driverTypeLabel(type?: string) {
     outro: "Outro condutor",
   };
   return type ? labels[type] ?? type : "—";
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
