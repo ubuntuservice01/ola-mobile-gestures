@@ -71,6 +71,7 @@ import { Route as UtilizadoresIdRouteImport } from './routes/utilizadores/$id'
 import { Route as UtilizadoresNovoRouteImport } from './routes/utilizadores/novo'
 import { Route as VeiculosIdRouteImport } from './routes/veiculos/$id'
 import { Route as VeiculosNovoRouteImport } from './routes/veiculos/novo'
+import { Route as ConsultaCondutorCodigoRouteImport } from './routes/consulta/condutor/$codigo'
 import { Route as DashboardTipoStatusRouteImport } from './routes/dashboard/$tipo/$status'
 import { Route as FinanceiroReciboIdRouteImport } from './routes/financeiro/recibo/$id'
 import { Route as ImprimirQrIdRouteImport } from './routes/imprimir/qr/$id'
@@ -410,6 +411,11 @@ const VeiculosNovoRoute = VeiculosNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => VeiculosRoute,
 } as any)
+const ConsultaCondutorCodigoRoute = ConsultaCondutorCodigoRouteImport.update({
+  id: '/condutor/$codigo',
+  path: '/condutor/$codigo',
+  getParentRoute: () => ConsultaRoute,
+} as any)
 const DashboardTipoStatusRoute = DashboardTipoStatusRouteImport.update({
   id: '/$tipo/$status',
   path: '/$tipo/$status',
@@ -613,6 +619,7 @@ export interface FileRoutesByFullPath {
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
   '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/consulta/condutor/$codigo': typeof ConsultaCondutorCodigoRoute
   '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
   '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
   '/imprimir/qr/$id': typeof ImprimirQrIdRoute
@@ -703,6 +710,7 @@ export interface FileRoutesByTo {
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
   '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/consulta/condutor/$codigo': typeof ConsultaCondutorCodigoRoute
   '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
   '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
   '/imprimir/qr/$id': typeof ImprimirQrIdRoute
@@ -794,6 +802,7 @@ export interface FileRoutesById {
   '/utilizadores/novo': typeof UtilizadoresNovoRoute
   '/veiculos/$id': typeof VeiculosIdRouteWithChildren
   '/veiculos/novo': typeof VeiculosNovoRouteWithChildren
+  '/consulta/condutor/$codigo': typeof ConsultaCondutorCodigoRoute
   '/dashboard/$tipo/$status': typeof DashboardTipoStatusRoute
   '/financeiro/recibo/$id': typeof FinanceiroReciboIdRoute
   '/imprimir/qr/$id': typeof ImprimirQrIdRoute
@@ -886,6 +895,7 @@ export interface FileRouteTypes {
     | '/utilizadores/novo'
     | '/veiculos/$id'
     | '/veiculos/novo'
+    | '/consulta/condutor/$codigo'
     | '/dashboard/$tipo/$status'
     | '/financeiro/recibo/$id'
     | '/imprimir/qr/$id'
@@ -976,6 +986,7 @@ export interface FileRouteTypes {
     | '/utilizadores/novo'
     | '/veiculos/$id'
     | '/veiculos/novo'
+    | '/consulta/condutor/$codigo'
     | '/dashboard/$tipo/$status'
     | '/financeiro/recibo/$id'
     | '/imprimir/qr/$id'
@@ -1066,6 +1077,7 @@ export interface FileRouteTypes {
     | '/utilizadores/novo'
     | '/veiculos/$id'
     | '/veiculos/novo'
+    | '/consulta/condutor/$codigo'
     | '/dashboard/$tipo/$status'
     | '/financeiro/recibo/$id'
     | '/imprimir/qr/$id'
@@ -1559,6 +1571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeiculosNovoRouteImport
       parentRoute: typeof VeiculosRoute
     }
+    '/consulta/condutor/$codigo': {
+      id: '/consulta/condutor/$codigo'
+      path: '/condutor/$codigo'
+      fullPath: '/consulta/condutor/$codigo'
+      preLoaderRoute: typeof ConsultaCondutorCodigoRouteImport
+      parentRoute: typeof ConsultaRoute
+    }
     '/dashboard/$tipo/$status': {
       id: '/dashboard/$tipo/$status'
       path: '/$tipo/$status'
@@ -1746,10 +1765,12 @@ declare module '@tanstack/react-router' {
 
 interface ConsultaRouteChildren {
   ConsultaCodigoRoute: typeof ConsultaCodigoRoute
+  ConsultaCondutorCodigoRoute: typeof ConsultaCondutorCodigoRoute
 }
 
 const ConsultaRouteChildren: ConsultaRouteChildren = {
   ConsultaCodigoRoute: ConsultaCodigoRoute,
+  ConsultaCondutorCodigoRoute: ConsultaCondutorCodigoRoute,
 }
 
 const ConsultaRouteWithChildren = ConsultaRoute._addFileChildren(
