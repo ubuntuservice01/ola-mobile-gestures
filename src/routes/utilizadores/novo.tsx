@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, KeyRound, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createManagedUser, type ManagedUserRole } from "../../lib/admin-users";
@@ -46,6 +46,8 @@ function NovoUtilizador() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+  const [activationCode, setActivationCode] = useState<string | null>(null);
+  const [activationExpiresAt, setActivationExpiresAt] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -153,6 +155,8 @@ function NovoUtilizador() {
       });
 
       setCreatedUserId(result.id ?? null);
+      setActivationCode(result.activationCode ?? null);
+      setActivationExpiresAt(result.activationExpiresAt ?? null);
     } catch (error) {
       console.error("Falha ao criar utilizador municipal:", error);
       setCreateError(
@@ -169,7 +173,7 @@ function NovoUtilizador() {
     return (
       <MobiGestShell
         title="Utilizador criado"
-        subtitle="A conta foi criada e o convite foi enviado."
+        subtitle="A conta foi criada e o código de activação foi gerado."
       >
         <Card className="mx-auto max-w-2xl p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -180,9 +184,21 @@ function NovoUtilizador() {
             {ROLE_OPTIONS.find((item) => item.value === role)?.label} · {municipality?.name}
           </p>
           <p className="mt-1 text-sm text-slate-500">{email}</p>
-          <p className="mt-5 rounded-xl bg-sky-50 p-4 text-sm leading-6 text-sky-900">
-            O convite foi enviado para o utilizador definir a própria palavra-passe.
-          </p>
+          <div className="mt-5 rounded-xl bg-sky-50 p-5 text-left text-sm leading-6 text-sky-900">
+            <p className="font-semibold">Código de activação</p>
+            <p className="mt-2 font-mono text-2xl font-bold tracking-[0.16em] text-slate-950">
+              {activationCode ?? "—"}
+            </p>
+            <p className="mt-3">
+              Entregue este código ao utilizador. Ele deve abrir <b>Activar conta</b>,
+              informar o email e escolher a própria palavra-passe.
+            </p>
+            {activationExpiresAt && (
+              <p className="mt-2 text-xs text-sky-700">
+                Validade: {new Date(activationExpiresAt).toLocaleString("pt-MZ")}
+              </p>
+            )}
+          </div>
           <Link
             to="/utilizadores"
             className="mt-7 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white"
@@ -295,7 +311,8 @@ function NovoUtilizador() {
 
             <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
               <b>Regra de âmbito:</b> a conta será vinculada apenas a {municipality?.name}.
-              A palavra-passe é definida pelo próprio utilizador através do convite do Supabase Auth.
+              O sistema gera um código temporário de uso único. O utilizador activa a conta e define
+              a própria palavra-passe no primeiro acesso.
             </div>
 
             {createError && (
@@ -317,8 +334,8 @@ function NovoUtilizador() {
                 onClick={submit}
                 className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
               >
-                <Mail className="h-4 w-4" />
-                {creating ? "A criar e convidar..." : "Criar e enviar convite"}
+                <KeyRound className="h-4 w-4" />
+                {creating ? "A criar e gerar código..." : "Criar utilizador e gerar código"}
               </button>
             </div>
           </>
