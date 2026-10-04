@@ -149,9 +149,9 @@ where version = '20261004090000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','super_admin_create_municipality')
-    and exists_function('public','super_admin_update_municipality')
-    and exists_function('public','super_admin_set_municipality_status'),
+    pg_temp.exists_function('public','super_admin_create_municipality')
+    and pg_temp.exists_function('public','super_admin_update_municipality')
+    and pg_temp.exists_function('public','super_admin_set_municipality_status'),
   evidence = 'Super Admin municipality RPCs'
 where version = '20261004100000';
 
@@ -159,10 +159,10 @@ where version = '20261004100000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','super_admin_start_municipal_access')
-    and exists_function('public','super_admin_current_municipal_access')
-    and exists_function('public','super_admin_end_municipal_access')
-    and exists_function('private','current_super_admin_access_municipality'),
+    pg_temp.exists_function('public','super_admin_start_municipal_access')
+    and pg_temp.exists_function('public','super_admin_current_municipal_access')
+    and pg_temp.exists_function('public','super_admin_end_municipal_access')
+    and pg_temp.exists_function('private','current_super_admin_access_municipality'),
   evidence = 'Super Admin municipal access RPCs'
 where version = '20261004110000';
 
@@ -170,10 +170,10 @@ where version = '20261004110000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','create_administrative_post')
-    and exists_function('public','update_administrative_post')
-    and exists_function('public','create_locality')
-    and exists_function('public','update_locality'),
+    pg_temp.exists_function('public','create_administrative_post')
+    and pg_temp.exists_function('public','update_administrative_post')
+    and pg_temp.exists_function('public','create_locality')
+    and pg_temp.exists_function('public','update_locality'),
   evidence = 'administrative post/locality CRUD RPCs'
 where version = '20261004120000';
 
@@ -181,8 +181,8 @@ where version = '20261004120000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','create_owner')
-    and exists_function('public','update_owner')
+    pg_temp.exists_function('public','create_owner')
+    and pg_temp.exists_function('public','update_owner')
     and exists (
       select 1
       from pg_catalog.pg_trigger
@@ -197,9 +197,9 @@ update pg_temp.mobigest_migration_audit
 set
   probe_present =
     to_regclass('public.registration_numbering_counters') is not null
-    and exists_function('public','create_vehicle_registration')
-    and exists_function('public','decide_registration')
-    and exists_function('public','request_vehicle_transfer'),
+    and pg_temp.exists_function('public','create_vehicle_registration')
+    and pg_temp.exists_function('public','decide_registration')
+    and pg_temp.exists_function('public','request_vehicle_transfer'),
   evidence = 'vehicle registration/decision/transfer RPCs + registration counter'
 where version = '20261004140000';
 
@@ -207,8 +207,8 @@ where version = '20261004140000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','create_document_metadata')
-    and exists_function('public','validate_document')
+    pg_temp.exists_function('public','create_document_metadata')
+    and pg_temp.exists_function('public','validate_document')
     and exists (
       select 1
       from storage.buckets
@@ -223,9 +223,9 @@ update pg_temp.mobigest_migration_audit
 set
   probe_present =
     to_regclass('public.driver_reference_counters') is not null
-    and exists_function('public','create_driver')
-    and exists_function('public','update_driver')
-    and exists_function('public','set_driver_status'),
+    and pg_temp.exists_function('public','create_driver')
+    and pg_temp.exists_function('public','update_driver')
+    and pg_temp.exists_function('public','set_driver_status'),
   evidence = 'driver CRUD/status RPCs + reference counters'
 where version = '20261004160000';
 
@@ -233,8 +233,8 @@ where version = '20261004160000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','lookup_public_vehicle')
-    and exists_function('public','lookup_public_driver'),
+    pg_temp.exists_function('public','lookup_public_vehicle')
+    and pg_temp.exists_function('public','lookup_public_driver'),
   evidence = 'public vehicle/driver lookup RPCs'
 where version = '20261004170000';
 
@@ -242,11 +242,11 @@ where version = '20261004170000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','create_fiscalization')
-    and exists_function('public','add_fiscalization_evidence')
-    and exists_function('public','create_fine_type')
-    and exists_function('public','issue_fine')
-    and exists_function('public','set_fine_case_status'),
+    pg_temp.exists_function('public','create_fiscalization')
+    and pg_temp.exists_function('public','add_fiscalization_evidence')
+    and pg_temp.exists_function('public','create_fine_type')
+    and pg_temp.exists_function('public','issue_fine')
+    and pg_temp.exists_function('public','set_fine_case_status'),
   evidence = 'fiscalization/evidence/fine type/issue fine/status RPCs'
 where version = '20261004180000';
 
@@ -256,10 +256,10 @@ set
   probe_present =
     to_regclass('public.finance_numbering_counters') is not null
     and to_regclass('public.payment_refunds') is not null
-    and exists_function('public','create_fee_config')
-    and exists_function('public','create_charge')
-    and exists_function('public','register_charge_payment')
-    and exists_function('public','refund_charge'),
+    and pg_temp.exists_function('public','create_fee_config')
+    and pg_temp.exists_function('public','create_charge')
+    and pg_temp.exists_function('public','register_charge_payment')
+    and pg_temp.exists_function('public','refund_charge'),
   evidence = 'finance counters/refunds + fee/charge/payment/refund RPCs'
 where version = '20261004190000';
 
@@ -267,8 +267,8 @@ where version = '20261004190000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','list_municipal_audit_logs')
-    and exists_function('public','list_global_audit_logs'),
+    pg_temp.exists_function('public','list_municipal_audit_logs')
+    and pg_temp.exists_function('public','list_global_audit_logs'),
   evidence = 'municipal/global audit RPCs'
 where version = '20261004200000';
 
@@ -277,10 +277,10 @@ update pg_temp.mobigest_migration_audit
 set
   probe_present =
     to_regclass('public.license_numbering_counters') is not null
-    and exists_function('public','super_admin_create_license')
-    and exists_function('public','super_admin_set_license_status')
-    and exists_function('public','super_admin_renew_license')
-    and exists_function('private','municipality_has_active_license')
+    and pg_temp.exists_function('public','super_admin_create_license')
+    and pg_temp.exists_function('public','super_admin_set_license_status')
+    and pg_temp.exists_function('public','super_admin_renew_license')
+    and pg_temp.exists_function('private','municipality_has_active_license')
     and exists (
       select 1 from pg_catalog.pg_trigger
       where tgname = 'profiles_license_limit_guard' and not tgisinternal
@@ -296,7 +296,7 @@ where version = '20261004210000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('private','permission_module')
+    pg_temp.exists_function('private','permission_module')
     and to_regprocedure('private.license_allows_permission(uuid,text)') is not null,
   evidence = 'permission_module + license_allows_permission'
 where version = '20261004211000';
@@ -318,28 +318,28 @@ where version = '20261004212000';
 -- 19. Relatório global.
 update pg_temp.mobigest_migration_audit
 set
-  probe_present = exists_function('public','super_admin_global_report'),
+  probe_present = pg_temp.exists_function('public','super_admin_global_report'),
   evidence = 'super_admin_global_report RPC'
 where version = '20261004213000';
 
 -- 20. Saúde da plataforma.
 update pg_temp.mobigest_migration_audit
 set
-  probe_present = exists_function('public','super_admin_platform_health'),
+  probe_present = pg_temp.exists_function('public','super_admin_platform_health'),
   evidence = 'super_admin_platform_health RPC'
 where version = '20261004214000';
 
 -- 21. Relatório municipal.
 update pg_temp.mobigest_migration_audit
 set
-  probe_present = exists_function('public','municipal_operational_report'),
+  probe_present = pg_temp.exists_function('public','municipal_operational_report'),
   evidence = 'municipal_operational_report RPC'
 where version = '20261004215000';
 
 -- 22. Estado da numeração.
 update pg_temp.mobigest_migration_audit
 set
-  probe_present = exists_function('public','current_mobigest_numbering_status'),
+  probe_present = pg_temp.exists_function('public','current_mobigest_numbering_status'),
   evidence = 'current_mobigest_numbering_status RPC'
 where version = '20261004216000';
 
@@ -347,8 +347,8 @@ where version = '20261004216000';
 update pg_temp.mobigest_migration_audit
 set
   probe_present =
-    exists_function('public','create_document_requirement')
-    and exists_function('public','update_document_requirement'),
+    pg_temp.exists_function('public','create_document_requirement')
+    and pg_temp.exists_function('public','update_document_requirement'),
   evidence = 'document requirement create/update RPCs'
 where version = '20261004217000';
 
