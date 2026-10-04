@@ -1,9 +1,17 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, FileText, Search } from "lucide-react";
+import { ChevronRight, FileText, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  EmptyState,
+  NetworkErrorState,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { formatDate } from "../lib/format";
 
 export const Route = createFileRoute("/registos")({
   component: RegistosRouteBoundary,
@@ -29,6 +37,8 @@ function Registos() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -116,7 +126,7 @@ function Registos() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(
     () =>
@@ -132,11 +142,11 @@ function Registos() {
           .toLowerCase();
 
         return (
-          haystack.includes(query.trim().toLowerCase()) &&
+          haystack.includes(debouncedQuery.trim().toLowerCase()) &&
           (statusFilter === "todos" || row.status === statusFilter)
         );
       }),
-    [rows, query, statusFilter],
+    [rows, debouncedQuery, statusFilter],
   );
 
   return (
@@ -178,22 +188,80 @@ function Registos() {
           </select>
         </div>
 
+        {(query.trim() || statusFilter !== "todos") && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {statusFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {registrationStatusLabel(statusFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setStatusFilter("todos");
+              }}
+              className="text-xs font-semibold text-sky-700 hover:text-sky-800"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar processos...
+          <div className="p-4">
+            <SkeletonTable rows={6} columns={6} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            {rows.length === 0
-              ? "Ainda não existem processos de registo."
-              : "Nenhum processo corresponde aos filtros."}
-          </div>
+          <EmptyState
+            title={
+              rows.length === 0
+                ? "Ainda não existem processos de registo"
+                : "Nenhum processo encontrado"
+            }
+            description={
+              rows.length === 0
+                ? "Os processos de registo inicial e transferência aparecerão aqui."
+                : "Tente alterar a pesquisa ou limpar os filtros."
+            }
+            action={
+              rows.length === 0 ? (
+                <Link
+                  to="/veiculos/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Registar veículo
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((row) => (
@@ -201,7 +269,7 @@ function Registos() {
                 key={row.id}
                 to="/registos/$id"
                 params={{ id: row.id }}
-                className="grid gap-3 p-5 transition hover:bg-slate-50 md:grid-cols-[auto_1.3fr_1fr_1fr_auto_auto] md:items-center"
+                className="mobigest-table-row grid gap-3 p-5 hover:bg-slate-50 md:grid-cols-[auto_1.3fr_1fr_1fr_auto_auto] md:items-center"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50">
                   <FileText className="h-5 w-5 text-slate-500" />
@@ -228,9 +296,7 @@ function Registos() {
                 <StatusBadge status={row.status} />
 
                 <div className="flex items-center gap-2 text-xs text-slate-400">
-                  {new Date(row.submitted_at ?? row.created_at).toLocaleDateString(
-                    "pt-MZ",
-                  )}
+                  {formatDate(row.submitted_at ?? row.created_at)}
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </div>
               </Link>
@@ -253,7 +319,7 @@ function vehicleTypeLabel(type?: string) {
   return "Veículo";
 }
 
-function StatusBadge({ status }: { status: string }) {
+function registrationStatusLabel(status: string) {
   const labels: Record<string, string> = {
     pendente: "Pendente",
     em_validacao: "Em validação",
@@ -262,21 +328,7 @@ function StatusBadge({ status }: { status: string }) {
     rejeitada: "Rejeitada",
     cancelada: "Cancelada",
   };
-
-  const className =
-    status === "aprovada"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "rejeitada" || status === "cancelada"
-        ? "bg-rose-50 text-rose-700"
-        : status === "correccao"
-          ? "bg-amber-50 text-amber-700"
-          : "bg-sky-50 text-sky-700";
-
-  return (
-    <span className={"w-fit rounded-full px-3 py-1 text-xs font-semibold " + className}>
-      {labels[status] ?? status}
-    </span>
-  );
+  return labels[status] ?? status;
 }
 
 function RegistosRouteBoundary() {
