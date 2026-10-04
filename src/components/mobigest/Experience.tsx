@@ -188,6 +188,26 @@ const statusStyles: Record<string, { label: string; className: string }> = {
     label: "Pago",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
+  paga: {
+    label: "Paga",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  isento: {
+    label: "Isento",
+    className: "border-sky-200 bg-sky-50 text-sky-700",
+  },
+  em_recurso: {
+    label: "Em recurso",
+    className: "border-sky-200 bg-sky-50 text-sky-700",
+  },
+  anulada: {
+    label: "Anulada",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+  reembolsado: {
+    label: "Reembolsado",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
   roubada: {
     label: "Roubada",
     className: "border-rose-200 bg-rose-50 text-rose-700",
