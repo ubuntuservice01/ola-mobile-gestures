@@ -9,7 +9,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { loadCurrentMunicipalAccess } from "../lib/municipal-access";
 
-const PUBLIC_PATHS = ["/", "/login", "/recuperar-password", "/nova-password", "/consulta", "/q"];
+const PUBLIC_PATHS = ["/", "/login", "/ativar-conta", "/recuperar-password", "/nova-password", "/consulta", "/q"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
