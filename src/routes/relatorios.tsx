@@ -16,6 +16,16 @@ import {
   Card,
 } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  notify,
+} from "../components/mobigest/Experience";
+import {
+  formatMoneyMt,
+  formatNumber as formatNumberPt,
+} from "../lib/format";
 
 export const Route = createFileRoute("/relatorios")({
   head: () => ({
@@ -61,6 +71,7 @@ function Relatorios() {
   const [row, setRow] = useState<ReportRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -109,7 +120,7 @@ function Relatorios() {
     return () => {
       active = false;
     };
-  }, [from, to]);
+  }, [from, to, reloadKey]);
 
   const exportCsv = () => {
     if (!row) return;
@@ -162,6 +173,7 @@ function Relatorios() {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+    notify.success("Relatório exportado", "O ficheiro CSV foi preparado com sucesso.");
   };
 
   return (
@@ -236,18 +248,26 @@ function Relatorios() {
       </Card>
 
       {loadError && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mt-4">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
       {loading ? (
-        <Card className="mt-6 p-10 text-center text-sm text-slate-500">
-          A carregar relatório...
-        </Card>
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </section>
       ) : !row ? (
-        <Card className="mt-6 p-10 text-center text-sm text-slate-500">
-          Nenhum relatório disponível para o contexto actual.
+        <Card className="mt-6">
+          <EmptyState
+            title="Ainda não existem dados suficientes para este relatório"
+            description="Quando existirem operações no período seleccionado, os indicadores serão apresentados aqui."
+          />
         </Card>
       ) : (
         <>
@@ -265,22 +285,22 @@ function Relatorios() {
             <Metric
               icon={<Bike />}
               title="Veículos"
-              value={formatNumber(row.vehicles_total)}
+              value={formatNumberPt(row.vehicles_total)}
             />
             <Metric
               icon={<Users />}
               title="Proprietários"
-              value={formatNumber(row.owners_total)}
+              value={formatNumberPt(row.owners_total)}
             />
             <Metric
               icon={<FileBarChart />}
               title="Registos no período"
-              value={formatNumber(row.registrations_period)}
+              value={formatNumberPt(row.registrations_period)}
             />
             <Metric
               icon={<Wallet />}
               title="Receita confirmada"
-              value={formatMt(row.revenue_period)}
+              value={formatMoneyMt(row.revenue_period)}
             />
           </section>
 
@@ -291,37 +311,37 @@ function Relatorios() {
             <ReportCard
               icon={<Bike />}
               title="Motorizadas"
-              value={formatNumber(row.motorcycles_total)}
+              value={formatNumberPt(row.motorcycles_total)}
             />
             <ReportCard
               icon={<CarFront />}
               title="Carros"
-              value={formatNumber(row.cars_total)}
+              value={formatNumberPt(row.cars_total)}
             />
             <ReportCard
               icon={<Bike />}
               title="Bicicletas"
-              value={formatNumber(row.bicycles_total)}
+              value={formatNumberPt(row.bicycles_total)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Activos"
-              value={formatNumber(row.active_vehicles)}
+              value={formatNumberPt(row.active_vehicles)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Suspensos"
-              value={formatNumber(row.suspended_vehicles)}
+              value={formatNumberPt(row.suspended_vehicles)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Roubados"
-              value={formatNumber(row.stolen_vehicles)}
+              value={formatNumberPt(row.stolen_vehicles)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Apreendidos"
-              value={formatNumber(row.seized_vehicles)}
+              value={formatNumberPt(row.seized_vehicles)}
             />
           </div>
 
@@ -332,24 +352,24 @@ function Relatorios() {
             <ReportCard
               icon={<FileBarChart />}
               title="Transferências"
-              value={formatNumber(row.transfers_period)}
+              value={formatNumberPt(row.transfers_period)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Fiscalizações"
-              value={formatNumber(row.fiscalizations_period)}
+              value={formatNumberPt(row.fiscalizations_period)}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Com ocorrência"
-              value={formatNumber(
+              value={formatNumberPt(
                 row.irregular_fiscalizations_period,
               )}
             />
             <ReportCard
               icon={<FileBarChart />}
               title="Multas"
-              value={formatNumber(row.fines_period)}
+              value={formatNumberPt(row.fines_period)}
             />
           </div>
 
@@ -360,27 +380,27 @@ function Relatorios() {
             <ReportCard
               icon={<Wallet />}
               title="Receita paga"
-              value={formatMt(row.revenue_period)}
+              value={formatMoneyMt(row.revenue_period)}
             />
             <ReportCard
               icon={<Wallet />}
               title="Valor pendente"
-              value={formatMt(row.pending_amount)}
+              value={formatMoneyMt(row.pending_amount)}
             />
             <ReportCard
               icon={<Wallet />}
               title="Pagamentos confirmados"
-              value={formatNumber(row.payments_period)}
+              value={formatNumberPt(row.payments_period)}
             />
             <ReportCard
               icon={<Wallet />}
               title="Isenções"
-              value={formatNumber(row.exemptions_period)}
+              value={formatNumberPt(row.exemptions_period)}
             />
             <ReportCard
               icon={<Wallet />}
               title="Reembolsos"
-              value={formatNumber(row.refunds_period)}
+              value={formatNumberPt(row.refunds_period)}
             />
           </div>
         </>
@@ -439,19 +459,4 @@ function ReportCard({
       <p className="mt-2 text-2xl font-bold">{value}</p>
     </Card>
   );
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("pt-MZ").format(
-    Number(value || 0),
-  );
-}
-
-function formatMt(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
