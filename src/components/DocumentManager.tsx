@@ -405,6 +405,24 @@ export function DocumentManager({
                 </label>
               </div>
 
+              {file && (
+                <div className="mt-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-800">
+                      {file.name}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {(file.type || "Ficheiro").replace("application/", "").replace("image/", "").toUpperCase()}
+                      {" · "}
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
+                  <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {uploading ? "A carregar..." : "Pronto para enviar"}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-4 flex justify-end">
                 <LoadingButton
                   onClick={submitUpload}
@@ -572,4 +590,13 @@ function documentStatusLabel(status: string) {
     expirado: "Expirado",
   };
   return labels[status] ?? status;
+}
+
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return bytes + " B";
+  const kilobytes = bytes / 1024;
+  if (kilobytes < 1024) return kilobytes.toFixed(kilobytes >= 100 ? 0 : 1) + " KB";
+  const megabytes = kilobytes / 1024;
+  return megabytes.toFixed(megabytes >= 100 ? 0 : 1) + " MB";
 }
