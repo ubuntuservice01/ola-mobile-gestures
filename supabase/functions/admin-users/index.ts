@@ -61,6 +61,18 @@ function isStatus(value: unknown): value is Status {
   return typeof value === "string" && ["activo", "suspenso", "inactivo"].includes(value);
 }
 
+function generateActivationCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const chars = Array.from(bytes, (byte) => alphabet[byte % alphabet.length]);
+  return chars.slice(0, 4).join("") + "-" + chars.slice(4).join("");
+}
+
+function generateInternalPassword() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 function canManageTarget(actor: ActorProfile, targetRole: Role, municipalityId: string | null) {
   if (targetRole === "super_admin") return false;
 
@@ -313,36 +325,37 @@ Deno.serve(async (request) => {
       );
       await validateTerritory(admin, municipalityId, postId);
 
-      const siteUrl =
-        (Deno.env.get("MOBIGEST_SITE_URL") ?? requestOrigin).replace(/\/$/, "");
-      const redirectTo = siteUrl ? siteUrl + "/nova-password" : undefined;
+      const internalPassword = generateInternalPassword();
+      const activationCode = generateActivationCode();
 
-      const { data: inviteData, error: inviteError } =
-        await admin.auth.admin.inviteUserByEmail(email, {
-          data: { full_name: fullName },
-          redirectTo,
+      const { data: createData, error: createError } =
+        await admin.auth.admin.createUser({
+          email,
+          password: internalPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+            activation_required: true,
+          },
         });
 
-      if (inviteError || !inviteData.user) {
-        const rawMessage = inviteError?.message?.toLowerCase() ?? "";
-        const rawCode = (inviteError as { code?: string } | null)?.code ?? "";
+      if (createError || !createData.user) {
+        const rawMessage = createError?.message?.toLowerCase() ?? "";
+        const rawCode = (createError as { code?: string } | null)?.code ?? "";
 
-        const message =
-          rawCode === "over_email_send_rate_limit" ||
-          rawMessage.includes("rate limit") ||
-          rawMessage.includes("email send")
-            ? "O limite temporário de envio de emails do Supabase foi atingido. Aguarde alguns minutos e tente novamente."
-            : rawMessage.includes("already")
-              ? "Já existe uma conta com este email."
-              : "Não foi possível criar e convidar o utilizador.";
+        const message = rawMessage.includes("already")
+          || rawMessage.includes("registered")
+          || rawMessage.includes("exists")
+          ? "Já existe uma conta com este email."
+          : "Não foi possível criar a conta do utilizador.";
 
         return response(request, 400, {
           error: message,
-          code: rawCode || "INVITE_FAILED",
+          code: rawCode || "USER_CREATE_FAILED",
         });
       }
 
-      const newUserId = inviteData.user.id;
+      const newUserId = createData.user.id;
 
       const { error: profileError } = await admin.from("profiles").insert({
         id: newUserId,
@@ -359,6 +372,29 @@ Deno.serve(async (request) => {
         throw profileError;
       }
 
+      const { data: activationRows, error: activationError } = await admin.rpc(
+        "issue_user_activation_code",
+        {
+          p_user_id: newUserId,
+          p_email: email,
+          p_municipality_id: municipalityId,
+          p_created_by: actor.id,
+          p_code: activationCode,
+          p_ttl_hours: 24,
+        },
+      );
+
+      if (activationError || !Array.isArray(activationRows) || activationRows.length === 0) {
+        await admin.from("profiles").delete().eq("id", newUserId);
+        await admin.auth.admin.deleteUser(newUserId);
+        throw activationError ?? new Error("Não foi possível gerar o código de activação.");
+      }
+
+      const activation = activationRows[0] as {
+        activation_id: string;
+        expires_at: string;
+      };
+
       try {
         await audit(
           admin,
@@ -374,7 +410,7 @@ Deno.serve(async (request) => {
             administrative_post_id: postId,
             status: "activo",
           },
-          "Utilizador criado e convite enviado.",
+          "Utilizador criado e código de activação emitido.",
         );
       } catch (auditError) {
         await admin.from("profiles").delete().eq("id", newUserId);
@@ -385,7 +421,9 @@ Deno.serve(async (request) => {
       return response(request, 200, {
         id: newUserId,
         email,
-        invited: true,
+        created: true,
+        activationCode,
+        activationExpiresAt: activation.expires_at,
       });
     }
 
