@@ -99,7 +99,12 @@ export async function uploadMunicipalityLogo(
         ? "webp"
         : "jpg";
 
-  const path = municipalityId + "/logo." + extension;
+  const path =
+    municipalityId +
+    "/logo-" +
+    Date.now().toString() +
+    "." +
+    extension;
 
   const { error } = await supabase.storage
     .from("mobigest-branding")
@@ -112,6 +117,18 @@ export async function uploadMunicipalityLogo(
   if (error) throw new Error(error.message);
 
   return path;
+}
+
+export async function removeMunicipalityLogo(path: string | null) {
+  if (!path) return;
+
+  const { error } = await supabase.storage
+    .from("mobigest-branding")
+    .remove([path]);
+
+  if (error) {
+    console.error("Falha ao remover logótipo anterior:", error);
+  }
 }
 
 export function municipalityLogoUrl(path: string | null) {
