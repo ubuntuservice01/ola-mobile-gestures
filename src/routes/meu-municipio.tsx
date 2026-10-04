@@ -30,6 +30,14 @@ import {
   type MunicipalityStatistics,
 } from "../lib/municipality-settings";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  LoadingButton,
+  SkeletonCard,
+  notify,
+  type LoadingButtonState,
+} from "../components/mobigest/Experience";
+import { formatMoneyMt } from "../lib/format";
 
 export const Route = createFileRoute("/meu-municipio")({
   component: MeuMunicipioPage,
@@ -57,6 +65,7 @@ function MeuMunicipioPage() {
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<LoadingButtonState>("idle");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -127,6 +136,7 @@ function MeuMunicipioPage() {
     if (!identity || !canManage) return;
 
     setSaving(true);
+    setSaveState("loading");
     setMessage(null);
     setErrorMessage(null);
 
@@ -135,13 +145,18 @@ function MeuMunicipioPage() {
       const refreshed = await loadMunicipalityIdentity();
       if (refreshed) setIdentity(refreshed);
       setMessage("Dados do município actualizados com sucesso.");
+      setSaveState("success");
+      notify.success("Alterações guardadas", "Os dados do município foram actualizados.");
+      window.setTimeout(() => setSaveState("idle"), 1800);
     } catch (error) {
       console.error("Falha ao guardar Meu Município:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível guardar as alterações.",
-      );
+          : "Não foi possível guardar as alterações.";
+      setErrorMessage(message);
+      setSaveState("error");
+      notify.error("Não foi possível guardar", message);
     } finally {
       setSaving(false);
     }
@@ -161,13 +176,15 @@ function MeuMunicipioPage() {
       await saveMunicipalityIdentity(nextIdentity);
       setIdentity(nextIdentity);
       setMessage("Logótipo actualizado com sucesso.");
+      notify.success("Logótipo actualizado");
     } catch (error) {
       console.error("Falha ao carregar logótipo:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível carregar o logótipo.",
-      );
+          : "Não foi possível carregar o logótipo.";
+      setErrorMessage(message);
+      notify.error("Não foi possível carregar o logótipo", message);
     } finally {
       event.target.value = "";
       setUploadingLogo(false);
@@ -180,8 +197,20 @@ function MeuMunicipioPage() {
         title="Meu Município"
         subtitle="A carregar identidade institucional..."
       >
-        <Card className="p-10 text-center text-sm text-slate-500">
-          A carregar...
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+        <Card className="mt-6 p-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-11 animate-pulse rounded-xl bg-slate-100"
+              />
+            ))}
+          </div>
         </Card>
       </MobiGestShell>
     );
@@ -490,15 +519,16 @@ function MeuMunicipioPage() {
 
         {canManage && (
           <div className="mt-6 flex justify-end border-t border-slate-100 pt-6">
-            <button
-              type="button"
+            <LoadingButton
               onClick={save}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-              {saving ? "A guardar..." : "Guardar alterações"}
-            </button>
+              state={saveState}
+              idleLabel="Guardar alterações"
+              loadingLabel="A guardar..."
+              successLabel="Alterações guardadas"
+              errorLabel="Tentar novamente"
+              icon={<Save className="h-4 w-4" />}
+              className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50"
+            />
           </div>
         )}
       </Card>
@@ -626,7 +656,7 @@ function Metric({
       </div>
       <p className="mt-4 text-xs text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold">
-        {new Intl.NumberFormat("pt-MZ").format(Number(value || 0))}
+        <AnimatedNumber value={Number(value || 0)} />
       </p>
     </Card>
   );
@@ -648,11 +678,10 @@ function MoneyMetric({
       </div>
       <p className="mt-4 text-xs text-slate-500">{label}</p>
       <p className="mt-1 text-xl font-bold">
-        {new Intl.NumberFormat("pt-MZ", {
-          style: "currency",
-          currency: "MZN",
-          maximumFractionDigits: 2,
-        }).format(Number(value || 0))}
+        <AnimatedNumber
+          value={Number(value || 0)}
+          formatter={formatMoneyMt}
+        />
       </p>
     </Card>
   );
