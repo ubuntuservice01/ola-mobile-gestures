@@ -1,9 +1,10 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, Building2, CalendarClock, CheckCircle2, Clock3, KeyRound, Plus, Search, Settings2, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 
-export const Route = createFileRoute("/super-admin/licencas")({ component: Licencas });
+export const Route = createFileRoute("/super-admin/licencas")({ component: LicencasRouteBoundary });
 
 const licenses=[
  {id:"LIC-001",municipality:"Município de Lichinga",code:"LIC",plan:"Profissional",status:"Activa",start:"01/09/2026",end:"31/08/2027",users:18,vehicles:"2 562"},
@@ -30,3 +31,8 @@ function Licencas(){
  </SuperAdminShell>;
 }
 function Kpi({icon,value,label,detail}:{icon:React.ReactNode;value:string;label:string;detail:string}){return <SuperCard className="p-5"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">{icon}</div><p className="mt-4 text-sm text-slate-500">{label}</p><p className="mt-1 text-2xl font-bold">{value}</p><p className="mt-1 text-xs text-slate-400">{detail}</p></SuperCard>}
+
+
+function LicencasRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/licencas"><Licencas /></RouteIndexBoundary>;
+}
