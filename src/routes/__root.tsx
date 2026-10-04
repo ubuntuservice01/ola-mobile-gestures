@@ -41,10 +41,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Não foi possível carregar</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Ocorreu um erro. Tente actualizar a página.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Não foi possível concluir o carregamento. Pode tentar novamente sem sair desta página.</p>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Tentar novamente</button>
-          <a href="/" className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground">Início</a>
+          <button onClick={() => { router.invalidate(); reset(); }} className="mobigest-button rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
+          <a href="/" className="mobigest-button rounded-xl border border-input bg-background px-4 py-2.5 text-sm font-semibold text-foreground">Início</a>
         </div>
       </div>
     </div>
