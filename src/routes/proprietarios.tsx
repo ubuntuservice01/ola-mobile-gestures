@@ -1,4 +1,10 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute } from "@tanstack/react-router"; import { Search, Eye } from "lucide-react"; import { Link } from "@tanstack/react-router"; import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
-export const Route=createFileRoute("/proprietarios")({component:Props});
+export const Route=createFileRoute("/proprietarios")({component: PropsRouteBoundary});
 const data=[["Alberto Manuel","11020345LA","+258 84 000 0000","2"],["Maria José","11089321LA","+258 86 111 1111","1"],["Joaquim Ernesto","11044567LA","+258 87 222 2222","1"]];
 function Props(){return <MobiGestShell title="Proprietários"><PageHeader title="Proprietários" description="Cidadãos associados aos veículos registados." action="+ Novo proprietário" actionTo="/proprietarios/novo"/><Card><div className="border-b border-slate-100 p-5 flex items-center"><Search className="h-4 w-4 text-slate-400"/><input placeholder="Pesquisar por nome, documento ou telefone..." className="h-11 flex-1 bg-transparent px-3 text-sm outline-none"/></div><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nome","Documento","Contacto","Veículos","Acções"].map(x=><th className="px-5 py-3" key={x}>{x}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{data.map(x=><tr key={x[0]}><td className="px-5 py-4 font-semibold">{x[0]}</td><td className="px-5 py-4">{x[1]}</td><td className="px-5 py-4">{x[2]}</td><td className="px-5 py-4">{x[3]}</td><td className="px-5 py-4"><Link to="/proprietarios/$id" params={{id:x[0]}} className="inline-flex rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Eye className="h-4 w-4"/></Link></td></tr>)}</tbody></table></div></Card></MobiGestShell>}
+
+
+function PropsRouteBoundary() {
+  return <RouteIndexBoundary pattern="/proprietarios"><Props /></RouteIndexBoundary>;
+}
