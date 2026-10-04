@@ -4,12 +4,20 @@ import {
   CalendarDays,
   KeyRound,
   MapPin,
+  Pencil,
   Phone,
+  Save,
   ShieldCheck,
   UserRound,
+  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
+import {
+  setManagedUserStatus,
+  updateManagedUser,
+  type ManagedUserRole,
+} from "../../../lib/admin-users";
 import { supabase } from "../../../lib/supabase";
 
 export const Route = createFileRoute("/super-admin/utilizadores/$id")({
@@ -27,6 +35,19 @@ type UserDetail = {
   created_at: string;
 };
 
+type Municipality = {
+  id: string;
+  name: string;
+  status: string;
+};
+
+type Post = {
+  id: string;
+  municipality_id: string;
+  name: string;
+  status: string;
+};
+
 const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super Administrador",
   admin_municipal: "Administrador Municipal",
@@ -41,13 +62,37 @@ const STATUS_LABELS: Record<string, string> = {
   inactivo: "Inactivo",
 };
 
+const MANAGED_ROLES: Array<{ value: ManagedUserRole; label: string }> = [
+  { value: "admin_municipal", label: "Administrador Municipal" },
+  { value: "tecnico", label: "Técnico" },
+  { value: "fiscal", label: "Fiscal" },
+  { value: "financeiro", label: "Financeiro" },
+];
+
 function UtilizadorGlobal() {
   const { id } = Route.useParams();
   const [user, setUser] = useState<UserDetail | null>(null);
-  const [municipality, setMunicipality] = useState("Administração global");
-  const [post, setPost] = useState("Todos / não aplicável");
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const [editing, setEditing] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState<ManagedUserRole>("tecnico");
+  const [municipalityId, setMunicipalityId] = useState("");
+  const [postId, setPostId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const [pendingStatus, setPendingStatus] = useState<
+    "activo" | "suspenso" | "inactivo" | null
+  >(null);
+  const [statusReason, setStatusReason] = useState("");
+  const [changingStatus, setChangingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -56,67 +101,49 @@ function UtilizadorGlobal() {
       setLoading(true);
       setLoadError(null);
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(
-          "id, full_name, phone, role, status, municipality_id, administrative_post_id, created_at",
-        )
-        .eq("id", id)
-        .maybeSingle();
+      const [profileResult, municipalityResult, postResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "id, full_name, phone, role, status, municipality_id, administrative_post_id, created_at",
+          )
+          .eq("id", id)
+          .maybeSingle(),
+        supabase
+          .from("municipalities")
+          .select("id, name, status")
+          .order("name", { ascending: true }),
+        supabase
+          .from("administrative_posts")
+          .select("id, municipality_id, name, status")
+          .order("name", { ascending: true }),
+      ]);
 
       if (!active) return;
 
-      if (error || !data) {
+      const error =
+        profileResult.error ?? municipalityResult.error ?? postResult.error;
+
+      if (error || !profileResult.data) {
         console.error("Falha ao carregar perfil:", error);
         setLoadError("Utilizador não encontrado ou sem acesso autorizado.");
         setLoading(false);
         return;
       }
 
-      const profile = data as UserDetail;
-
-      const [municipalityResult, postResult] = await Promise.all([
-        profile.municipality_id
-          ? supabase
-              .from("municipalities")
-              .select("name")
-              .eq("id", profile.municipality_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        profile.administrative_post_id
-          ? supabase
-              .from("administrative_posts")
-              .select("name")
-              .eq("id", profile.administrative_post_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
-
-      if (!active) return;
-
-      if (municipalityResult.error || postResult.error) {
-        console.error(
-          "Falha ao carregar âmbito do utilizador:",
-          municipalityResult.error ?? postResult.error,
-        );
-        setLoadError("O perfil foi encontrado, mas o âmbito institucional não pôde ser carregado.");
-        setLoading(false);
-        return;
-      }
-
+      const profile = profileResult.data as UserDetail;
       setUser(profile);
-      setMunicipality(
-        profile.municipality_id
-          ? municipalityResult.data?.name ?? "Município não encontrado"
-          : "Administração global",
-      );
-      setPost(
-        profile.administrative_post_id
-          ? postResult.data?.name ?? "Posto não encontrado"
-          : profile.municipality_id
-            ? "Todos os postos autorizados pelo perfil"
-            : "Não aplicável",
-      );
+      setMunicipalities((municipalityResult.data ?? []) as Municipality[]);
+      setPosts((postResult.data ?? []) as Post[]);
+
+      setFullName(profile.full_name);
+      setPhone(profile.phone ?? "");
+      if (profile.role !== "super_admin") {
+        setRole(profile.role as ManagedUserRole);
+      }
+      setMunicipalityId(profile.municipality_id ?? "");
+      setPostId(profile.administrative_post_id ?? "");
+
       setLoading(false);
     };
 
@@ -125,20 +152,147 @@ function UtilizadorGlobal() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, refreshToken]);
+
+  const municipality =
+    municipalities.find((item) => item.id === user?.municipality_id)?.name ??
+    (user?.municipality_id ? "Município não encontrado" : "Administração global");
+
+  const post =
+    posts.find((item) => item.id === user?.administrative_post_id)?.name ??
+    (user?.administrative_post_id
+      ? "Posto não encontrado"
+      : user?.municipality_id
+        ? "Todos os postos autorizados pelo perfil"
+        : "Não aplicável");
+
+  const availablePosts = useMemo(
+    () =>
+      posts.filter(
+        (item) =>
+          item.municipality_id === municipalityId && item.status === "activo",
+      ),
+    [posts, municipalityId],
+  );
+
+  const isManagedUser = Boolean(user && user.role !== "super_admin");
+
+  const saveProfile = async () => {
+    if (!user || !isManagedUser || !municipalityId || saving) return;
+
+    setSaving(true);
+    setEditError(null);
+
+    try {
+      await updateManagedUser({
+        userId: user.id,
+        fullName: fullName.trim(),
+        phone: phone.trim() || null,
+        role,
+        municipalityId,
+        administrativePostId: postId || null,
+      });
+
+      setEditing(false);
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao actualizar utilizador:", error);
+      setEditError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível actualizar o utilizador.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changeStatus = async () => {
+    if (!user || !pendingStatus || statusReason.trim().length < 4) return;
+
+    setChangingStatus(true);
+    setStatusError(null);
+
+    try {
+      await setManagedUserStatus({
+        userId: user.id,
+        status: pendingStatus,
+        reason: statusReason.trim(),
+      });
+
+      setPendingStatus(null);
+      setStatusReason("");
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao alterar estado do utilizador:", error);
+      setStatusError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível alterar o estado do utilizador.",
+      );
+    } finally {
+      setChangingStatus(false);
+    }
+  };
 
   return (
     <SuperAdminShell
       title="Detalhe do utilizador"
       subtitle="Conta, vínculo institucional e âmbito de acesso."
     >
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <Link
           to="/super-admin/utilizadores"
           className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"
         >
           <ArrowLeft className="h-4 w-4" /> Utilizadores
         </Link>
+
+        {isManagedUser && !loading && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditing((value) => !value);
+                setEditError(null);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            >
+              {editing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+              {editing ? "Cancelar edição" : "Editar perfil"}
+            </button>
+
+            {user?.status !== "activo" && (
+              <button
+                type="button"
+                onClick={() => setPendingStatus("activo")}
+                className="rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+              >
+                Reactivar
+              </button>
+            )}
+
+            {user?.status === "activo" && (
+              <button
+                type="button"
+                onClick={() => setPendingStatus("suspenso")}
+                className="rounded-xl border border-amber-200 px-4 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-50"
+              >
+                Suspender
+              </button>
+            )}
+
+            {user?.status !== "inactivo" && (
+              <button
+                type="button"
+                onClick={() => setPendingStatus("inactivo")}
+                className="rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+              >
+                Inactivar
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -153,6 +307,128 @@ function UtilizadorGlobal() {
         </SuperCard>
       ) : (
         <>
+          {pendingStatus && (
+            <SuperCard className="mb-6 border-amber-200 p-6">
+              <h3 className="font-semibold">
+                Confirmar alteração para {STATUS_LABELS[pendingStatus]}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                O motivo é obrigatório e será registado na auditoria.
+              </p>
+              <textarea
+                value={statusReason}
+                onChange={(event) => setStatusReason(event.target.value)}
+                rows={3}
+                placeholder="Explique o motivo da alteração..."
+                className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500"
+              />
+              {statusError && (
+                <p className="mt-3 text-sm font-medium text-red-700">{statusError}</p>
+              )}
+              <div className="mt-4 flex gap-3">
+                <button
+                  type="button"
+                  disabled={statusReason.trim().length < 4 || changingStatus}
+                  onClick={changeStatus}
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+                >
+                  {changingStatus ? "A processar..." : "Confirmar"}
+                </button>
+                <button
+                  type="button"
+                  disabled={changingStatus}
+                  onClick={() => {
+                    setPendingStatus(null);
+                    setStatusReason("");
+                    setStatusError(null);
+                  }}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </SuperCard>
+          )}
+
+          {editing && (
+            <SuperCard className="mb-6 p-6">
+              <h3 className="font-semibold">Editar perfil e âmbito</h3>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <Field label="Nome completo" value={fullName} onChange={setFullName} />
+                <Field label="Contacto" value={phone} onChange={setPhone} />
+
+                <label className="text-sm font-medium">
+                  Perfil
+                  <select
+                    value={role}
+                    onChange={(event) => setRole(event.target.value as ManagedUserRole)}
+                    className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3"
+                  >
+                    {MANAGED_ROLES.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="text-sm font-medium">
+                  Município
+                  <select
+                    value={municipalityId}
+                    onChange={(event) => {
+                      setMunicipalityId(event.target.value);
+                      setPostId("");
+                    }}
+                    className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3"
+                  >
+                    {municipalities.map((item) => (
+                      <option key={item.id} value={item.id} disabled={item.status === "inactivo"}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="text-sm font-medium md:col-span-2">
+                  Posto administrativo
+                  <select
+                    value={postId}
+                    onChange={(event) => setPostId(event.target.value)}
+                    className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3"
+                  >
+                    <option value="">Todos / não definido</option>
+                    {availablePosts.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {editError && (
+                <p className="mt-4 text-sm font-medium text-red-700">{editError}</p>
+              )}
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  disabled={
+                    saving ||
+                    fullName.trim().length < 3 ||
+                    !municipalityId
+                  }
+                  onClick={saveProfile}
+                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? "A guardar..." : "Guardar alterações"}
+                </button>
+              </div>
+            </SuperCard>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
             <SuperCard className="p-7">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -211,14 +487,16 @@ function UtilizadorGlobal() {
             </SuperCard>
           </div>
 
-          <SuperCard className="mt-6 p-6">
-            <h3 className="font-semibold">Segurança da conta</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Esta página apresenta apenas dados persistidos no MobiGest. Alterações de
-              função, município, estado e credenciais serão disponibilizadas somente por
-              operações administrativas auditadas; não existem botões inertes nesta ficha.
-            </p>
-          </SuperCard>
+          {user.role === "super_admin" && (
+            <SuperCard className="mt-6 p-6">
+              <h3 className="font-semibold">Conta de controlo global</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                O Super Administrador inicial não pode ser editado, suspenso ou inactivado
+                por este fluxo. Alterações a uma conta global exigem um procedimento de
+                recuperação administrativa separado.
+              </p>
+            </SuperCard>
+          )}
         </>
       )}
     </SuperAdminShell>
@@ -264,5 +542,26 @@ function Info({
       <p className="mt-1 text-xs text-slate-400">{label}</p>
       <p className="mt-1 break-words text-sm font-semibold text-slate-700">{value}</p>
     </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="text-sm font-medium">
+      {label}
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500"
+      />
+    </label>
   );
 }
