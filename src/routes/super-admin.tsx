@@ -11,9 +11,17 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../components/SuperAdminShell";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin")({
   component: SuperAdminDashboardRouteBoundary,
@@ -53,6 +61,7 @@ function SuperAdminDashboard() {
   const [counts, setCounts] = useState<DashboardCounts>(EMPTY_COUNTS);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -125,7 +134,7 @@ function SuperAdminDashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   return (
     <SuperAdminShell
@@ -147,64 +156,43 @@ function SuperAdminDashboard() {
       </div>
 
       {loadError && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-6">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          icon={<Building2 />}
-          label="Municípios"
-          value={loading ? "—" : counts.municipalities.toLocaleString("pt-MZ")}
-          detail="registados na plataforma"
-        />
-        <Kpi
-          icon={<Users />}
-          label="Utilizadores"
-          value={loading ? "—" : counts.users.toLocaleString("pt-MZ")}
-          detail="perfis MobiGest"
-        />
-        <Kpi
-          icon={<FileText />}
-          label="Veículos"
-          value={loading ? "—" : counts.vehicles.toLocaleString("pt-MZ")}
-          detail="frota total registada"
-        />
-        <Kpi
-          icon={<Activity />}
-          label="Registos"
-          value={loading ? "—" : counts.registrations.toLocaleString("pt-MZ")}
-          detail="processos em todos os municípios"
-        />
-      </section>
-
-      <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          icon={<Activity />}
-          label="Motorizadas"
-          value={loading ? "—" : counts.motorcycles.toLocaleString("pt-MZ")}
-          detail="registadas na plataforma"
-        />
-        <Kpi
-          icon={<Activity />}
-          label="Carros"
-          value={loading ? "—" : counts.cars.toLocaleString("pt-MZ")}
-          detail="registados na plataforma"
-        />
-        <Kpi
-          icon={<Activity />}
-          label="Bicicletas"
-          value={loading ? "—" : counts.bicycles.toLocaleString("pt-MZ")}
-          detail="registadas na plataforma"
-        />
-        <Kpi
-          icon={<Activity />}
-          label="Auditoria"
-          value={loading ? "—" : counts.auditEvents.toLocaleString("pt-MZ")}
-          detail="eventos registados"
-        />
-      </section>
+      {loading ? (
+        <>
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </section>
+          <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <Kpi icon={<Building2 />} label="Municípios" value={counts.municipalities} detail="registados na plataforma" />
+            <Kpi icon={<Users />} label="Utilizadores" value={counts.users} detail="perfis MobiGest" />
+            <Kpi icon={<FileText />} label="Veículos" value={counts.vehicles} detail="frota total registada" />
+            <Kpi icon={<Activity />} label="Registos" value={counts.registrations} detail="processos em todos os municípios" />
+          </section>
+          <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <Kpi icon={<Activity />} label="Motorizadas" value={counts.motorcycles} detail="registadas na plataforma" />
+            <Kpi icon={<Activity />} label="Carros" value={counts.cars} detail="registados na plataforma" />
+            <Kpi icon={<Activity />} label="Bicicletas" value={counts.bicycles} detail="registadas na plataforma" />
+            <Kpi icon={<Activity />} label="Auditoria" value={counts.auditEvents} detail="eventos registados" />
+          </section>
+        </>
+      )}
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.55fr_1fr]">
         <SuperCard className="overflow-hidden">
@@ -219,14 +207,22 @@ function SuperAdminDashboard() {
           </div>
 
           {loading ? (
-            <div className="px-6 py-8 text-sm text-slate-500">A carregar municípios...</div>
-          ) : municipalities.length === 0 ? (
-            <div className="px-6 py-8">
-              <p className="text-sm font-semibold text-slate-700">Ainda não existem municípios registados.</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Crie o primeiro município apenas depois de concluirmos os testes de acesso global.
-              </p>
+            <div className="p-5">
+              <SkeletonTable rows={4} columns={3} />
             </div>
+          ) : municipalities.length === 0 ? (
+            <EmptyState
+              title="Ainda não existem municípios registados"
+              description="Crie o primeiro município para iniciar a configuração da plataforma."
+              action={
+                <Link
+                  to="/super-admin/municipios/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Criar município
+                </Link>
+              }
+            />
           ) : (
             <div className="divide-y divide-slate-100">
               {municipalities.map((municipality) => (
@@ -234,7 +230,7 @@ function SuperAdminDashboard() {
                   key={municipality.id}
                   to="/super-admin/municipios/$id"
                   params={{ id: municipality.id }}
-                  className="flex items-center gap-4 px-6 py-5 hover:bg-slate-50"
+                  className="mobigest-table-row flex items-center gap-4 px-6 py-5 hover:bg-slate-50"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
                     <Building2 className="h-5 w-5" />
@@ -243,7 +239,7 @@ function SuperAdminDashboard() {
                     <p className="font-semibold">{municipality.name}</p>
                     <p className="mt-1 text-xs text-slate-500">Código {municipality.code}</p>
                   </div>
-                  <MunicipalityStatus status={municipality.status} />
+                  <StatusBadge status={municipality.status} />
                 </Link>
               ))}
             </div>
@@ -310,36 +306,14 @@ function SuperAdminDashboard() {
   );
 }
 
-function MunicipalityStatus({ status }: { status: string }) {
-  const active = status === "activo";
-  const label =
-    status === "activo"
-      ? "Activo"
-      : status === "configuracao"
-        ? "Configuração"
-        : status === "suspenso"
-          ? "Suspenso"
-          : status === "inactivo"
-            ? "Inactivo"
-            : status;
-
-  return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-        active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-      }`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function Kpi({ icon, label, value, detail }: { icon: React.ReactNode; label: string; value: string; detail: string }) {
+function Kpi({ icon, label, value, detail }: { icon: ReactNode; label: string; value: number; detail: string }) {
   return (
     <SuperCard className="p-5">
       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">{icon}</div>
       <p className="mt-5 text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">
+        <AnimatedNumber value={value} />
+      </p>
       <p className="mt-1 text-xs text-slate-400">{detail}</p>
     </SuperCard>
   );
@@ -351,7 +325,7 @@ function StatusRow({
   value,
   warning = false,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
   warning?: boolean;
@@ -365,9 +339,9 @@ function StatusRow({
   );
 }
 
-function QuickLink({ to, icon, title, description }: { to: string; icon: React.ReactNode; title: string; description: string }) {
+function QuickLink({ to, icon, title, description }: { to: string; icon: ReactNode; title: string; description: string }) {
   return (
-    <Link to={to} className="group rounded-2xl border border-slate-200 bg-white p-5 hover:border-sky-200 hover:bg-sky-50/20">
+    <Link to={to} className="mobigest-card-interactive group rounded-2xl border border-slate-200 bg-white p-5 hover:border-sky-200 hover:bg-sky-50/20">
       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-sky-50 group-hover:text-sky-600">{icon}</div>
       <h3 className="mt-4 text-sm font-semibold">{title}</h3>
       <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
