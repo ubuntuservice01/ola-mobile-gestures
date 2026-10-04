@@ -1,86 +1,356 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
+import { createManagedUser, type ManagedUserRole } from "../../lib/admin-users";
+import { loadAccessProfile } from "../../lib/access-control";
+import { loadCurrentMunicipalAccess, type MunicipalAccessSession } from "../../lib/municipal-access";
+import { supabase } from "../../lib/supabase";
 
-export const Route = createFileRoute("/utilizadores/novo")({ component: NovoUtilizador });
+export const Route = createFileRoute("/utilizadores/novo")({
+  component: NovoUtilizador,
+});
 
-const profiles = [
-  ["Super Administrador", "Acesso global ao sistema."],
-  ["Administrador Municipal", "Gestão completa do município atribuído."],
-  ["Técnico", "Registo, actualização e validação de processos."],
-  ["Fiscal", "Consulta e fiscalização de veículos."],
-  ["Financeiro", "Taxas, pagamentos e informação financeira."],
+type Municipality = {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+};
+
+type Post = {
+  id: string;
+  name: string;
+  status: string;
+};
+
+const ROLE_OPTIONS: Array<{ value: ManagedUserRole; label: string }> = [
+  { value: "tecnico", label: "Técnico" },
+  { value: "fiscal", label: "Fiscal" },
+  { value: "financeiro", label: "Financeiro" },
 ];
 
 function NovoUtilizador() {
+  const [municipality, setMunicipality] = useState<Municipality | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [superAdminAccess, setSuperAdminAccess] =
+    useState<MunicipalAccessSession | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState<ManagedUserRole>("tecnico");
+  const [postId, setPostId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active || !user) {
+        setLoadError("Sessão de utilizador inválida.");
+        setLoading(false);
+        return;
+      }
+
+      const profile = await loadAccessProfile(user.id);
+      if (!active || !profile) {
+        setLoadError("Perfil MobiGest não encontrado.");
+        setLoading(false);
+        return;
+      }
+
+      let municipalityId: string | null = null;
+      let accessSession: MunicipalAccessSession | null = null;
+
+      if (profile.role === "admin_municipal") {
+        municipalityId = profile.municipality_id;
+        setAuthorized(Boolean(municipalityId));
+      } else if (profile.role === "super_admin") {
+        accessSession = await loadCurrentMunicipalAccess();
+        municipalityId = accessSession?.municipality_id ?? null;
+        setSuperAdminAccess(accessSession);
+        setAuthorized(accessSession?.access_mode === "assistencia");
+      } else {
+        setAuthorized(false);
+      }
+
+      if (!municipalityId) {
+        setLoadError("Esta conta não possui um contexto municipal autorizado.");
+        setLoading(false);
+        return;
+      }
+
+      const [municipalityResult, postResult] = await Promise.all([
+        supabase
+          .from("municipalities")
+          .select("id, name, code, status")
+          .eq("id", municipalityId)
+          .maybeSingle(),
+        supabase
+          .from("administrative_posts")
+          .select("id, name, status")
+          .eq("municipality_id", municipalityId)
+          .order("name", { ascending: true }),
+      ]);
+
+      if (!active) return;
+
+      const error = municipalityResult.error ?? postResult.error;
+      if (error || !municipalityResult.data) {
+        console.error("Falha ao carregar contexto municipal:", error);
+        setLoadError("Não foi possível carregar o município e os postos.");
+        setLoading(false);
+        return;
+      }
+
+      setMunicipality(municipalityResult.data as Municipality);
+      setPosts((postResult.data ?? []) as Post[]);
+      setLoading(false);
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const canSubmit =
+    authorized &&
+    Boolean(municipality) &&
+    municipality?.status !== "inactivo" &&
+    name.trim().length >= 3 &&
+    email.includes("@") &&
+    !creating;
+
+  const submit = async () => {
+    if (!municipality || !canSubmit) return;
+
+    setCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await createManagedUser({
+        email: email.trim(),
+        fullName: name.trim(),
+        phone: phone.trim() || null,
+        role,
+        municipalityId: municipality.id,
+        administrativePostId: postId || null,
+        accessSessionId: superAdminAccess?.session_id ?? null,
+      });
+
+      setCreatedUserId(result.id ?? null);
+    } catch (error) {
+      console.error("Falha ao criar utilizador municipal:", error);
+      setCreateError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar o utilizador.",
+      );
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (createdUserId) {
+    return (
+      <MobiGestShell
+        title="Utilizador criado"
+        subtitle="A conta foi criada e o convite foi enviado."
+      >
+        <Card className="mx-auto max-w-2xl p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <CheckCircle2 className="h-6 w-6" />
+          </div>
+          <h2 className="mt-5 text-2xl font-bold">{name}</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            {ROLE_OPTIONS.find((item) => item.value === role)?.label} · {municipality?.name}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">{email}</p>
+          <p className="mt-5 rounded-xl bg-sky-50 p-4 text-sm leading-6 text-sky-900">
+            O convite foi enviado para o utilizador definir a própria palavra-passe.
+          </p>
+          <Link
+            to="/utilizadores"
+            className="mt-7 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white"
+          >
+            Voltar aos utilizadores
+          </Link>
+        </Card>
+      </MobiGestShell>
+    );
+  }
+
   return (
-    <MobiGestShell title="Novo utilizador" subtitle="Criar uma conta e definir o âmbito de acesso.">
-      <Link to="/utilizadores" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600">
+    <MobiGestShell
+      title="Novo utilizador"
+      subtitle="Criar uma conta autorizada para o município actual."
+    >
+      <Link
+        to="/utilizadores"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"
+      >
         <ArrowLeft className="h-4 w-4" /> Utilizadores
       </Link>
 
       <Card className="mx-auto max-w-4xl p-7">
         <div className="flex items-start gap-4 border-b border-slate-100 pb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><ShieldCheck /></div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+            <ShieldCheck />
+          </div>
           <div>
-            <h2 className="text-xl font-bold">Criar utilizador</h2>
-            <p className="mt-1 text-sm text-slate-500">O perfil determina as operações que poderá executar no MobiGest.</p>
+            <h2 className="text-xl font-bold">Criar utilizador municipal</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Apenas perfis operacionais podem ser criados nesta área.
+            </p>
           </div>
         </div>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
-          {["Nome completo", "Email", "Telefone"].map((label) => (
-            <label className="text-sm font-medium" key={label}>
-              {label}
-              <input className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500" />
-            </label>
-          ))}
+        {loading ? (
+          <p className="mt-7 text-sm text-slate-500">A carregar contexto municipal...</p>
+        ) : loadError ? (
+          <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+            {loadError}
+          </div>
+        ) : !authorized ? (
+          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
+            Esta conta não está autorizada a criar utilizadores. O Super Admin precisa de uma sessão
+            em modo <b>Assistência</b>; os outros perfis dependem da função Administrador Municipal.
+          </div>
+        ) : (
+          <>
+            <div className="mt-7 grid gap-4 md:grid-cols-2">
+              <Field
+                label="Nome completo *"
+                value={name}
+                onChange={setName}
+                placeholder="Nome completo"
+              />
+              <Field
+                label="Email *"
+                value={email}
+                onChange={setEmail}
+                placeholder="utilizador@municipio.gov.mz"
+                type="email"
+              />
+              <Field
+                label="Telefone"
+                value={phone}
+                onChange={setPhone}
+                placeholder="+258 ..."
+              />
 
-          <label className="text-sm font-medium">
-            Perfil
-            <select className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500">
-              {profiles.map(([name]) => <option key={name}>{name}</option>)}
-            </select>
-          </label>
+              <label className="text-sm font-medium">
+                Perfil
+                <select
+                  value={role}
+                  onChange={(event) => setRole(event.target.value as ManagedUserRole)}
+                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3"
+                >
+                  {ROLE_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <label className="text-sm font-medium">
-            Município
-            <select className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500">
-              <option>Seleccione o município</option>
-              <option>Município</option>
-            </select>
-          </label>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400">Município</p>
+                <p className="mt-1 text-sm font-semibold">{municipality?.name}</p>
+                <p className="mt-1 text-xs text-slate-500">Código {municipality?.code}</p>
+              </div>
 
-          <label className="text-sm font-medium">
-            Posto administrativo
-            <select className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500">
-              <option>Todos / não definido</option>
-              <option>Chiuaula</option>
-              <option>Massenger</option>
-              <option>Meponda</option>
-            </select>
-          </label>
+              <label className="text-sm font-medium">
+                Posto administrativo
+                <select
+                  value={postId}
+                  onChange={(event) => setPostId(event.target.value)}
+                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3"
+                >
+                  <option value="">Todos / não definido</option>
+                  {posts
+                    .filter((post) => post.status === "activo")
+                    .map((post) => (
+                      <option key={post.id} value={post.id}>
+                        {post.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            </div>
 
-          <label className="text-sm font-medium">
-            Estado
-            <select className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500">
-              <option>Activo</option>
-              <option>Suspenso</option>
-            </select>
-          </label>
-        </div>
+            <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+              <b>Regra de âmbito:</b> a conta será vinculada apenas a {municipality?.name}.
+              A palavra-passe é definida pelo próprio utilizador através do convite do Supabase Auth.
+            </div>
 
-        <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-          <b>Regra de âmbito:</b> o Super Administrador não fica limitado a um município. Os outros perfis devem ter município atribuído; o posto administrativo pode restringir ainda mais o acesso quando essa regra for aplicável.
-        </div>
+            {createError && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+                {createError}
+              </div>
+            )}
 
-        <div className="mt-7 flex justify-end gap-3">
-          <Link to="/utilizadores" className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold">Cancelar</Link>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">
-            <Save className="h-4 w-4" /> Criar utilizador
-          </button>
-        </div>
+            <div className="mt-7 flex justify-end gap-3">
+              <Link
+                to="/utilizadores"
+                className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold"
+              >
+                Cancelar
+              </Link>
+              <button
+                type="button"
+                disabled={!canSubmit}
+                onClick={submit}
+                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
+              >
+                <Mail className="h-4 w-4" />
+                {creating ? "A criar e convidar..." : "Criar e enviar convite"}
+              </button>
+            </div>
+          </>
+        )}
       </Card>
     </MobiGestShell>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  type?: string;
+}) {
+  return (
+    <label className="text-sm font-medium">
+      {label}
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500"
+      />
+    </label>
   );
 }
