@@ -11,6 +11,12 @@ import { useEffect, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../../../components/SuperAdminShell";
 import { createManagedUser } from "../../../../../lib/admin-users";
 import { supabase } from "../../../../../lib/supabase";
+import {
+  LoadingButton,
+  SkeletonCard,
+  notify,
+} from "../../../../../components/mobigest/Experience";
+import { formatDateTime } from "../../../../../lib/format";
 
 export const Route = createFileRoute("/super-admin/municipios/$id/administrador/novo")({
   component: NovoAdministradorMunicipal,
@@ -114,13 +120,15 @@ function NovoAdministradorMunicipal() {
       setCreatedUserId(result.id ?? null);
       setActivationCode(result.activationCode ?? null);
       setActivationExpiresAt(result.activationExpiresAt ?? null);
+      notify.success("Administrador Municipal criado", "O código de activação foi gerado com sucesso.");
     } catch (error) {
       console.error("Falha ao criar Administrador Municipal:", error);
-      setCreateError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar o Administrador Municipal.",
-      );
+          : "Não foi possível criar o Administrador Municipal.";
+      setCreateError(message);
+      notify.error("Não foi possível criar o Administrador Municipal", message);
     } finally {
       setCreating(false);
     }
@@ -129,7 +137,10 @@ function NovoAdministradorMunicipal() {
   if (loading) {
     return (
       <SuperAdminShell title="Novo Administrador Municipal" subtitle="A carregar contexto institucional...">
-        <SuperCard className="p-8 text-sm text-slate-500">A carregar...</SuperCard>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </SuperAdminShell>
     );
   }
@@ -184,7 +195,7 @@ function NovoAdministradorMunicipal() {
             </p>
             {activationExpiresAt && (
               <p className="mt-2 text-xs text-sky-700">
-                Validade: {new Date(activationExpiresAt).toLocaleString("pt-MZ")}
+                Validade: {formatDateTime(activationExpiresAt)}
               </p>
             )}
           </div>
@@ -315,15 +326,15 @@ function NovoAdministradorMunicipal() {
           >
             Cancelar
           </Link>
-          <button
-            type="button"
-            disabled={!canSubmit}
+          <LoadingButton
             onClick={submit}
-            className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <KeyRound className="h-4 w-4" />
-            {creating ? "A criar e gerar código..." : "Criar utilizador e gerar código"}
-          </button>
+            disabled={!canSubmit}
+            state={creating ? "loading" : "idle"}
+            idleLabel="Criar utilizador e gerar código"
+            loadingLabel="A criar e gerar código..."
+            icon={<KeyRound className="h-4 w-4" />}
+            className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+          />
         </div>
       </SuperCard>
     </SuperAdminShell>
