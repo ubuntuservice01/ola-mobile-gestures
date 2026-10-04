@@ -24,6 +24,13 @@ import {
   type RoleCode,
 } from "../lib/permissions";
 import { supabase } from "../lib/supabase";
+import {
+  LoadingButton,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../components/mobigest/Experience";
+import { formatDate } from "../lib/format";
 
 export const Route = createFileRoute("/perfil")({
   component: PerfilPage,
@@ -202,9 +209,10 @@ function PerfilPage() {
 
     if (error) {
       console.error("Falha ao actualizar perfil:", error);
-      setProfileMessage(
-        error.message || "Não foi possível actualizar os dados.",
-      );
+      const message =
+        error.message || "Não foi possível actualizar os dados.";
+      setProfileMessage(message);
+      notify.error("Não foi possível guardar os dados", message);
       setSavingProfile(false);
       return;
     }
@@ -219,6 +227,7 @@ function PerfilPage() {
         : current,
     );
     setProfileMessage("Dados pessoais actualizados com sucesso.");
+    notify.success("Dados pessoais actualizados");
     setSavingProfile(false);
   };
 
@@ -250,9 +259,10 @@ function PerfilPage() {
 
     if (error) {
       console.error("Falha ao alterar palavra-passe:", error);
-      setPasswordMessage(
-        error.message || "Não foi possível alterar a palavra-passe.",
-      );
+      const message =
+        error.message || "Não foi possível alterar a palavra-passe.";
+      setPasswordMessage(message);
+      notify.error("Não foi possível alterar a palavra-passe", message);
       setChangingPassword(false);
       return;
     }
@@ -272,9 +282,11 @@ function PerfilPage() {
         title="Meu Perfil"
         subtitle="A carregar dados da sua conta..."
       >
-        <Card className="p-10 text-center text-sm text-slate-500">
-          A carregar perfil...
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       </MobiGestShell>
     );
   }
@@ -405,14 +417,14 @@ function PerfilPage() {
               </div>
             )}
 
-            <button
+            <LoadingButton
               type="submit"
-              disabled={savingProfile}
-              className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-              {savingProfile ? "A guardar..." : "Guardar dados pessoais"}
-            </button>
+              state={savingProfile ? "loading" : "idle"}
+              idleLabel="Guardar dados pessoais"
+              loadingLabel="A guardar..."
+              icon={<Save className="h-4 w-4" />}
+              className="bg-sky-600 text-white hover:bg-sky-700"
+            />
           </form>
         </Card>
 
@@ -446,12 +458,12 @@ function PerfilPage() {
             <ReadOnlyRow
               icon={<CheckCircle2 />}
               label="Estado da conta"
-              value={statusLabel(profile.status)}
+              value={profile.status === "activo" ? "Activo" : profile.status === "suspenso" ? "Suspenso" : "Inactivo"}
             />
             <ReadOnlyRow
               icon={<KeyRound />}
               label="Conta criada"
-              value={new Date(profile.created_at).toLocaleDateString("pt-MZ")}
+              value={formatDate(profile.created_at)}
             />
           </dl>
 
@@ -552,16 +564,14 @@ function PerfilPage() {
               </div>
             )}
 
-            <button
+            <LoadingButton
               type="submit"
-              disabled={changingPassword}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
-            >
-              <KeyRound className="h-4 w-4" />
-              {changingPassword
-                ? "A alterar..."
-                : "Alterar palavra-passe"}
-            </button>
+              state={changingPassword ? "loading" : "idle"}
+              idleLabel="Alterar palavra-passe"
+              loadingLabel="A alterar..."
+              icon={<KeyRound className="h-4 w-4" />}
+              className="bg-slate-900 text-white hover:bg-slate-800"
+            />
           </form>
 
           <div className="mt-8 border-t border-slate-100 pt-6">
@@ -609,30 +619,6 @@ function ReadOnlyRow({
       </div>
     </div>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const active = status === "activo";
-
-  return (
-    <span
-      className={
-        "rounded-full px-3 py-1 text-xs font-semibold " +
-        (active
-          ? "bg-emerald-50 text-emerald-700"
-          : "bg-amber-50 text-amber-700")
-      }
-    >
-      {statusLabel(status)}
-    </span>
-  );
-}
-
-function statusLabel(status: string) {
-  if (status === "activo") return "Activo";
-  if (status === "suspenso") return "Suspenso";
-  if (status === "inactivo") return "Inactivo";
-  return status;
 }
 
 function initials(name: string) {
