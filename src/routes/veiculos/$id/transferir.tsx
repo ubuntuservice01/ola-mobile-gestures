@@ -8,6 +8,15 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  ProgressSteps,
+  SkeletonCard,
+  notify,
+} from "../../../components/mobigest/Experience";
 import { requestVehicleTransfer } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
 
@@ -45,6 +54,8 @@ function Transferir() {
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [created, setCreated] = useState<{
     registrationId: string;
     reference: string;
@@ -122,7 +133,7 @@ function Transferir() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   const newOwner = owners.find((owner) => owner.id === newOwnerId) ?? null;
   const canTransfer =
@@ -150,13 +161,19 @@ function Transferir() {
         registrationId: result.registration_id,
         reference: result.registration_reference,
       });
+      notify.success(
+        "Transferência submetida",
+        "O processo ficou pendente de validação.",
+      );
     } catch (error) {
       console.error("Falha ao iniciar transferência:", error);
-      setActionError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível iniciar a transferência.",
-      );
+          : "Não foi possível iniciar a transferência.";
+      setActionError(message);
+      setConfirmOpen(false);
+      notify.error("Não foi possível iniciar a transferência", message);
     } finally {
       setSubmitting(false);
     }
@@ -174,6 +191,31 @@ function Transferir() {
           <p className="mt-2 text-sm text-slate-500">
             Processo de transferência pendente de validação.
           </p>
+
+          <div className="mx-auto mt-7 max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left">
+            <ProgressSteps
+              steps={[
+                {
+                  label: "Pedido criado",
+                  status: "complete",
+                  meta: created.reference,
+                },
+                {
+                  label: "Aguarda validação",
+                  status: "current",
+                  meta: "O proprietário actual ainda permanece associado ao veículo.",
+                },
+                {
+                  label: "Aprovação do processo",
+                  status: "upcoming",
+                },
+                {
+                  label: "Transferência concluída",
+                  status: "upcoming",
+                },
+              ]}
+            />
+          </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
               to="/registos/$id"
@@ -209,13 +251,17 @@ function Transferir() {
       </Link>
 
       {loading ? (
-        <Card className="mx-auto max-w-4xl p-8 text-sm text-slate-500">
-          A carregar veículo e proprietários...
-        </Card>
+        <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !vehicle ? (
-        <Card className="mx-auto max-w-4xl p-8 text-sm font-medium text-red-700">
-          {loadError ?? "Veículo não encontrado."}
-        </Card>
+        <div className="mx-auto max-w-4xl">
+          <NetworkErrorState
+            message={loadError ?? "Veículo não encontrado."}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
+        </div>
       ) : (
         <div className="mx-auto max-w-4xl">
           <Card className="p-7">
@@ -319,21 +365,42 @@ function Transferir() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
+              <LoadingButton
+                onClick={() => setConfirmOpen(true)}
                 disabled={!canTransfer}
-                onClick={submit}
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                <Check className="h-4 w-4" />
-                {submitting
-                  ? "A criar processo..."
-                  : "Criar processo de transferência"}
-              </button>
+                state={submitting ? "loading" : "idle"}
+                idleLabel="Criar processo de transferência"
+                loadingLabel="A criar processo..."
+                icon={<Check className="h-4 w-4" />}
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </Card>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Criar processo de transferência?"
+        description={
+          "Será criado um processo para transferir " +
+          (vehicle?.mobigest_number || "este veículo") +
+          " de " +
+          (currentOwner?.full_name || "proprietário actual") +
+          " para " +
+          (newOwner?.full_name || "o novo proprietário") +
+          ". A propriedade só muda depois da aprovação."
+        }
+        confirmLabel="Criar transferência"
+        onConfirm={submit}
+        busy={submitting}
+      />
+
+      <ProcessingOverlay
+        open={submitting}
+        message="A criar processo de transferência..."
+      />
     </MobiGestShell>
   );
 }
