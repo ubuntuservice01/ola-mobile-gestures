@@ -15,7 +15,7 @@ create temporary table mobigest_migration_audit (
   ledger_applied boolean,
   probe_present boolean not null default false,
   evidence text not null default ''
-) on commit drop;
+);
 
 create or replace function pg_temp.exists_function(
   p_schema text,
