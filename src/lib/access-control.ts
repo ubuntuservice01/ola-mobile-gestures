@@ -51,18 +51,30 @@ export function profileAccessProblem(profile: AccessProfile | null):
   return null;
 }
 
-export function defaultRouteForProfile(profile: AccessProfile) {
-  return profile.role === "super_admin" ? "/super-admin" : "/dashboard";
+export function defaultRouteForProfile(
+  profile: AccessProfile,
+  hasMunicipalAccess = false,
+) {
+  if (profile.role === "super_admin") {
+    return hasMunicipalAccess ? "/dashboard" : "/super-admin";
+  }
+
+  return "/dashboard";
 }
 
-export function isPathAllowedForProfile(pathname: string, profile: AccessProfile) {
+export function isPathAllowedForProfile(
+  pathname: string,
+  profile: AccessProfile,
+  hasMunicipalAccess = false,
+) {
   const isSuperAdminArea =
     pathname === "/super-admin" || pathname.startsWith("/super-admin/");
 
   if (profile.role === "super_admin") {
-    // O Super Admin opera apenas na área global. O acesso operacional a um
-    // município deve passar pelo fluxo auditado de acesso municipal.
-    return isSuperAdminArea;
+    // Sem sessão auditada, o Super Admin permanece na administração global.
+    // Com sessão auditada, permanece exclusivamente no contexto municipal até
+    // terminar ou expirar a sessão.
+    return hasMunicipalAccess ? !isSuperAdminArea : isSuperAdminArea;
   }
 
   return !isSuperAdminArea;
