@@ -4,6 +4,13 @@ import { ArrowLeft, Bike, Edit3, FileText, Phone, UserRound } from "lucide-react
 import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  StatusBadge,
+} from "../../components/mobigest/Experience";
+import { formatNumber } from "../../lib/format";
 
 export const Route = createFileRoute("/proprietarios/$id")({
   component: PerfilRouteBoundary,
@@ -44,6 +51,7 @@ function Perfil() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -117,7 +125,7 @@ function Perfil() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   return (
     <MobiGestShell
@@ -132,11 +140,15 @@ function Perfil() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">A carregar proprietário...</Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !owner ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Proprietário não encontrado."}
-        </Card>
+        <NetworkErrorState
+          message={loadError ?? "Proprietário não encontrado."}
+          onRetry={() => setReloadKey((value) => value + 1)}
+        />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
           <Card className="p-6">
@@ -146,13 +158,9 @@ function Perfil() {
               </div>
               <div className="min-w-0">
                 <h2 className="text-xl font-bold">{owner.full_name}</h2>
-                <p className="text-sm text-slate-500">
-                  {owner.status === "activo"
-                    ? "Proprietário activo"
-                    : owner.status === "bloqueado"
-                      ? "Proprietário bloqueado"
-                      : "Proprietário inactivo"}
-                </p>
+                <div className="mt-2">
+                  <StatusBadge status={owner.status} />
+                </div>
               </div>
             </div>
 
@@ -220,21 +228,22 @@ function Perfil() {
                 </p>
               </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-                {vehicles.length.toLocaleString("pt-MZ")} veículo(s)
+                {formatNumber(vehicles.length)} veículo(s)
               </span>
             </div>
 
             <div className="mt-5 space-y-3">
               {vehicles.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-                  Este proprietário ainda não possui veículos associados.
-                </div>
+                <EmptyState
+                  title="Nenhum veículo associado"
+                  description="Este proprietário ainda não possui veículos associados no MobiGest."
+                />
               ) : (
                 vehicles.map((vehicle) => (
                   <Link
                     to="/veiculos/$id"
                     params={{ id: vehicle.id }}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
+                    className="mobigest-card-interactive flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
                     key={vehicle.id}
                   >
                     <div className="flex items-center gap-3">
@@ -249,7 +258,13 @@ function Perfil() {
                         </p>
                       </div>
                     </div>
-                    <Status vehicle={vehicle} />
+                    <StatusBadge
+                      status={
+                        vehicle.commercial_status === "a_venda"
+                          ? "a_venda"
+                          : vehicle.status
+                      }
+                    />
                   </Link>
                 ))
               )}
@@ -266,34 +281,6 @@ function vehicleTypeLabel(type: string) {
   if (type === "carro") return "Carro";
   if (type === "bicicleta") return "Bicicleta";
   return "Veículo";
-}
-
-function Status({ vehicle }: { vehicle: Vehicle }) {
-  const label =
-    vehicle.commercial_status === "a_venda"
-      ? "À venda"
-      : vehicle.status === "activa"
-        ? "Activa"
-        : vehicle.status === "roubada"
-          ? "Roubada"
-          : vehicle.status === "apreendida"
-            ? "Apreendida"
-            : vehicle.status === "suspensa"
-              ? "Suspensa"
-              : "Cancelada";
-
-  const className =
-    label === "Activa"
-      ? "bg-emerald-50 text-emerald-700"
-      : label === "Roubada" || label === "Cancelada"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {label}
-    </span>
-  );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
