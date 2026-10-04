@@ -128,7 +128,7 @@ function CarrosDashboard() {
               <h3 className="font-semibold">Acções rápidas</h3>
               <p className="mt-1 text-sm text-slate-500">Operações frequentes</p>
               <div className="mt-5 grid gap-3">
-                <Action to="/veiculos/novo/carros" icon={<FilePlus2 />} title="Registar carros" text="Novo registo" />
+                <Action to="/veiculos/novo/carro" icon={<FilePlus2 />} title="Registar carros" text="Novo registo" />
                 <Action to="/consulta" icon={<QrCode />} title="Consultar QR Code" text="Verificar uma carros" />
                 <Action to="/proprietarios/novo" icon={<UserRound />} title="Novo proprietário" text="Criar ficha" />
                 <Action to="/fiscalizacao" icon={<ShieldAlert />} title="Fiscalização" text="Verificar estado" />
