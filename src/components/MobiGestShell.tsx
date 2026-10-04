@@ -4,7 +4,6 @@ import {
   Bell,
   Bike,
   Building2,
-  ChevronRight,
   ClipboardList,
   Clock3,
   FileBarChart,
@@ -526,19 +525,7 @@ export function MobiGestShell({
 
         <main className="mx-auto max-w-[1500px] px-5 py-7 md:px-8 md:py-8">
           {title !== "Dashboard" && (
-            <nav
-              aria-label="Breadcrumb"
-              className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400"
-            >
-              <Link
-                to="/dashboard"
-                className="font-medium hover:text-sky-600"
-              >
-                MobiGest
-              </Link>
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-              <span className="font-medium text-slate-600">{title}</span>
-            </nav>
+            <MobiGestBreadcrumbs currentTitle={title} />
           )}
 
           <PageTransition>
