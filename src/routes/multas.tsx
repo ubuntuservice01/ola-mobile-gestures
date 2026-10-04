@@ -14,6 +14,7 @@ import {
   AnimatedNumber,
   EmptyState,
   NetworkErrorState,
+  PaginationBar,
   SkeletonCard,
   SkeletonTable,
   StatusBadge,
@@ -50,6 +51,7 @@ function Multas() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [page, setPage] = useState(1);
   const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
@@ -199,6 +201,18 @@ function Multas() {
     }),
     [rows],
   );
+  const PAGE_SIZE = 20;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagedRows = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, statusFilter]);
+
 
   return (
     <MobiGestShell
@@ -380,7 +394,7 @@ function Multas() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((row) => (
+                pagedRows.map((row) => (
                   <tr key={row.id} className="mobigest-table-row hover:bg-slate-50">
                     <td className="px-5 py-4 font-bold text-sky-700">
                       <Link to="/multas/$id" params={{ id: row.id }}>
@@ -420,6 +434,14 @@ function Multas() {
             </tbody>
           </table>
         </div>
+        {!loading && filtered.length > 0 && (
+          <PaginationBar
+            page={safePage}
+            pageSize={PAGE_SIZE}
+            totalItems={filtered.length}
+            onPageChange={setPage}
+          />
+        )}
       </Card>
     </MobiGestShell>
   );
