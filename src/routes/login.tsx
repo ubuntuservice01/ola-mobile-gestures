@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { FormEvent, useState } from "react";
+import {
+  accessReasonMessage,
+  defaultRouteForProfile,
+  isPathAllowedForProfile,
+  isSafeInternalPath,
+  loadAccessProfile,
+  profileAccessProblem,
+} from "../lib/access-control";
 import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/login")({
@@ -12,7 +20,9 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(
+    accessReasonMessage(new URLSearchParams(window.location.search).get("reason")),
+  );
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -47,7 +57,7 @@ function LoginPage() {
                   <LockKeyhole className="h-5 w-5" />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900">Aceder ao MobiGest</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">Entre com as credenciais da sua conta municipal.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">Entre com as credenciais da sua conta autorizada.</p>
               </div>
 
               <form
@@ -56,17 +66,35 @@ function LoginPage() {
                   event.preventDefault();
                   setMessage(null);
                   setLoading(true);
-                  const { error } = await supabase.auth.signInWithPassword({
+
+                  const { data, error } = await supabase.auth.signInWithPassword({
                     email: email.trim(),
                     password,
                   });
-                  if (error) {
+
+                  if (error || !data.user) {
                     setMessage("Email ou palavra-passe inválidos.");
                     setLoading(false);
                     return;
                   }
+
+                  const profile = await loadAccessProfile(data.user.id);
+                  const accessProblem = profileAccessProblem(profile);
+
+                  if (accessProblem || !profile) {
+                    await supabase.auth.signOut({ scope: "local" });
+                    setMessage(accessReasonMessage(accessProblem) ?? "Conta sem acesso autorizado ao MobiGest.");
+                    setLoading(false);
+                    return;
+                  }
+
                   const redirect = new URLSearchParams(window.location.search).get("redirect");
-                  window.location.replace(redirect && redirect.startsWith("/") ? redirect : "/dashboard");
+                  const destination =
+                    isSafeInternalPath(redirect) && isPathAllowedForProfile(redirect, profile)
+                      ? redirect
+                      : defaultRouteForProfile(profile);
+
+                  window.location.replace(destination);
                 }}
               >
                 <div>
@@ -99,7 +127,7 @@ function LoginPage() {
               </form>
 
               <p className="mt-7 border-t border-slate-100 pt-6 text-center text-xs leading-5 text-slate-400">
-                O acesso à área administrativa é reservado aos utilizadores autorizados pelo município.
+                O acesso à área administrativa é reservado aos utilizadores autorizados.
               </p>
             </div>
           </div>
