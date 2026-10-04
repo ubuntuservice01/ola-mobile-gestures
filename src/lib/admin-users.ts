@@ -9,7 +9,9 @@ export type ManagedUserRole =
 type AdminUsersResponse = {
   id?: string;
   email?: string;
-  invited?: boolean;
+  created?: boolean;
+  activationCode?: string;
+  activationExpiresAt?: string;
   updated?: boolean;
   status?: string;
   error?: string;
