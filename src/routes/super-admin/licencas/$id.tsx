@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
-  XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -23,6 +22,15 @@ import {
   updateLicense,
 } from "../../../lib/licenses";
 import { supabase } from "../../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/licencas/$id")({
   component: LicencaDetalhe,
@@ -85,6 +93,7 @@ function LicencaDetalhe() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"status" | "renew" | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -264,14 +273,13 @@ function LicencaDetalhe() {
       });
 
       setMessage("Licença actualizada.");
+      notify.success("Licença actualizada");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao actualizar licença:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível actualizar a licença.",
-      );
+      const safeMessage = "Não foi possível actualizar a licença.";
+      setActionError(safeMessage);
+      notify.error("Licença não actualizada", safeMessage);
     } finally {
       setSaving(false);
     }
@@ -299,14 +307,16 @@ function LicencaDetalhe() {
       });
 
       setMessage("Estado da licença actualizado.");
+      notify.success(
+        "Estado da licença actualizado",
+        statusTarget ? licenseStatusLabel(statusTarget) : undefined,
+      );
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao alterar estado da licença:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível alterar o estado da licença.",
-      );
+      const safeMessage = "Não foi possível alterar o estado da licença.";
+      setActionError(safeMessage);
+      notify.error("Estado não actualizado", safeMessage);
     } finally {
       setSaving(false);
     }
@@ -334,14 +344,13 @@ function LicencaDetalhe() {
       });
 
       setMessage("Licença renovada e reactivada.");
+      notify.success("Licença renovada", "A nova validade foi registada com sucesso.");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao renovar licença:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível renovar a licença.",
-      );
+      const safeMessage = "Não foi possível renovar a licença.";
+      setActionError(safeMessage);
+      notify.error("Renovação não concluída", safeMessage);
     } finally {
       setSaving(false);
     }
@@ -439,13 +448,15 @@ function LicencaDetalhe() {
       </div>
 
       {loading ? (
-        <SuperCard className="p-10 text-sm text-slate-500">
-          A carregar licença...
-        </SuperCard>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !license ? (
-        <SuperCard className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Licença não encontrada."}
-        </SuperCard>
+        <NetworkErrorState
+          message={loadError ?? "Licença não encontrada."}
+          onRetry={() => setRefreshToken((value) => value + 1)}
+        />
       ) : (
         <div className="space-y-6">
           {actionError && (
@@ -481,18 +492,14 @@ function LicencaDetalhe() {
               />
 
               <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  disabled={
-                    statusReason.trim().length < 4 || saving
-                  }
-                  onClick={changeStatus}
-                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  {saving
-                    ? "A processar..."
-                    : "Confirmar alteração"}
-                </button>
+                <LoadingButton
+                  onClick={() => setConfirmAction("status")}
+                  disabled={statusReason.trim().length < 4 || saving}
+                  state={saving && confirmAction === "status" ? "loading" : "idle"}
+                  idleLabel="Confirmar alteração"
+                  loadingLabel="A processar..."
+                  className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+                />
                 <button
                   type="button"
                   onClick={() => {
@@ -619,17 +626,15 @@ function LicencaDetalhe() {
               </div>
 
               <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  disabled={!canSaveEdit}
+                <LoadingButton
                   onClick={saveEdit}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving
-                    ? "A guardar..."
-                    : "Guardar alterações"}
-                </button>
+                  disabled={!canSaveEdit}
+                  state={saving && editing ? "loading" : "idle"}
+                  idleLabel="Guardar alterações"
+                  loadingLabel="A guardar..."
+                  icon={<Save className="h-4 w-4" />}
+                  className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+                />
               </div>
             </SuperCard>
           )}
@@ -654,7 +659,7 @@ function LicencaDetalhe() {
                 </div>
 
                 <div className="ml-auto">
-                  <LicenseStatus status={effectiveStatus} />
+                  <StatusBadge status={effectiveStatus} />
                 </div>
               </div>
 
@@ -777,20 +782,18 @@ function LicencaDetalhe() {
                   </label>
 
                   <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
+                    <LoadingButton
+                      onClick={() => setConfirmAction("renew")}
                       disabled={
                         !renewEnd ||
                         renewReason.trim().length < 4 ||
                         saving
                       }
-                      onClick={renew}
-                      className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                    >
-                      {saving
-                        ? "A renovar..."
-                        : "Confirmar renovação"}
-                    </button>
+                      state={saving && confirmAction === "renew" ? "loading" : "idle"}
+                      idleLabel="Confirmar renovação"
+                      loadingLabel="A renovar..."
+                      className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+                    />
                     <button
                       type="button"
                       onClick={() => {
@@ -831,40 +834,71 @@ function LicencaDetalhe() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onOpenChange={(open) => {
+          if (!open && !saving) setConfirmAction(null);
+        }}
+        title={
+          confirmAction === "renew"
+            ? "Renovar esta licença?"
+            : statusTarget === "cancelada"
+              ? "Cancelar esta licença?"
+              : statusTarget === "suspensa"
+                ? "Suspender esta licença?"
+                : statusTarget === "activa"
+                  ? "Activar esta licença?"
+                  : "Alterar o estado da licença?"
+        }
+        description={
+          confirmAction === "renew"
+            ? "A validade será prolongada até " +
+              (renewEnd || "a nova data") +
+              " e a alteração ficará registada na auditoria."
+            : statusTarget === "cancelada"
+              ? "O município deixará de satisfazer a autorização de licença. Os dados históricos não serão apagados."
+              : statusTarget === "suspensa"
+                ? "O acesso municipal ficará suspenso até nova reactivação. O motivo ficará registado na auditoria."
+                : "O novo estado produzirá efeito no acesso municipal e ficará registado na auditoria."
+        }
+        confirmLabel={
+          confirmAction === "renew"
+            ? "Renovar licença"
+            : statusTarget === "cancelada"
+              ? "Cancelar licença"
+              : statusTarget === "suspensa"
+                ? "Suspender licença"
+                : statusTarget === "activa"
+                  ? "Activar licença"
+                  : "Confirmar alteração"
+        }
+        destructive={confirmAction === "status" && statusTarget === "cancelada"}
+        busy={saving}
+        onConfirm={async () => {
+          const selected = confirmAction;
+          if (selected === "renew") await renew();
+          if (selected === "status") await changeStatus();
+          setConfirmAction(null);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={saving}
+        message={
+          confirmAction === "renew"
+            ? "A renovar a licença..."
+            : confirmAction === "status"
+              ? "A actualizar o estado da licença..."
+              : "A guardar alterações da licença..."
+        }
+      />
     </SuperAdminShell>
   );
 }
 
 const inputClass =
   "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3";
-
-function LicenseStatus({ status }: { status: string }) {
-  const className =
-    status === "activa"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "cancelada" || status === "expirada"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span
-      className={
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold " +
-        className
-      }
-    >
-      {status === "activa" && (
-        <CheckCircle2 className="h-3.5 w-3.5" />
-      )}
-      {(status === "suspensa" ||
-        status === "cancelada" ||
-        status === "expirada") && (
-        <XCircle className="h-3.5 w-3.5" />
-      )}
-      {licenseStatusLabel(status)}
-    </span>
-  );
-}
 
 function licenseStatusLabel(status: string) {
   const labels: Record<string, string> = {
