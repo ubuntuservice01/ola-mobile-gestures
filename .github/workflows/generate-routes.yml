@@ -1,21 +1,35 @@
-name: Generate TanStack route tree
+name: Validate MobiGest web app
 
 on:
   push:
     branches:
       - main
     paths:
-      - "src/routes/**"
-      - "tsr.config.json"
+      - "src/**"
       - "package.json"
-      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsr.config.json"
+      - ".github/workflows/generate-routes.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "vite.config.ts"
+      - "tsr.config.json"
+      - ".github/workflows/generate-routes.yml"
 
 permissions:
   contents: write
 
 jobs:
-  generate-routes:
+  validate-web:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-anon-key
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +38,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -32,7 +45,11 @@ jobs:
       - name: Generate route tree
         run: npm run generate-routes
 
+      - name: Build application
+        run: npm run build
+
       - name: Commit generated route tree
+        if: github.event_name == 'push'
         run: |
           if git diff --quiet -- src/routeTree.gen.ts; then
             echo "Route tree already up to date."
