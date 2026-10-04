@@ -1,0 +1,88 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const srcRoot = path.resolve("src");
+const scanRoots = [path.join(srcRoot, "routes"), path.join(srcRoot, "components")];
+
+function walk(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walk(full);
+    return /\.(tsx|ts)$/.test(entry.name) ? [full] : [];
+  });
+}
+
+const routeFiles = walk(path.join(srcRoot, "routes"));
+const scanFiles = scanRoots.flatMap(walk);
+
+const routePatterns = new Set();
+for (const file of routeFiles) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const match of source.matchAll(/createFileRoute\(\s*["'`]([^"'`]+)["'`]\s*\)/g)) {
+    routePatterns.add(match[1]);
+  }
+}
+
+function patternMatches(pattern, target) {
+  if (pattern === target) return true;
+  const escaped = pattern
+    .split("/")
+    .map((segment) => {
+      if (!segment) return "";
+      if (segment.startsWith("$")) return "[^/]+";
+      return segment.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
+    })
+    .join("/");
+  return new RegExp("^" + escaped + "$").test(target);
+}
+
+function hasRoute(target) {
+  const clean = target.split(/[?#]/)[0];
+  return [...routePatterns].some((pattern) => patternMatches(pattern, clean));
+}
+
+const broken = [];
+const inertButtons = [];
+
+for (const file of scanFiles) {
+  const source = fs.readFileSync(file, "utf8");
+  const relative = path.relative(process.cwd(), file).replaceAll("\\", "/");
+
+  for (const match of source.matchAll(/(?:\bto|\bhref|actionTo)\s*=\s*["'`]([^"'`]+)["'`]/g)) {
+    const target = match[1];
+    if (!target.startsWith("/") || target.startsWith("//")) continue;
+    if (!hasRoute(target)) broken.push({ file: relative, target });
+  }
+
+  for (const match of source.matchAll(/<button\b([\s\S]*?)>([\s\S]*?)<\/button>/g)) {
+    const attrs = match[1];
+    if (/onClick\s*=/.test(attrs) || /type\s*=\s*["']submit["']/.test(attrs)) continue;
+
+    const label = match[2]
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\{[^}]*\}/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80);
+
+    inertButtons.push({ file: relative, label: label || "(sem texto)" });
+  }
+}
+
+if (inertButtons.length) {
+  console.warn("\n[route-audit] Botões sem onClick/submit encontrados:");
+  for (const item of inertButtons) {
+    console.warn("  - " + item.file + ": " + item.label);
+  }
+}
+
+if (broken.length) {
+  console.error("\n[route-audit] Links internos sem rota correspondente:");
+  for (const item of broken) {
+    console.error("  - " + item.file + " -> " + item.target);
+  }
+  process.exit(1);
+}
+
+console.log("[route-audit] OK: " + routePatterns.size + " rotas conhecidas; nenhum link literal quebrado.");
