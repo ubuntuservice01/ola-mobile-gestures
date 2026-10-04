@@ -117,6 +117,7 @@ for (const file of scanFiles) {
 
     if (
       ownPattern &&
+      ownPattern !== "/" &&
       clean === ownPattern &&
       !target.includes("?") &&
       !target.includes("#")
