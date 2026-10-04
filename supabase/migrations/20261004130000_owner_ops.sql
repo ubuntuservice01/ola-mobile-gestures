@@ -29,28 +29,27 @@ before insert or update on public.owners
 for each row execute function private.validate_territory_consistency();
 
 create or replace function private.can_manage_operational_owner(
-  p_municipality_id uuid
+  p_municipality_id uuid,
+  p_permission text
 )
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
-as $$
+as $
   select case
+    when p_permission not in ('owners.create','owners.update') then false
     when (select private.is_super_admin())
       then (select private.super_admin_has_assistance(p_municipality_id))
     else
       p_municipality_id = (select private.current_municipality_id())
-      and (
-        (select private.authorize('owners.create'))
-        or (select private.authorize('owners.update'))
-      )
+      and (select private.authorize(p_permission))
   end;
-$$;
+$;
 
-revoke all on function private.can_manage_operational_owner(uuid) from public;
-grant execute on function private.can_manage_operational_owner(uuid) to authenticated;
+revoke all on function private.can_manage_operational_owner(uuid,text) from public;
+grant execute on function private.can_manage_operational_owner(uuid,text) to authenticated;
 
 create or replace function public.create_owner(
   p_full_name text,
@@ -79,7 +78,7 @@ begin
     raise exception 'Contexto municipal não disponível';
   end if;
 
-  if not (select private.can_manage_operational_owner(v_municipality)) then
+  if not (select private.can_manage_operational_owner(v_municipality, 'owners.create')) then
     raise exception 'Sem permissão para registar proprietários';
   end if;
 
@@ -197,7 +196,7 @@ begin
     raise exception 'Proprietário não encontrado';
   end if;
 
-  if not (select private.can_manage_operational_owner(v_old.municipality_id)) then
+  if not (select private.can_manage_operational_owner(v_old.municipality_id, 'owners.update')) then
     raise exception 'Sem permissão para alterar este proprietário';
   end if;
 
