@@ -1,14 +1,442 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, KeyRound } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, KeyRound } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
+import { createLicense } from "../../../lib/licenses";
+import { supabase } from "../../../lib/supabase";
 
-export const Route=createFileRoute("/super-admin/licencas/novo")({component:NovaLicenca});
-function NovaLicenca(){
- const [done,setDone]=useState(false); const [municipality,setMunicipality]=useState("Lichinga"); const [plan,setPlan]=useState("Profissional"); const [start,setStart]=useState("2026-09-01"); const [end,setEnd]=useState("2027-08-31"); const [status,setStatus]=useState("Activa"); const [notes,setNotes]=useState("");
- if(done)return <SuperAdminShell title="Licença preparada" subtitle="A configuração da licença foi concluída."><SuperCard className="mx-auto max-w-2xl p-8 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2/></div><h2 className="mt-5 text-2xl font-bold">Licença {plan}</h2><p className="mt-2 text-sm text-slate-500">Município de {municipality}</p><p className="mt-5 text-sm text-slate-600">{start} → {end}</p><div className="mt-5 rounded-xl border border-amber-100 bg-amber-50 p-4 text-left text-sm leading-6 text-amber-900">Ainda não existe persistência no Supabase. Esta operação prepara a licença para a fase de dados reais.</div><Link to="/super-admin/licencas" className="mt-7 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white">Voltar às licenças</Link></SuperCard></SuperAdminShell>;
- return <SuperAdminShell title="Nova licença" subtitle="Atribuir uma licença de utilização do MobiGest a um município."><Link to="/super-admin/licencas" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500"><ArrowLeft className="h-4 w-4"/> Licenças</Link><SuperCard className="mx-auto max-w-4xl p-7"><div className="flex items-start gap-4 border-b border-slate-100 pb-6"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><KeyRound/></div><div><h2 className="text-xl font-bold">Dados da licença</h2><p className="mt-1 text-sm text-slate-500">A licença controla a utilização do software, não as taxas municipais dos veículos.</p></div></div><div className="mt-7 grid gap-5 md:grid-cols-2"><Select label="Município" value={municipality} setValue={setMunicipality} options={["Lichinga","Pemba"]}/><Select label="Plano" value={plan} setValue={setPlan} options={["Inicial","Profissional","Enterprise","Demonstração"]}/><Field label="Início" value={start} setValue={setStart} type="date"/><Field label="Fim" value={end} setValue={setEnd} type="date"/><Select label="Estado" value={status} setValue={setStatus} options={["Activa","Em configuração","Suspensa"]}/><Field label="Referência / observação" value={notes} setValue={setNotes} placeholder="Opcional"/></div><div className="mt-6 grid gap-3 md:grid-cols-3"><Info label="Limite de utilizadores" value={plan==="Inicial"?"10":plan==="Profissional"?"50":"Configurável"}/><Info label="Limite de veículos" value={plan==="Inicial"?"1 000":plan==="Profissional"?"5 000":"Configurável"}/><Info label="Módulos" value="Conforme plano"/></div><div className="mt-7 flex justify-end gap-3"><Link to="/super-admin/licencas" className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold">Cancelar</Link><button type="button" onClick={()=>setDone(true)} className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white">Preparar licença</button></div></SuperCard></SuperAdminShell>;
+export const Route = createFileRoute("/super-admin/licencas/novo")({
+  component: NovaLicenca,
+});
+
+type Municipality = {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+};
+
+type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  max_users: number | null;
+  max_vehicles: number | null;
+  active: boolean;
+};
+
+function NovaLicenca() {
+  const navigate = useNavigate();
+
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [municipalityId, setMunicipalityId] = useState("");
+  const [planId, setPlanId] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [status, setStatus] = useState<
+    "activa" | "em_configuracao" | "suspensa"
+  >("em_configuracao");
+  const [maxUsers, setMaxUsers] = useState("");
+  const [maxVehicles, setMaxVehicles] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const [municipalityResult, planResult, licensesResult] =
+        await Promise.all([
+          supabase
+            .from("municipalities")
+            .select("id, name, code, status")
+            .neq("status", "inactivo")
+            .order("name", { ascending: true }),
+          supabase
+            .from("license_plans")
+            .select("id, code, name, max_users, max_vehicles, active")
+            .eq("active", true)
+            .order("name", { ascending: true }),
+          supabase
+            .from("licenses")
+            .select("municipality_id, status")
+            .in("status", ["em_configuracao", "activa", "suspensa"]),
+        ]);
+
+      if (!active) return;
+
+      const error =
+        municipalityResult.error ??
+        planResult.error ??
+        licensesResult.error;
+
+      if (error) {
+        console.error("Falha ao preparar nova licença:", error);
+        setLoadError("Não foi possível carregar municípios e planos.");
+        setLoading(false);
+        return;
+      }
+
+      const occupied = new Set(
+        (licensesResult.data ?? []).map((license) => license.municipality_id),
+      );
+      const available = ((municipalityResult.data ?? []) as Municipality[]).filter(
+        (municipality) => !occupied.has(municipality.id),
+      );
+      const planRows = (planResult.data ?? []) as Plan[];
+
+      setMunicipalities(available);
+      setPlans(planRows);
+      if (available[0]) setMunicipalityId(available[0].id);
+      if (planRows[0]) setPlanId(planRows[0].id);
+      setLoading(false);
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedMunicipality = municipalities.find(
+    (municipality) => municipality.id === municipalityId,
+  );
+  const selectedPlan = plans.find((plan) => plan.id === planId);
+
+  const effectiveUsers = useMemo(
+    () =>
+      maxUsers
+        ? Number(maxUsers)
+        : selectedPlan?.max_users ?? null,
+    [maxUsers, selectedPlan],
+  );
+  const effectiveVehicles = useMemo(
+    () =>
+      maxVehicles
+        ? Number(maxVehicles)
+        : selectedPlan?.max_vehicles ?? null,
+    [maxVehicles, selectedPlan],
+  );
+
+  const canSave =
+    Boolean(municipalityId) &&
+    Boolean(planId) &&
+    (status !== "activa" || (Boolean(start) && Boolean(end))) &&
+    (!start || !end || end >= start) &&
+    !saving;
+
+  const save = async () => {
+    if (!canSave) return;
+
+    const parsedUsers = maxUsers ? Number(maxUsers) : null;
+    const parsedVehicles = maxVehicles ? Number(maxVehicles) : null;
+
+    if (
+      (parsedUsers !== null &&
+        (!Number.isInteger(parsedUsers) || parsedUsers <= 0)) ||
+      (parsedVehicles !== null &&
+        (!Number.isInteger(parsedVehicles) || parsedVehicles <= 0))
+    ) {
+      setSaveError("Os limites personalizados devem ser números inteiros positivos.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      const licenseId = await createLicense({
+        municipalityId,
+        planId,
+        startsAt: start || null,
+        endsAt: end || null,
+        status,
+        maxUsers: parsedUsers,
+        maxVehicles: parsedVehicles,
+        notes: notes.trim() || null,
+      });
+
+      await navigate({
+        to: "/super-admin/licencas/$id",
+        params: { id: licenseId },
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Falha ao criar licença:", error);
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar a licença.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SuperAdminShell
+      title="Nova licença"
+      subtitle="Atribuir uma licença de utilização do MobiGest a um município."
+    >
+      <Link
+        to="/super-admin/licencas"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Licenças
+      </Link>
+
+      <SuperCard className="mx-auto max-w-4xl p-7">
+        <div className="flex items-start gap-4 border-b border-slate-100 pb-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+            <KeyRound />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold">Dados da licença</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              A licença controla acesso, limites e módulos do software para o
+              município.
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <p className="mt-7 text-sm text-slate-500">
+            A carregar municípios e planos...
+          </p>
+        ) : loadError ? (
+          <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+            {loadError}
+          </div>
+        ) : municipalities.length === 0 ? (
+          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+            Todos os municípios disponíveis já possuem uma licença corrente.
+            Edite, renove ou cancele a licença existente antes de criar outra.
+          </div>
+        ) : plans.length === 0 ? (
+          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+            Não existem planos activos.{" "}
+            <Link
+              to="/super-admin/licencas/planos"
+              className="font-semibold underline"
+            >
+              Criar plano
+            </Link>
+            .
+          </div>
+        ) : (
+          <>
+            <div className="mt-7 grid gap-5 md:grid-cols-2">
+              <label className="text-sm font-medium">
+                Município *
+                <select
+                  value={municipalityId}
+                  onChange={(event) => setMunicipalityId(event.target.value)}
+                  className={inputClass}
+                >
+                  {municipalities.map((municipality) => (
+                    <option key={municipality.id} value={municipality.id}>
+                      {municipality.name} · {municipality.code}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-sm font-medium">
+                Plano *
+                <select
+                  value={planId}
+                  onChange={(event) => {
+                    setPlanId(event.target.value);
+                    setMaxUsers("");
+                    setMaxVehicles("");
+                  }}
+                  className={inputClass}
+                >
+                  {plans.map((plan) => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.name} · {plan.code}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-sm font-medium">
+                Início
+                <input
+                  type="date"
+                  value={start}
+                  onChange={(event) => setStart(event.target.value)}
+                  className={inputClass}
+                />
+              </label>
+
+              <label className="text-sm font-medium">
+                Fim
+                <input
+                  type="date"
+                  min={start || undefined}
+                  value={end}
+                  onChange={(event) => setEnd(event.target.value)}
+                  className={inputClass}
+                />
+              </label>
+
+              <label className="text-sm font-medium">
+                Estado inicial
+                <select
+                  value={status}
+                  onChange={(event) =>
+                    setStatus(
+                      event.target.value as
+                        | "activa"
+                        | "em_configuracao"
+                        | "suspensa",
+                    )
+                  }
+                  className={inputClass}
+                >
+                  <option value="em_configuracao">Em configuração</option>
+                  <option value="activa">Activa</option>
+                  <option value="suspensa">Suspensa</option>
+                </select>
+              </label>
+
+              <div className="rounded-xl bg-slate-50 p-4 text-sm">
+                <p className="text-xs text-slate-400">Município seleccionado</p>
+                <p className="mt-1 font-semibold">
+                  {selectedMunicipality?.name ?? "—"}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Estado municipal: {selectedMunicipality?.status ?? "—"}
+                </p>
+              </div>
+
+              <label className="text-sm font-medium">
+                Limite personalizado de utilizadores
+                <input
+                  value={maxUsers}
+                  onChange={(event) =>
+                    setMaxUsers(event.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  placeholder={
+                    selectedPlan?.max_users
+                      ? "Plano: " + selectedPlan.max_users
+                      : "Sem limite no plano"
+                  }
+                  className={inputClass}
+                />
+              </label>
+
+              <label className="text-sm font-medium">
+                Limite personalizado de veículos
+                <input
+                  value={maxVehicles}
+                  onChange={(event) =>
+                    setMaxVehicles(event.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  placeholder={
+                    selectedPlan?.max_vehicles
+                      ? "Plano: " + selectedPlan.max_vehicles
+                      : "Sem limite no plano"
+                  }
+                  className={inputClass}
+                />
+              </label>
+
+              <label className="text-sm font-medium md:col-span-2">
+                Observação
+                <textarea
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  rows={3}
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                  placeholder="Informação administrativa opcional"
+                />
+              </label>
+            </div>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              <Info
+                label="Utilizadores efectivos"
+                value={
+                  effectiveUsers === null
+                    ? "Sem limite"
+                    : effectiveUsers.toLocaleString("pt-MZ")
+                }
+              />
+              <Info
+                label="Veículos efectivos"
+                value={
+                  effectiveVehicles === null
+                    ? "Sem limite"
+                    : effectiveVehicles.toLocaleString("pt-MZ")
+                }
+              />
+              <Info
+                label="Plano"
+                value={selectedPlan?.name ?? "—"}
+              />
+            </div>
+
+            {status === "activa" && (!start || !end) && (
+              <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                Uma licença activa exige data de início e fim.
+              </div>
+            )}
+
+            {start && end && end < start && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                A data de fim não pode ser anterior ao início.
+              </div>
+            )}
+
+            {saveError && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+                {saveError}
+              </div>
+            )}
+
+            <div className="mt-7 flex justify-end gap-3">
+              <Link
+                to="/super-admin/licencas"
+                className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold"
+              >
+                Cancelar
+              </Link>
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={save}
+                className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                {saving ? "A criar..." : "Criar licença"}
+              </button>
+            </div>
+          </>
+        )}
+      </SuperCard>
+    </SuperAdminShell>
+  );
 }
-function Field({label,value,setValue,type="text",placeholder=""}:{label:string;value:string;setValue:(v:string)=>void;type?:string;placeholder?:string}){return <label className="text-sm font-medium">{label}<input type={type} value={value} onChange={e=>setValue(e.target.value)} placeholder={placeholder} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-sky-500"/></label>}
-function Select({label,value,setValue,options}:{label:string;value:string;setValue:(v:string)=>void;options:string[]}){return <label className="text-sm font-medium">{label}<select value={value} onChange={e=>setValue(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3">{options.map(o=><option key={o}>{o}</option>)}</select></label>}
-function Info({label,value}:{label:string;value:string}){return <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-400">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>}
+
+const inputClass =
+  "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-sky-500";
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-4">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
