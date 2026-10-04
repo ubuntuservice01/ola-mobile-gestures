@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Bike, CarFront } from "lucide-react";
 import { MobiGestShell } from "../../components/MobiGestShell";
 
-export const Route = createFileRoute("/veiculos/novo")({ component: NovoRegisto });
+export const Route = createFileRoute("/veiculos/novo")({ component: NovoRegistoRouteBoundary });
 
 const tipos = [
   { id: "motorizada", name: "Motorizada", icon: Bike, desc: "Motorizadas e motociclos." },
@@ -49,4 +50,9 @@ function NovoRegisto() {
       </div>
     </MobiGestShell>
   );
+}
+
+
+function NovoRegistoRouteBoundary() {
+  return <RouteIndexBoundary pattern="/veiculos/novo"><NovoRegisto /></RouteIndexBoundary>;
 }
