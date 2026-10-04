@@ -26,6 +26,7 @@ const items = [
   ["/super-admin/licencas", "Licenças", KeyRound],
   ["/super-admin/permissoes", "Perfis e permissões", ShieldCheck],
   ["/super-admin/auditoria", "Auditoria", Activity],
+  ["/super-admin/saude", "Saúde da plataforma", HeartPulse],
   ["/super-admin/configuracoes", "Configurações", Settings],
 ] as const;
 
