@@ -264,6 +264,30 @@ const statusStyles: Record<string, { label: string; className: string }> = {
     label: "Inactivo",
     className: "border-slate-300 bg-slate-100 text-slate-600",
   },
+  validado: {
+    label: "Validado",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  rejeitado: {
+    label: "Rejeitado",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+  expirado: {
+    label: "Expirado",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+  nao_apresentado: {
+    label: "Não apresentado",
+    className: "border-slate-300 bg-slate-100 text-slate-600",
+  },
+  configuracao: {
+    label: "Em configuração",
+    className: "border-sky-200 bg-sky-50 text-sky-700",
+  },
+  em_configuracao: {
+    label: "Em configuração",
+    className: "border-sky-200 bg-sky-50 text-sky-700",
+  },
 };
 
 export function StatusBadge({
