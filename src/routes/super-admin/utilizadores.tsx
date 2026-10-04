@@ -1,9 +1,10 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Filter, Plus, Search, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 
-export const Route = createFileRoute("/super-admin/utilizadores")({ component: UtilizadoresGlobais });
+export const Route = createFileRoute("/super-admin/utilizadores")({ component: UtilizadoresGlobaisRouteBoundary });
 
 const users = [
   { id:"admin-lichinga", name:"Administrador Municipal", email:"admin@municipio.gov.mz", profile:"Administrador Municipal", municipality:"Lichinga", status:"Activo" },
@@ -50,3 +51,8 @@ function UtilizadoresGlobais() {
   </SuperAdminShell>;
 }
 function Mini({icon,value,label}:{icon:React.ReactNode;value:string;label:string}){return <SuperCard className="p-4"><span className="text-sky-600">{icon}</span><p className="mt-2 text-xl font-bold">{value}</p><p className="text-xs text-slate-500">{label}</p></SuperCard>}
+
+
+function UtilizadoresGlobaisRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/utilizadores"><UtilizadoresGlobais /></RouteIndexBoundary>;
+}
