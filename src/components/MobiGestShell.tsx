@@ -324,7 +324,7 @@ export function MobiGestShell({
                 to={to}
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/dashboard" }}
-                activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
+                activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
                 className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
@@ -344,7 +344,7 @@ export function MobiGestShell({
                 <Link
                   to="/permissoes"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
+                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
                   className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <ShieldCheck className="h-4 w-4" />
@@ -359,7 +359,7 @@ export function MobiGestShell({
                 <Link
                   to="/auditoria"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
+                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
                   className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <FileText className="h-4 w-4" />
@@ -623,7 +623,7 @@ export function PageHeader({
       {action && actionTo && (
         <Link
           to={actionTo}
-          className="inline-flex w-fit items-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+          className="mobigest-button inline-flex w-fit items-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
         >
           {action}
         </Link>
