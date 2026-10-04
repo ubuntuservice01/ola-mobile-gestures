@@ -41,6 +41,7 @@ import { Route as DefinicoesNumeracaoRouteImport } from './routes/definicoes/num
 import { Route as DefinicoesTaxasRouteImport } from './routes/definicoes/taxas'
 import { Route as FinanceiroIdRouteImport } from './routes/financeiro/$id'
 import { Route as FinanceiroNovaRouteImport } from './routes/financeiro/nova'
+import { Route as FiscalizacaoIdRouteImport } from './routes/fiscalizacao/$id'
 import { Route as FiscalizacaoHistoricoRouteImport } from './routes/fiscalizacao/historico'
 import { Route as FiscalizacaoNovaRouteImport } from './routes/fiscalizacao/nova'
 import { Route as LocalidadesIdRouteImport } from './routes/localidades/$id'
@@ -258,6 +259,11 @@ const FinanceiroNovaRoute = FinanceiroNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
   getParentRoute: () => FinanceiroRoute,
+} as any)
+const FiscalizacaoIdRoute = FiscalizacaoIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => FiscalizacaoRoute,
 } as any)
 const FiscalizacaoHistoricoRoute = FiscalizacaoHistoricoRouteImport.update({
   id: '/historico',
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/definicoes/taxas': typeof DefinicoesTaxasRoute
   '/financeiro/$id': typeof FinanceiroIdRoute
   '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/$id': typeof FiscalizacaoIdRoute
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
@@ -680,6 +687,7 @@ export interface FileRoutesByTo {
   '/definicoes/taxas': typeof DefinicoesTaxasRoute
   '/financeiro/$id': typeof FinanceiroIdRoute
   '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/$id': typeof FiscalizacaoIdRoute
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
@@ -772,6 +780,7 @@ export interface FileRoutesById {
   '/definicoes/taxas': typeof DefinicoesTaxasRoute
   '/financeiro/$id': typeof FinanceiroIdRoute
   '/financeiro/nova': typeof FinanceiroNovaRoute
+  '/fiscalizacao/$id': typeof FiscalizacaoIdRoute
   '/fiscalizacao/historico': typeof FiscalizacaoHistoricoRoute
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
@@ -865,6 +874,7 @@ export interface FileRouteTypes {
     | '/definicoes/taxas'
     | '/financeiro/$id'
     | '/financeiro/nova'
+    | '/fiscalizacao/$id'
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
@@ -956,6 +966,7 @@ export interface FileRouteTypes {
     | '/definicoes/taxas'
     | '/financeiro/$id'
     | '/financeiro/nova'
+    | '/fiscalizacao/$id'
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
@@ -1047,6 +1058,7 @@ export interface FileRouteTypes {
     | '/definicoes/taxas'
     | '/financeiro/$id'
     | '/financeiro/nova'
+    | '/fiscalizacao/$id'
     | '/fiscalizacao/historico'
     | '/fiscalizacao/nova'
     | '/localidades/$id'
@@ -1360,6 +1372,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/financeiro/nova'
       preLoaderRoute: typeof FinanceiroNovaRouteImport
       parentRoute: typeof FinanceiroRoute
+    }
+    '/fiscalizacao/$id': {
+      id: '/fiscalizacao/$id'
+      path: '/$id'
+      fullPath: '/fiscalizacao/$id'
+      preLoaderRoute: typeof FiscalizacaoIdRouteImport
+      parentRoute: typeof FiscalizacaoRoute
     }
     '/fiscalizacao/historico': {
       id: '/fiscalizacao/historico'
@@ -1828,11 +1847,13 @@ const FinanceiroRouteWithChildren = FinanceiroRoute._addFileChildren(
 )
 
 interface FiscalizacaoRouteChildren {
+  FiscalizacaoIdRoute: typeof FiscalizacaoIdRoute
   FiscalizacaoHistoricoRoute: typeof FiscalizacaoHistoricoRoute
   FiscalizacaoNovaRoute: typeof FiscalizacaoNovaRoute
 }
 
 const FiscalizacaoRouteChildren: FiscalizacaoRouteChildren = {
+  FiscalizacaoIdRoute: FiscalizacaoIdRoute,
   FiscalizacaoHistoricoRoute: FiscalizacaoHistoricoRoute,
   FiscalizacaoNovaRoute: FiscalizacaoNovaRoute,
 }
