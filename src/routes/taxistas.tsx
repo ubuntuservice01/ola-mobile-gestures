@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute } from "@tanstack/react-router";
 import { Eye, QrCode, Search, UserRoundCheck } from "lucide-react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 
-export const Route = createFileRoute("/taxistas")({ component: Taxistas });
+export const Route = createFileRoute("/taxistas")({ component: TaxistasRouteBoundary });
 
 const taxistas = [
   { ref: "MTX-0001", nome: "Alberto Manuel", telefone: "+258 84 000 0000", moto: "MZ-LIC-004821", zona: "Centro", estado: "Activo" },
@@ -45,3 +46,7 @@ function Taxistas() {
   );
 }
 function Metric({label,value}:{label:string;value:string}){return <Card className="p-5"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><UserRoundCheck className="h-5 w-5"/></span><div><p className="text-xs text-slate-500">{label}</p><p className="text-2xl font-bold">{value}</p></div></div></Card>}
+
+function TaxistasRouteBoundary() {
+  return <RouteIndexBoundary pattern="/taxistas"><Taxistas /></RouteIndexBoundary>;
+}
