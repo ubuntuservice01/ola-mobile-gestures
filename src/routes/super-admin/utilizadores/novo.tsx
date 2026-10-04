@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, KeyRound, ShieldCheck, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
 import { createManagedUser, type ManagedUserRole } from "../../../lib/admin-users";
@@ -44,6 +44,8 @@ function NovoUtilizadorGlobal() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+  const [activationCode, setActivationCode] = useState<string | null>(null);
+  const [activationExpiresAt, setActivationExpiresAt] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -133,6 +135,8 @@ function NovoUtilizadorGlobal() {
       });
 
       setCreatedUserId(result.id ?? null);
+      setActivationCode(result.activationCode ?? null);
+      setActivationExpiresAt(result.activationExpiresAt ?? null);
     } catch (error) {
       console.error("Falha ao criar utilizador:", error);
       setCreateError(
@@ -149,7 +153,7 @@ function NovoUtilizadorGlobal() {
     return (
       <SuperAdminShell
         title="Utilizador criado"
-        subtitle="A identidade foi criada e o convite foi enviado."
+        subtitle="A identidade foi criada e o código de activação foi gerado."
       >
         <SuperCard className="mx-auto max-w-2xl p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -160,9 +164,21 @@ function NovoUtilizadorGlobal() {
             {ROLE_OPTIONS.find((item) => item.value === role)?.label} · {municipality?.name}
           </p>
           <p className="mt-1 text-sm text-slate-500">{email}</p>
-          <p className="mt-5 rounded-xl bg-sky-50 p-4 text-sm leading-6 text-sky-900">
-            O utilizador recebeu um convite para definir a própria palavra-passe.
-          </p>
+          <div className="mt-5 rounded-xl bg-sky-50 p-5 text-left text-sm leading-6 text-sky-900">
+            <p className="font-semibold">Código de activação</p>
+            <p className="mt-2 font-mono text-2xl font-bold tracking-[0.16em] text-slate-950">
+              {activationCode ?? "—"}
+            </p>
+            <p className="mt-3">
+              Entregue este código ao utilizador. Ele deve abrir <b>Activar conta</b>,
+              informar o email e definir a própria palavra-passe.
+            </p>
+            {activationExpiresAt && (
+              <p className="mt-2 text-xs text-sky-700">
+                Validade: {new Date(activationExpiresAt).toLocaleString("pt-MZ")}
+              </p>
+            )}
+          </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
               to="/super-admin/utilizadores"
@@ -291,8 +307,9 @@ function NovoUtilizadorGlobal() {
 
             <div className="mt-6 rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-sky-900">
               <ShieldCheck className="mr-2 inline h-4 w-4" />
-              <b>Segurança:</b> a palavra-passe não é definida pelo administrador. O utilizador
-              recebe um convite e define a própria credencial. A criação e o âmbito ficam auditados.
+              <b>Segurança:</b> a palavra-passe não é definida pelo administrador. O sistema gera
+              um código temporário de uso único; o utilizador activa a conta e define a própria credencial.
+              A criação e o âmbito ficam auditados.
             </div>
 
             {createError && (
@@ -314,8 +331,8 @@ function NovoUtilizadorGlobal() {
                 onClick={submit}
                 className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Mail className="h-4 w-4" />
-                {creating ? "A criar e convidar..." : "Criar e enviar convite"}
+                <KeyRound className="h-4 w-4" />
+                {creating ? "A criar e gerar código..." : "Criar utilizador e gerar código"}
               </button>
             </div>
           </>
