@@ -11,6 +11,16 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  notify,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { formatDateTime } from "../lib/format";
+import {
   actionLabel,
   exportAuditCsv,
   loadMunicipalAuditLogs,
@@ -33,6 +43,8 @@ function Auditoria() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -61,7 +73,7 @@ function Auditoria() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const roles = useMemo(
     () =>
@@ -83,7 +95,7 @@ function Auditoria() {
   );
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = debouncedQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
       const haystack = [
@@ -110,7 +122,14 @@ function Auditoria() {
         (!dateFilter || rowDate === dateFilter)
       );
     });
-  }, [rows, query, roleFilter, moduleFilter, resultFilter, dateFilter]);
+  }, [
+    rows,
+    debouncedQuery,
+    roleFilter,
+    moduleFilter,
+    resultFilter,
+    dateFilter,
+  ]);
 
   const metrics = useMemo(() => {
     const today = new Date();
@@ -152,22 +171,27 @@ function Auditoria() {
       />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Summary
-          title="Eventos hoje"
-          value={loading ? "—" : String(metrics.today)}
-        />
-        <Summary
-          title="Utilizadores no histórico"
-          value={loading ? "—" : String(metrics.actors)}
-        />
-        <Summary
-          title="Eventos com alteração"
-          value={loading ? "—" : String(metrics.changes)}
-        />
-        <Summary
-          title="Resultados não concluídos"
-          value={loading ? "—" : String(metrics.failures)}
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Summary title="Eventos hoje" value={metrics.today} />
+            <Summary
+              title="Utilizadores no histórico"
+              value={metrics.actors}
+            />
+            <Summary
+              title="Eventos com alteração"
+              value={metrics.changes}
+            />
+            <Summary
+              title="Resultados não concluídos"
+              value={metrics.failures}
+            />
+          </>
+        )}
       </div>
 
       <Card className="mt-6 overflow-hidden">
@@ -195,13 +219,17 @@ function Auditoria() {
             <button
               type="button"
               disabled={filtered.length === 0}
-              onClick={() =>
+              onClick={() => {
                 exportAuditCsv(
                   filtered,
                   "auditoria-municipal-" +
                     new Date().toISOString().slice(0, 10) +
                     ".csv",
-                )
+                );
+                notify.success(
+                  "Auditoria exportada",
+                  "O ficheiro CSV foi preparado com sucesso.",
+                );
               }
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold disabled:opacity-40"
             >
@@ -279,21 +307,49 @@ function Auditoria() {
         )}
 
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar auditoria...
+          <div className="p-4">
+            <SkeletonTable rows={7} columns={5} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            {rows.length === 0
-              ? "Ainda não existem eventos de auditoria visíveis neste município."
-              : "Nenhum evento corresponde aos filtros."}
-          </div>
+          <EmptyState
+            icon={<History className="h-5 w-5" />}
+            title={
+              rows.length === 0
+                ? "Ainda não existem eventos de auditoria"
+                : "Nenhum evento corresponde aos filtros"
+            }
+            description={
+              rows.length === 0
+                ? "As acções auditadas do município aparecerão aqui à medida que forem realizadas."
+                : "Altere a pesquisa ou os filtros para consultar outros eventos."
+            }
+            action={
+              rows.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setRoleFilter("todos");
+                    setModuleFilter("todos");
+                    setResultFilter("todos");
+                    setDateFilter("");
+                  }}
+                  className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                >
+                  Limpar filtros
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((row) => (
@@ -308,7 +364,7 @@ function Auditoria() {
                         {actionLabel(row.action)}
                       </p>
                       <p className="mt-1 text-xs text-slate-400">
-                        {new Date(row.created_at).toLocaleString("pt-MZ")}
+                        {formatDateTime(row.created_at)}
                       </p>
                     </div>
                   </div>
@@ -487,11 +543,13 @@ function moduleLabel(module: string) {
   return labels[module] ?? actionLabel(module);
 }
 
-function Summary({ title, value }: { title: string; value: string }) {
+function Summary({ title, value }: { title: string; value: number }) {
   return (
     <Card className="p-5">
       <p className="text-xs text-slate-400">{title}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">
+        <AnimatedNumber value={value} />
+      </p>
     </Card>
   );
 }
