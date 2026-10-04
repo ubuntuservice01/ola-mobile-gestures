@@ -108,13 +108,14 @@ Uma funcionalidade só pode ser marcada como concluída quando:
 ### Dashboard
 - [x] Dashboard principal já consulta contagem real de municípios, perfis, registos e auditoria.
 - [x] Removidos números fictícios do dashboard principal.
+- [x] Dashboard global inclui contagens reais de municípios, utilizadores, veículos, registos, motorizadas, carros, bicicletas e auditoria.
 - [ ] Outros ecrãs Super Admin ainda usam dados demonstrativos.
 
 ### Municípios
-- [ ] Lista `/super-admin/municipios` usa Lichinga/Pemba demonstrativos.
-- [ ] Criação de município é apenas um wizard visual; não grava no Supabase.
+- [x] Lista `/super-admin/municipios` ligada a dados reais do Supabase.
+- [ ] Criação de município ainda não está ligada ao botão; RPC auditada já preparada na migration `20261004100000_super_admin_municipality_ops.sql`.
 - [ ] Detalhe do município usa valores demonstrativos.
-- [ ] `Suspender` não tem acção.
+- [ ] `Suspender` ainda não está ligado ao botão; RPC auditada de alteração de estado já preparada.
 - [ ] `Guardar alterações` não persiste.
 - [ ] Links de estrutura territorial/configurações apontam para área municipal, incompatível com a regra de acesso global sem sessão municipal auditada.
 
@@ -166,3 +167,10 @@ Uma funcionalidade só pode ser marcada como concluída quando:
 8. Relatórios/auditoria/notificações.
 9. Testes multi-município e testes de regressão end-to-end.
 10. Preparação para produção.
+
+## Controlo automático acrescentado
+
+- [x] Script `scripts/audit-routes.mjs` valida links internos literais contra a árvore de rotas.
+- [x] CI executa `npm run audit-routes` antes do build.
+- [x] Auditoria automática reconhece 84 rotas e não encontrou links literais sem rota após as correcções.
+- [ ] Permanecem botões sem handler/submit; o CI lista-os como aviso para correcção sistemática.
