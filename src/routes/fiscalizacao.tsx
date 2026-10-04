@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClipboardList, QrCode, Search, ShieldAlert, ShieldCheck, MapPin, Plus } from "lucide-react";
 import { MobiGestShell, Card, PageHeader } from "../components/MobiGestShell";
 
-export const Route = createFileRoute("/fiscalizacao")({ component: Fiscalizacao });
+export const Route = createFileRoute("/fiscalizacao")({ component: FiscalizacaoRouteBoundary });
 
 const recentes = [
   ["MOBI-LIC-004821", "Motorizada", "Regular", "26 Set 2026 · 14:40", "Fiscal"],
@@ -94,4 +95,9 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 function StatCard({ label, value }: { label: string; value: string }) {
   return <Card className="p-5"><p className="text-xs text-slate-400">{label}</p><p className="mt-1 text-2xl font-bold">{value}</p></Card>;
+}
+
+
+function FiscalizacaoRouteBoundary() {
+  return <RouteIndexBoundary pattern="/fiscalizacao"><Fiscalizacao /></RouteIndexBoundary>;
 }
