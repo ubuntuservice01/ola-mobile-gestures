@@ -89,6 +89,7 @@ import { Route as SuperAdminPermissoesPerfilRouteImport } from './routes/super-a
 import { Route as SuperAdminUtilizadoresIdRouteImport } from './routes/super-admin/utilizadores/$id'
 import { Route as SuperAdminUtilizadoresNovoRouteImport } from './routes/super-admin/utilizadores/novo'
 import { Route as VeiculosIdDocumentosRouteImport } from './routes/veiculos/$id/documentos'
+import { Route as VeiculosIdEditarRouteImport } from './routes/veiculos/$id/editar'
 import { Route as VeiculosIdEstadoRouteImport } from './routes/veiculos/$id/estado'
 import { Route as VeiculosIdHistoricoRouteImport } from './routes/veiculos/$id/historico'
 import { Route as VeiculosIdTransferirRouteImport } from './routes/veiculos/$id/transferir'
@@ -505,6 +506,11 @@ const VeiculosIdDocumentosRoute = VeiculosIdDocumentosRouteImport.update({
   path: '/documentos',
   getParentRoute: () => VeiculosIdRoute,
 } as any)
+const VeiculosIdEditarRoute = VeiculosIdEditarRouteImport.update({
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => VeiculosIdRoute,
+} as any)
 const VeiculosIdEstadoRoute = VeiculosIdEstadoRouteImport.update({
   id: '/estado',
   path: '/estado',
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
   '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
   '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/editar': typeof VeiculosIdEditarRoute
   '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
   '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
   '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
@@ -707,6 +714,7 @@ export interface FileRoutesByTo {
   '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
   '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
   '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/editar': typeof VeiculosIdEditarRoute
   '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
   '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
   '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
@@ -796,6 +804,7 @@ export interface FileRoutesById {
   '/super-admin/utilizadores/$id': typeof SuperAdminUtilizadoresIdRoute
   '/super-admin/utilizadores/novo': typeof SuperAdminUtilizadoresNovoRoute
   '/veiculos/$id/documentos': typeof VeiculosIdDocumentosRoute
+  '/veiculos/$id/editar': typeof VeiculosIdEditarRoute
   '/veiculos/$id/estado': typeof VeiculosIdEstadoRoute
   '/veiculos/$id/historico': typeof VeiculosIdHistoricoRoute
   '/veiculos/$id/transferir': typeof VeiculosIdTransferirRoute
@@ -886,6 +895,7 @@ export interface FileRouteTypes {
     | '/super-admin/utilizadores/$id'
     | '/super-admin/utilizadores/novo'
     | '/veiculos/$id/documentos'
+    | '/veiculos/$id/editar'
     | '/veiculos/$id/estado'
     | '/veiculos/$id/historico'
     | '/veiculos/$id/transferir'
@@ -974,6 +984,7 @@ export interface FileRouteTypes {
     | '/super-admin/utilizadores/$id'
     | '/super-admin/utilizadores/novo'
     | '/veiculos/$id/documentos'
+    | '/veiculos/$id/editar'
     | '/veiculos/$id/estado'
     | '/veiculos/$id/historico'
     | '/veiculos/$id/transferir'
@@ -1062,6 +1073,7 @@ export interface FileRouteTypes {
     | '/super-admin/utilizadores/$id'
     | '/super-admin/utilizadores/novo'
     | '/veiculos/$id/documentos'
+    | '/veiculos/$id/editar'
     | '/veiculos/$id/estado'
     | '/veiculos/$id/historico'
     | '/veiculos/$id/transferir'
@@ -1661,6 +1673,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeiculosIdDocumentosRouteImport
       parentRoute: typeof VeiculosIdRoute
     }
+    '/veiculos/$id/editar': {
+      id: '/veiculos/$id/editar'
+      path: '/editar'
+      fullPath: '/veiculos/$id/editar'
+      preLoaderRoute: typeof VeiculosIdEditarRouteImport
+      parentRoute: typeof VeiculosIdRoute
+    }
     '/veiculos/$id/estado': {
       id: '/veiculos/$id/estado'
       path: '/estado'
@@ -2028,6 +2047,7 @@ const UtilizadoresRouteWithChildren = UtilizadoresRoute._addFileChildren(
 
 interface VeiculosIdRouteChildren {
   VeiculosIdDocumentosRoute: typeof VeiculosIdDocumentosRoute
+  VeiculosIdEditarRoute: typeof VeiculosIdEditarRoute
   VeiculosIdEstadoRoute: typeof VeiculosIdEstadoRoute
   VeiculosIdHistoricoRoute: typeof VeiculosIdHistoricoRoute
   VeiculosIdTransferirRoute: typeof VeiculosIdTransferirRoute
@@ -2035,6 +2055,7 @@ interface VeiculosIdRouteChildren {
 
 const VeiculosIdRouteChildren: VeiculosIdRouteChildren = {
   VeiculosIdDocumentosRoute: VeiculosIdDocumentosRoute,
+  VeiculosIdEditarRoute: VeiculosIdEditarRoute,
   VeiculosIdEstadoRoute: VeiculosIdEstadoRoute,
   VeiculosIdHistoricoRoute: VeiculosIdHistoricoRoute,
   VeiculosIdTransferirRoute: VeiculosIdTransferirRoute,
