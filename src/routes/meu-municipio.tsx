@@ -796,7 +796,7 @@ function QuickLink({
 }) {
   return (
     <Link to={to}>
-      <Card className="flex h-full items-center gap-4 p-5 transition hover:border-sky-200 hover:bg-sky-50/30">
+      <Card className="mobigest-card-interactive flex h-full cursor-pointer items-center gap-4 p-5 hover:border-sky-200 hover:bg-sky-50/30">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
           {icon}
         </div>
@@ -819,7 +819,7 @@ function RoleLink({
 }) {
   return (
     <Link to="/utilizadores">
-      <Card className="p-5 transition hover:border-sky-200 hover:bg-sky-50/30">
+      <Card className="mobigest-card-interactive cursor-pointer p-5 hover:border-sky-200 hover:bg-sky-50/30">
         <Users className="h-5 w-5 text-sky-600" />
         <p className="mt-3 font-semibold">{title}</p>
         <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
@@ -845,7 +845,7 @@ function OperationalLink({
 }) {
   return (
     <Link to={to}>
-      <Card className="h-full p-5 transition hover:border-sky-200 hover:bg-sky-50/30">
+      <Card className="mobigest-card-interactive h-full cursor-pointer p-5 hover:border-sky-200 hover:bg-sky-50/30">
         <ShieldCheck className="h-5 w-5 text-sky-600" />
         <p className="mt-3 font-semibold">{title}</p>
         <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
