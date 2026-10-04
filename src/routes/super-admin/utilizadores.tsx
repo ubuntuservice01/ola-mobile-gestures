@@ -265,7 +265,7 @@ function UtilizadoresGlobais() {
 
       <div className="mt-5 rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm text-sky-900">
         <ShieldCheck className="mr-2 inline h-4 w-4" />
-        <b>Segurança:</b> os perfis apresentados vêm do Supabase e estão sujeitos às regras RBAC e RLS. A criação de novas identidades será ligada apenas através de um fluxo administrativo seguro do Supabase Auth.
+        <b>Segurança:</b> os perfis apresentados vêm do Supabase e estão sujeitos às regras RBAC e RLS. Novas identidades são criadas pelo serviço administrativo protegido, com convite do Supabase Auth e perfil municipal associado.
       </div>
     </SuperAdminShell>
   );
