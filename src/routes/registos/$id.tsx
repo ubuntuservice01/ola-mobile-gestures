@@ -14,6 +14,15 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { resubmitRegistration } from "../../lib/vehicles";
 import { supabase } from "../../lib/supabase";
+import {
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatDateTime } from "../../lib/format";
 
 export const Route = createFileRoute("/registos/$id")({
   component: RegistoDetalhe,
@@ -240,14 +249,16 @@ function RegistoDetalhe() {
       });
 
       setResubmitNote("");
+      notify.success(
+        "Processo reenviado",
+        "O processo voltou para validação.",
+      );
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao reenviar processo:", error);
-      setResubmitError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível reenviar o processo.",
-      );
+      const safeMessage = "Não foi possível reenviar o processo.";
+      setResubmitError(safeMessage);
+      notify.error("Reenvio não concluído", safeMessage);
     } finally {
       setResubmitting(false);
     }
@@ -271,13 +282,15 @@ function RegistoDetalhe() {
         </Link>
 
         {loading ? (
-          <Card className="p-10 text-sm text-slate-500">
-            A carregar processo...
-          </Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         ) : loadError || !registration ? (
-          <Card className="p-10 text-sm font-medium text-red-700">
-            {loadError ?? "Processo não encontrado."}
-          </Card>
+          <NetworkErrorState
+            message={loadError ?? "Processo não encontrado."}
+            onRetry={() => setRefreshToken((value) => value + 1)}
+          />
         ) : (
           <>
             <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -303,7 +316,7 @@ function RegistoDetalhe() {
                   <Link
                     to="/registos/aprovado/$id"
                     params={{ id: registration.id }}
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 hover:border-emerald-400"
+                    className="mobigest-card-interactive rounded-xl border border-emerald-200 bg-emerald-50 p-4 hover:border-emerald-400"
                   >
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                     <p className="mt-2 text-sm font-semibold">Aprovar</p>
@@ -315,7 +328,7 @@ function RegistoDetalhe() {
                   <Link
                     to="/registos/correcao/$id"
                     params={{ id: registration.id }}
-                    className="rounded-xl border border-amber-200 bg-amber-50 p-4 hover:border-amber-400"
+                    className="mobigest-card-interactive rounded-xl border border-amber-200 bg-amber-50 p-4 hover:border-amber-400"
                   >
                     <FileCheck2 className="h-5 w-5 text-amber-600" />
                     <p className="mt-2 text-sm font-semibold">
@@ -329,7 +342,7 @@ function RegistoDetalhe() {
                   <Link
                     to="/registos/rejeitado/$id"
                     params={{ id: registration.id }}
-                    className="rounded-xl border border-rose-200 bg-rose-50 p-4 hover:border-rose-400"
+                    className="mobigest-card-interactive rounded-xl border border-rose-200 bg-rose-50 p-4 hover:border-rose-400"
                   >
                     <XCircle className="h-5 w-5 text-rose-600" />
                     <p className="mt-2 text-sm font-semibold">Rejeitar</p>
@@ -366,15 +379,14 @@ function RegistoDetalhe() {
                   </p>
                 )}
 
-                <button
-                  type="button"
+                <LoadingButton
                   onClick={submitCorrection}
-                  disabled={resubmitting}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  {resubmitting ? "A reenviar..." : "Reenviar para validação"}
-                </button>
+                  state={resubmitting ? "loading" : "idle"}
+                  idleLabel="Reenviar para validação"
+                  loadingLabel="A reenviar..."
+                  icon={<RotateCcw className="h-4 w-4" />}
+                  className="mt-4 bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40"
+                />
               </Card>
             )}
 
@@ -393,9 +405,9 @@ function RegistoDetalhe() {
                     </h3>
                     <p className="mt-1 text-sm text-slate-500">
                       Submetido em{" "}
-                      {new Date(
+                      {formatDateTime(
                         registration.submitted_at ?? registration.created_at,
-                      ).toLocaleString("pt-MZ")}
+                      )}
                     </p>
                   </div>
                 </div>
@@ -537,7 +549,7 @@ function RegistoDetalhe() {
                               {document.document_number || "Sem número"}
                             </p>
                           </div>
-                          <DocumentStatus status={document.status} />
+                          <StatusBadge status={document.status} />
                         </div>
                         {document.rejection_reason && (
                           <p className="mt-2 text-xs text-rose-700">
@@ -591,6 +603,11 @@ function RegistoDetalhe() {
           </>
         )}
       </div>
+
+      <ProcessingOverlay
+        open={resubmitting}
+        message="A reenviar o processo para validação..."
+      />
     </MobiGestShell>
   );
 }
@@ -625,44 +642,6 @@ function decisionLabel(decision: string) {
   return decision;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const className =
-    status === "aprovada"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "rejeitada" || status === "cancelada"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"w-fit rounded-full px-3 py-1 text-xs font-semibold " + className}>
-      {statusLabel(status)}
-    </span>
-  );
-}
-
-function DocumentStatus({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    nao_apresentado: "Não apresentado",
-    em_validacao: "Em validação",
-    validado: "Validado",
-    rejeitado: "Rejeitado",
-    expirado: "Expirado",
-  };
-
-  const className =
-    status === "validado"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "rejeitado" || status === "expirado"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-slate-50 p-4">
@@ -689,7 +668,7 @@ function Timeline({
       <div>
         <p className="text-sm font-semibold">{title}</p>
         <p className="mt-1 text-xs text-slate-500">
-          {new Date(time).toLocaleString("pt-MZ")}
+          {formatDateTime(time)}
         </p>
       </div>
     </div>
