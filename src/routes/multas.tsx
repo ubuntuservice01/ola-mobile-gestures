@@ -5,10 +5,21 @@ import {
   ReceiptText,
   Search,
   Settings2,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { formatDateTime, formatMoneyMt } from "../lib/format";
 
 export const Route = createFileRoute("/multas")({
   component: MultasRouteBoundary,
@@ -38,6 +49,8 @@ function Multas() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -148,10 +161,10 @@ function Multas() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = debouncedQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
       const haystack = [
@@ -171,7 +184,7 @@ function Multas() {
         (statusFilter === "todos" || row.status === statusFilter)
       );
     });
-  }, [rows, query, statusFilter]);
+  }, [rows, debouncedQuery, statusFilter]);
 
   const metrics = useMemo(
     () => ({
@@ -210,22 +223,22 @@ function Multas() {
       </div>
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric
-          label="Multas emitidas"
-          value={loading ? "—" : String(metrics.total)}
-        />
-        <Metric
-          label="Pendentes / recurso"
-          value={loading ? "—" : String(metrics.pending)}
-        />
-        <Metric
-          label="Pagas"
-          value={loading ? "—" : String(metrics.paid)}
-        />
-        <Metric
-          label="Valor pendente"
-          value={loading ? "—" : formatMoney(metrics.pendingAmount)}
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Metric label="Multas emitidas" value={metrics.total} />
+            <Metric label="Pendentes / recurso" value={metrics.pending} />
+            <Metric label="Pagas" value={metrics.paid} />
+            <Metric
+              label="Valor pendente"
+              value={metrics.pendingAmount}
+              money
+            />
+          </>
+        )}
       </div>
 
       <Card className="overflow-hidden">
@@ -253,15 +266,56 @@ function Multas() {
           </select>
         </div>
 
+        {(query.trim() || statusFilter !== "todos") && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {statusFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {fineStatusLabel(statusFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setStatusFilter("todos");
+              }}
+              className="text-xs font-semibold text-sky-700 hover:text-sky-800"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 {[
                   "Multa",
@@ -283,21 +337,51 @@ function Multas() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-500">
-                    A carregar multas...
+                  <td colSpan={8} className="p-4">
+                    <SkeletonTable rows={6} columns={8} />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-500">
-                    {rows.length === 0
-                      ? "Ainda não existem multas emitidas."
-                      : "Nenhuma multa corresponde aos filtros."}
+                  <td colSpan={8}>
+                    <EmptyState
+                      title={
+                        rows.length === 0
+                          ? "Ainda não existem multas emitidas"
+                          : "Nenhuma multa encontrada"
+                      }
+                      description={
+                        rows.length === 0
+                          ? "As multas emitidas pelos fiscais aparecerão aqui."
+                          : "Tente alterar a pesquisa ou limpar os filtros."
+                      }
+                      action={
+                        rows.length === 0 ? (
+                          <Link
+                            to="/multas/nova"
+                            className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                          >
+                            + Aplicar multa
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuery("");
+                              setStatusFilter("todos");
+                            }}
+                            className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                          >
+                            Limpar filtros
+                          </button>
+                        )
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
+                  <tr key={row.id} className="mobigest-table-row hover:bg-slate-50">
                     <td className="px-5 py-4 font-bold text-sky-700">
                       <Link to="/multas/$id" params={{ id: row.id }}>
                         {row.reference}
@@ -313,10 +397,10 @@ function Multas() {
                     </td>
                     <td className="px-5 py-4">{row.vehicleNumber}</td>
                     <td className="px-5 py-4 font-semibold">
-                      {formatMoney(row.applied_amount)}
+                      {formatMoneyMt(row.applied_amount)}
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
-                      {new Date(row.occurred_at).toLocaleString("pt-MZ")}
+                      {formatDateTime(row.occurred_at)}
                     </td>
                     <td className="px-5 py-4">
                       <StatusBadge status={row.status} />
@@ -341,47 +425,37 @@ function Multas() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  money = false,
+}: {
+  label: string;
+  value: number;
+  money?: boolean;
+}) {
   return (
     <Card className="p-5">
       <ReceiptText className="h-5 w-5 text-sky-600" />
       <p className="mt-3 text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">
+        <AnimatedNumber
+          value={value}
+          formatter={money ? formatMoneyMt : undefined}
+        />
+      </p>
     </Card>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function fineStatusLabel(status: string) {
   const labels: Record<string, string> = {
     pendente: "Pendente",
     paga: "Paga",
     anulada: "Anulada",
     em_recurso: "Em recurso",
   };
-
-  const className =
-    status === "paga"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "anulada"
-        ? "bg-rose-50 text-rose-700"
-        : status === "em_recurso"
-          ? "bg-sky-50 text-sky-700"
-          : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
+  return labels[status] ?? status;
 }
 
 function MultasRouteBoundary() {
