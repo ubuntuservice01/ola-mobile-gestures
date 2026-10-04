@@ -46,6 +46,9 @@ to authenticated, service_role;
 revoke all on public.registration_numbering_counters from anon;
 alter table public.registration_numbering_counters enable row level security;
 
+drop policy if exists registration_numbering_select_admin
+on public.registration_numbering_counters;
+
 create policy registration_numbering_select_admin
 on public.registration_numbering_counters
 for select to authenticated
