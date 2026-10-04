@@ -264,6 +264,10 @@ const statusStyles: Record<string, { label: string; className: string }> = {
     label: "Inactivo",
     className: "border-slate-300 bg-slate-100 text-slate-600",
   },
+  bloqueado: {
+    label: "Bloqueado",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
   validado: {
     label: "Validado",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
