@@ -133,3 +133,177 @@
 #lovable-badge {
   display: none !important;
 }
+
+/* MobiGest experience system */
+:root {
+  --motion-micro: 140ms;
+  --motion-control: 180ms;
+  --motion-panel: 220ms;
+  --motion-page: 240ms;
+  --motion-number: 650ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --shadow-card-hover: 0 10px 28px rgb(15 23 42 / 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  transition:
+    color var(--motion-control) var(--ease-standard),
+    background-color var(--motion-control) var(--ease-standard),
+    border-color var(--motion-control) var(--ease-standard),
+    box-shadow var(--motion-control) var(--ease-standard),
+    opacity var(--motion-control) var(--ease-standard),
+    transform var(--motion-micro) var(--ease-standard);
+}
+
+button:not(:disabled):active,
+.mobigest-button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.98);
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--municipal-primary, #0284c7) 65%, white);
+  outline-offset: 2px;
+}
+
+.mobigest-page-enter {
+  animation: mobigest-page-enter var(--motion-page) var(--ease-standard) both;
+}
+
+.mobigest-card-interactive {
+  transition:
+    transform var(--motion-control) var(--ease-standard),
+    box-shadow var(--motion-control) var(--ease-standard),
+    border-color var(--motion-control) var(--ease-standard),
+    background-color var(--motion-control) var(--ease-standard);
+}
+
+.mobigest-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.mobigest-table-row {
+  transition: background-color var(--motion-micro) var(--ease-standard);
+}
+
+.mobigest-dialog {
+  transform-origin: center;
+}
+
+.mobigest-drawer-backdrop {
+  animation: mobigest-fade-in var(--motion-panel) var(--ease-standard) both;
+}
+
+.mobigest-sidebar-link svg {
+  transition:
+    transform var(--motion-control) var(--ease-standard),
+    color var(--motion-control) var(--ease-standard);
+}
+
+.mobigest-sidebar-link:hover svg {
+  transform: scale(1.05);
+}
+
+.mobigest-sidebar-link[data-status="active"]::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.mobigest-skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobigest-skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.45),
+    transparent
+  );
+  animation: mobigest-shimmer 1.35s infinite;
+}
+
+@keyframes mobigest-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobigest-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobigest-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .mobigest-page-enter,
+  .mobigest-card-interactive:hover,
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active {
+    transform: none !important;
+  }
+}
+
+@media print {
+  .mobigest-no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+}
