@@ -1,54 +1,555 @@
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { CircleDollarSign, ChevronRight } from "lucide-react";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useMatchRoute,
+} from "@tanstack/react-router";
+import {
+  ChevronRight,
+  CircleDollarSign,
+  Search,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
-import { DemoNotice, StatusBadge, fmtDate } from "../components/financeiro/ui";
-import { municipalityName, useCharges } from "../lib/financeiro/store";
-import { methodLabel, mt, serviceLabel } from "../lib/financeiro/types";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/financeiro")({
-  head: () => ({ meta: [{ title: "Financeiro — MobiGest" }, { name: "description", content: "Cobranças, pagamentos e taxas municipais." }, { property: "og:title", content: "Financeiro — MobiGest" }, { property: "og:description", content: "Cobranças, pagamentos e taxas municipais." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: [
+      { title: "Financeiro — MobiGest" },
+      {
+        name: "description",
+        content: "Cobranças, pagamentos e taxas municipais.",
+      },
+    ],
+  }),
   component: Layout,
 });
 
+type ChargeRow = {
+  id: string;
+  reference: string;
+  municipality_id: string;
+  fee_config_id: string | null;
+  registration_id: string | null;
+  owner_id: string | null;
+  vehicle_id: string | null;
+  service_type: string;
+  amount: number;
+  currency: string;
+  status: string;
+  exemption: boolean;
+  exemption_reason: string | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  ownerName: string;
+  vehicleLabel: string;
+  serviceLabel: string;
+  municipalityName: string;
+  paymentMethod: string;
+  paymentReceipt: string | null;
+  responsibleName: string;
+};
+
 function Layout() {
-  const m = useMatchRoute();
-  return m({ to: "/financeiro", fuzzy: false }) ? <Financeiro /> : <Outlet />;
+  const matchRoute = useMatchRoute();
+  return matchRoute({ to: "/financeiro", fuzzy: false }) ? (
+    <Financeiro />
+  ) : (
+    <Outlet />
+  );
 }
 
 function Financeiro() {
-  const charges = useCharges();
-  const sum = (f: (s: string) => boolean) => charges.filter((c) => f(c.status)).reduce((a, c) => a + c.appliedAmount, 0);
+  const [rows, setRows] = useState<ChargeRow[]>([]);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const { data, error } = await supabase
+        .from("charges")
+        .select(
+          "id, reference, municipality_id, fee_config_id, registration_id, owner_id, vehicle_id, service_type, amount, currency, status, exemption, exemption_reason, note, created_by, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      if (!active) return;
+
+      if (error) {
+        console.error("Falha ao carregar cobranças:", error);
+        setLoadError("Não foi possível carregar as cobranças.");
+        setLoading(false);
+        return;
+      }
+
+      const base = data ?? [];
+      const municipalityIds = [
+        ...new Set(base.map((row) => row.municipality_id).filter(Boolean)),
+      ];
+      const ownerIds = [
+        ...new Set(base.map((row) => row.owner_id).filter(Boolean)),
+      ] as string[];
+      const vehicleIds = [
+        ...new Set(base.map((row) => row.vehicle_id).filter(Boolean)),
+      ] as string[];
+      const feeIds = [
+        ...new Set(base.map((row) => row.fee_config_id).filter(Boolean)),
+      ] as string[];
+      const creatorIds = [
+        ...new Set(base.map((row) => row.created_by).filter(Boolean)),
+      ] as string[];
+      const chargeIds = base.map((row) => row.id);
+
+      const [
+        municipalitiesResult,
+        ownersResult,
+        vehiclesResult,
+        feesResult,
+        creatorsResult,
+        paymentsResult,
+      ] = await Promise.all([
+        municipalityIds.length
+          ? supabase
+              .from("municipalities")
+              .select("id, name")
+              .in("id", municipalityIds)
+          : Promise.resolve({ data: [], error: null }),
+        ownerIds.length
+          ? supabase
+              .from("owners")
+              .select("id, full_name")
+              .in("id", ownerIds)
+          : Promise.resolve({ data: [], error: null }),
+        vehicleIds.length
+          ? supabase
+              .from("vehicles")
+              .select("id, mobigest_number, make, model")
+              .in("id", vehicleIds)
+          : Promise.resolve({ data: [], error: null }),
+        feeIds.length
+          ? supabase
+              .from("fee_configs")
+              .select("id, code, name")
+              .in("id", feeIds)
+          : Promise.resolve({ data: [], error: null }),
+        creatorIds.length
+          ? supabase
+              .from("profiles")
+              .select("id, full_name")
+              .in("id", creatorIds)
+          : Promise.resolve({ data: [], error: null }),
+        chargeIds.length
+          ? supabase
+              .from("payments")
+              .select(
+                "charge_id, method, receipt_number, confirmed_by, paid_at",
+              )
+              .in("charge_id", chargeIds)
+              .order("paid_at", { ascending: false, nullsFirst: false })
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (!active) return;
+
+      const relationError =
+        municipalitiesResult.error ??
+        ownersResult.error ??
+        vehiclesResult.error ??
+        feesResult.error ??
+        creatorsResult.error ??
+        paymentsResult.error;
+
+      if (relationError) {
+        console.error("Falha ao enriquecer cobranças:", relationError);
+        setLoadError(
+          "As cobranças foram encontradas, mas os dados relacionados não puderam ser carregados.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      const paymentUserIds = [
+        ...new Set(
+          (paymentsResult.data ?? [])
+            .map((payment) => payment.confirmed_by)
+            .filter(Boolean),
+        ),
+      ] as string[];
+
+      const paymentUsersResult = paymentUserIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", paymentUserIds)
+        : { data: [], error: null };
+
+      if (!active) return;
+
+      if (paymentUsersResult.error) {
+        console.error(
+          "Falha ao carregar responsáveis por pagamentos:",
+          paymentUsersResult.error,
+        );
+        setLoadError(
+          "As cobranças foram encontradas, mas os responsáveis não puderam ser carregados.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      const municipalityMap = new Map(
+        (municipalitiesResult.data ?? []).map((row) => [row.id, row.name]),
+      );
+      const ownerMap = new Map(
+        (ownersResult.data ?? []).map((row) => [row.id, row.full_name]),
+      );
+      const vehicleMap = new Map(
+        (vehiclesResult.data ?? []).map((row) => [row.id, row]),
+      );
+      const feeMap = new Map(
+        (feesResult.data ?? []).map((row) => [row.id, row]),
+      );
+      const creatorMap = new Map(
+        (creatorsResult.data ?? []).map((row) => [row.id, row.full_name]),
+      );
+      const paymentUserMap = new Map(
+        (paymentUsersResult.data ?? []).map((row) => [row.id, row.full_name]),
+      );
+      const paymentMap = new Map<
+        string,
+        {
+          method: string;
+          receipt_number: string | null;
+          confirmed_by: string | null;
+        }
+      >();
+
+      for (const payment of paymentsResult.data ?? []) {
+        if (!paymentMap.has(payment.charge_id)) {
+          paymentMap.set(payment.charge_id, {
+            method: payment.method,
+            receipt_number: payment.receipt_number,
+            confirmed_by: payment.confirmed_by,
+          });
+        }
+      }
+
+      setRows(
+        base.map((charge) => {
+          const vehicle = charge.vehicle_id
+            ? vehicleMap.get(charge.vehicle_id)
+            : null;
+          const fee = charge.fee_config_id
+            ? feeMap.get(charge.fee_config_id)
+            : null;
+          const payment = paymentMap.get(charge.id);
+
+          return {
+            ...charge,
+            ownerName: charge.owner_id
+              ? ownerMap.get(charge.owner_id) ?? "Proprietário não encontrado"
+              : "Sem proprietário",
+            vehicleLabel: vehicle
+              ? (vehicle.mobigest_number ||
+                  [vehicle.make, vehicle.model].filter(Boolean).join(" ") ||
+                  "Veículo")
+              : "Sem veículo",
+            serviceLabel:
+              fee?.name ??
+              (charge.service_type.startsWith("multa:")
+                ? "Multa · " + charge.service_type.slice(6)
+                : charge.service_type),
+            municipalityName:
+              municipalityMap.get(charge.municipality_id) ?? "Município",
+            paymentMethod: payment
+              ? paymentMethodLabel(payment.method)
+              : "—",
+            paymentReceipt: payment?.receipt_number ?? null,
+            responsibleName:
+              (payment?.confirmed_by
+                ? paymentUserMap.get(payment.confirmed_by)
+                : null) ??
+              (charge.created_by
+                ? creatorMap.get(charge.created_by)
+                : null) ??
+              "—",
+          } as ChargeRow;
+        }),
+      );
+
+      setLoading(false);
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+
+    return rows.filter((row) => {
+      const haystack = [
+        row.reference,
+        row.ownerName,
+        row.vehicleLabel,
+        row.serviceLabel,
+        row.municipalityName,
+        row.paymentReceipt ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return (
+        (!normalized || haystack.includes(normalized)) &&
+        (statusFilter === "todos" || row.status === statusFilter)
+      );
+    });
+  }, [rows, query, statusFilter]);
+
+  const metrics = useMemo(() => {
+    const sum = (statuses: string[]) =>
+      rows
+        .filter((row) => statuses.includes(row.status))
+        .reduce((total, row) => total + Number(row.amount || 0), 0);
+
+    return {
+      issued: rows
+        .filter((row) => row.status !== "cancelado")
+        .reduce((total, row) => total + Number(row.amount || 0), 0),
+      paid: sum(["pago"]),
+      pending: sum(["pendente", "em_confirmacao"]),
+      special: sum(["isento", "reembolsado"]),
+    };
+  }, [rows]);
+
   return (
     <MobiGestShell title="Financeiro">
-      <PageHeader title="Financeiro" description="Cobranças, pagamentos e recibos do município." action="Nova cobrança" actionTo="/financeiro/nova" />
-      <DemoNotice />
-      <div className="grid gap-4 md:grid-cols-4">
-        <K label="Total facturado" v={mt(sum((s) => s !== "cancelado" && s !== "isento"))} />
-        <K label="Total pago" v={mt(sum((s) => s === "pago"))} />
-        <K label="Total pendente" v={mt(sum((s) => s === "pendente" || s === "em_confirmacao"))} />
-        <K label="Cancelado / reembolsado" v={mt(sum((s) => s === "cancelado" || s === "reembolsado"))} />
+      <PageHeader
+        title="Financeiro"
+        description="Cobranças, pagamentos, recibos, isenções e reembolsos do município."
+        action="Nova cobrança"
+        actionTo="/financeiro/nova"
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Metric
+          label="Total emitido"
+          value={loading ? "—" : formatMoney(metrics.issued)}
+        />
+        <Metric
+          label="Total pago"
+          value={loading ? "—" : formatMoney(metrics.paid)}
+        />
+        <Metric
+          label="Total pendente"
+          value={loading ? "—" : formatMoney(metrics.pending)}
+        />
+        <Metric
+          label="Isento / reembolsado"
+          value={loading ? "—" : formatMoney(metrics.special)}
+        />
       </div>
-      <Card className="mt-6 overflow-x-auto">
-        <div className="flex items-center justify-between border-b border-slate-100 p-5"><span className="font-semibold">Operações financeiras recentes</span><Link to="/definicoes/taxas" className="text-xs font-semibold text-sky-600">Taxas municipais</Link></div>
-        <table className="w-full min-w-[1100px] text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500"><tr>{["Referência", "Data", "Município", "Proprietário", "Veículo", "Serviço", "Valor", "Estado", "Método", "Responsável", ""].map((x) => <th key={x} className="px-4 py-3 font-medium">{x}</th>)}</tr></thead>
-          <tbody>{charges.map((c) => (
-            <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50">
-              <td className="px-4 py-3 font-semibold"><Link to="/financeiro/$id" params={{ id: c.id }}>{c.reference}</Link></td>
-              <td className="px-4 py-3 text-slate-500">{fmtDate(c.createdAt)}</td>
-              <td className="px-4 py-3">{municipalityName(c.municipalityId)}</td>
-              <td className="px-4 py-3">{c.ownerName}</td>
-              <td className="px-4 py-3 text-slate-600">{c.vehicle}</td>
-              <td className="px-4 py-3">{serviceLabel[c.service]}</td>
-              <td className="px-4 py-3 font-semibold">{mt(c.appliedAmount)}</td>
-              <td className="px-4 py-3"><StatusBadge s={c.status} /></td>
-              <td className="px-4 py-3">{c.payment ? methodLabel[c.payment.method] : "—"}</td>
-              <td className="px-4 py-3">{c.payment?.userName ?? c.createdBy}</td>
-              <td className="px-4 py-3"><Link to="/financeiro/$id" params={{ id: c.id }}><ChevronRight className="h-4 w-4 text-slate-300" /></Link></td>
-            </tr>))}</tbody>
-        </table>
+
+      <Card className="mt-6 overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <span className="font-semibold">Operações financeiras</span>
+
+          <div className="flex flex-1 flex-col gap-2 lg:max-w-2xl lg:flex-row">
+            <label className="flex flex-1 items-center rounded-xl border border-slate-200 px-3">
+              <Search className="h-4 w-4 text-slate-400" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Cobrança, proprietário, veículo, serviço..."
+                className="h-10 flex-1 bg-transparent px-2 text-sm outline-none"
+              />
+            </label>
+
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            >
+              <option value="todos">Todos os estados</option>
+              <option value="pendente">Pendente</option>
+              <option value="em_confirmacao">Em confirmação</option>
+              <option value="pago">Pago</option>
+              <option value="isento">Isento</option>
+              <option value="cancelado">Cancelado</option>
+              <option value="reembolsado">Reembolsado</option>
+            </select>
+
+            <Link
+              to="/definicoes/taxas"
+              className="flex h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-xs font-semibold text-sky-700"
+            >
+              Taxas municipais
+            </Link>
+          </div>
+        </div>
+
+        {loadError && (
+          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
+            {loadError}
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1150px] text-left text-sm">
+            <thead className="bg-slate-50 text-xs text-slate-500">
+              <tr>
+                {[
+                  "Referência",
+                  "Data",
+                  "Município",
+                  "Proprietário",
+                  "Veículo",
+                  "Serviço",
+                  "Valor",
+                  "Estado",
+                  "Método",
+                  "Responsável",
+                  "",
+                ].map((heading) => (
+                  <th key={heading} className="px-4 py-3 font-medium">
+                    {heading}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                    A carregar operações financeiras...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                    {rows.length === 0
+                      ? "Ainda não existem cobranças."
+                      : "Nenhuma cobrança corresponde aos filtros."}
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((charge) => (
+                  <tr
+                    key={charge.id}
+                    className="border-t border-slate-100 hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3 font-semibold">
+                      <Link
+                        to="/financeiro/$id"
+                        params={{ id: charge.id }}
+                        className="text-sky-700"
+                      >
+                        {charge.reference}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500">
+                      {new Date(charge.created_at).toLocaleString("pt-MZ")}
+                    </td>
+                    <td className="px-4 py-3">{charge.municipalityName}</td>
+                    <td className="px-4 py-3">{charge.ownerName}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {charge.vehicleLabel}
+                    </td>
+                    <td className="px-4 py-3">{charge.serviceLabel}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      {formatMoney(charge.amount)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={charge.status} />
+                    </td>
+                    <td className="px-4 py-3">{charge.paymentMethod}</td>
+                    <td className="px-4 py-3">{charge.responsibleName}</td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to="/financeiro/$id"
+                        params={{ id: charge.id }}
+                        aria-label={"Abrir " + charge.reference}
+                      >
+                        <ChevronRight className="h-4 w-4 text-slate-300" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </MobiGestShell>
   );
 }
-function K({ label, v }: { label: string; v: string }) { return <Card className="p-5"><CircleDollarSign className="h-5 w-5 text-sky-600" /><p className="mt-4 text-xs text-slate-500">{label}</p><p className="mt-1 text-2xl font-bold">{v}</p></Card>; }
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <Card className="p-5">
+      <CircleDollarSign className="h-5 w-5 text-sky-600" />
+      <p className="mt-4 text-xs text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
+    </Card>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    pendente: "Pendente",
+    em_confirmacao: "Em confirmação",
+    pago: "Pago",
+    isento: "Isento",
+    cancelado: "Cancelado",
+    reembolsado: "Reembolsado",
+  };
+
+  const className =
+    status === "pago"
+      ? "bg-emerald-50 text-emerald-700"
+      : status === "isento"
+        ? "bg-sky-50 text-sky-700"
+        : status === "cancelado" || status === "reembolsado"
+          ? "bg-rose-50 text-rose-700"
+          : "bg-amber-50 text-amber-700";
+
+  return (
+    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
+      {labels[status] ?? status}
+    </span>
+  );
+}
+
+function paymentMethodLabel(method: string) {
+  const labels: Record<string, string> = {
+    numerario: "Numerário",
+    pos: "POS",
+    transferencia: "Transferência",
+    pagamento_movel: "Pagamento móvel",
+    outro: "Outro",
+  };
+  return labels[method] ?? method;
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("pt-MZ", {
+    style: "currency",
+    currency: "MZN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
+}
