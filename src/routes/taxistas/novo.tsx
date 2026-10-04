@@ -5,6 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createDriver, type DriverType } from "../../lib/drivers";
 import { supabase } from "../../lib/supabase";
+import {
+  LoadingButton,
+  NetworkErrorState,
+  SkeletonCard,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/taxistas/novo")({
   component: NovoTaxista,
@@ -47,6 +53,7 @@ function NovoTaxista() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [created, setCreated] = useState<{
     id: string;
@@ -98,7 +105,7 @@ function NovoTaxista() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const availableLocalities = useMemo(
     () =>
@@ -147,13 +154,15 @@ function NovoTaxista() {
         id: result.driver_id,
         reference: result.driver_reference,
       });
+      notify.success("Taxista/condutor registado", "A referência e o QR foram gerados.");
     } catch (error) {
       console.error("Falha ao criar taxista/condutor:", error);
-      setSaveError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar o taxista/condutor.",
-      );
+          : "Não foi possível criar o taxista/condutor.";
+      setSaveError(message);
+      notify.error("Não foi possível criar o registo", message);
     } finally {
       setSaving(false);
     }
@@ -231,9 +240,17 @@ function NovoTaxista() {
         </div>
 
         {loading ? (
-          <p className="mt-6 text-sm text-slate-500">
-            A carregar território e veículos...
-          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : loadError ? (
+          <div className="mt-6">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
+          </div>
         ) : (
           <>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -360,12 +377,6 @@ function NovoTaxista() {
               </label>
             </div>
 
-            {loadError && (
-              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-                {loadError}
-              </div>
-            )}
-
             {saveError && (
               <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
                 {saveError}
@@ -379,15 +390,15 @@ function NovoTaxista() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={fullName.trim().length < 3 || saving}
+              <LoadingButton
                 onClick={submit}
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? "A guardar..." : "Guardar e gerar referência"}
-              </button>
+                disabled={fullName.trim().length < 3}
+                state={saving ? "loading" : "idle"}
+                idleLabel="Guardar e gerar referência"
+                loadingLabel="A guardar e gerar referência..."
+                icon={<Save className="h-4 w-4" />}
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </>
         )}
