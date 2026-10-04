@@ -472,7 +472,7 @@ function Financeiro() {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1150px] text-left text-sm">
+          <table className="mobigest-data-table w-full min-w-[1150px] text-left text-sm">
             <thead className="sticky top-0 z-10 bg-slate-50 text-xs text-slate-500">
               <tr>
                 {[
