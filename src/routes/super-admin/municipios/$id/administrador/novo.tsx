@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   KeyRound,
-  Mail,
   MapPin,
   ShieldCheck,
   UserPlus,
@@ -44,6 +43,8 @@ function NovoAdministradorMunicipal() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+  const [activationCode, setActivationCode] = useState<string | null>(null);
+  const [activationExpiresAt, setActivationExpiresAt] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -111,6 +112,8 @@ function NovoAdministradorMunicipal() {
       });
 
       setCreatedUserId(result.id ?? null);
+      setActivationCode(result.activationCode ?? null);
+      setActivationExpiresAt(result.activationExpiresAt ?? null);
     } catch (error) {
       console.error("Falha ao criar Administrador Municipal:", error);
       setCreateError(
@@ -153,7 +156,7 @@ function NovoAdministradorMunicipal() {
     return (
       <SuperAdminShell
         title="Administrador Municipal criado"
-        subtitle="A conta institucional foi criada e o convite foi enviado."
+        subtitle="A conta institucional foi criada e o código de activação foi gerado."
       >
         <SuperCard className="mx-auto max-w-2xl p-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -170,9 +173,20 @@ function NovoAdministradorMunicipal() {
             </p>
             <p className="mt-1"><b>Estado:</b> Activo</p>
           </div>
-          <div className="mt-5 rounded-xl border border-sky-100 bg-sky-50 p-4 text-left text-sm leading-6 text-sky-900">
-            O Supabase Auth enviou um convite para o utilizador definir a própria palavra-passe.
-            A criação ficou registada na auditoria do MobiGest.
+          <div className="mt-5 rounded-xl border border-sky-100 bg-sky-50 p-5 text-left text-sm leading-6 text-sky-900">
+            <p className="font-semibold">Código de activação</p>
+            <p className="mt-2 font-mono text-2xl font-bold tracking-[0.16em] text-slate-950">
+              {activationCode ?? "—"}
+            </p>
+            <p className="mt-3">
+              Entregue este código ao utilizador. No primeiro acesso, ele deve abrir
+              <b> Activar conta</b>, informar o email, o código e escolher a própria palavra-passe.
+            </p>
+            {activationExpiresAt && (
+              <p className="mt-2 text-xs text-sky-700">
+                Validade: {new Date(activationExpiresAt).toLocaleString("pt-MZ")}
+              </p>
+            )}
           </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
@@ -270,8 +284,8 @@ function NovoAdministradorMunicipal() {
 
           <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-sky-900">
             <KeyRound className="mb-2 h-4 w-4" />
-            O sistema não define uma palavra-passe em nome do utilizador. O convite é enviado por email
-            para que ele próprio a defina.
+            O sistema gera um código temporário de activação. O utilizador usa esse código no primeiro
+            acesso e define a própria palavra-passe. Nenhum email de convite é enviado.
           </div>
         </div>
 
@@ -307,8 +321,8 @@ function NovoAdministradorMunicipal() {
             onClick={submit}
             className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Mail className="h-4 w-4" />
-            {creating ? "A criar e convidar..." : "Criar e enviar convite"}
+            <KeyRound className="h-4 w-4" />
+            {creating ? "A criar e gerar código..." : "Criar utilizador e gerar código"}
           </button>
         </div>
       </SuperCard>
