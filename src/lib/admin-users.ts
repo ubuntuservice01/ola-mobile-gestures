@@ -24,7 +24,24 @@ async function invokeAdminUsers(body: Record<string, unknown>) {
   );
 
   if (error) {
-    throw new Error(error.message || "Falha ao contactar o serviço de utilizadores.");
+    const context = (error as { context?: Response }).context;
+
+    if (context && typeof context.clone === "function") {
+      try {
+        const payload = await context.clone().json() as AdminUsersResponse;
+        if (payload?.error) {
+          throw new Error(payload.error);
+        }
+      } catch (contextError) {
+        if (contextError instanceof Error && contextError.message) {
+          throw contextError;
+        }
+      }
+    }
+
+    throw new Error(
+      error.message || "Falha ao contactar o serviço de utilizadores.",
+    );
   }
 
   if (data?.error) {
