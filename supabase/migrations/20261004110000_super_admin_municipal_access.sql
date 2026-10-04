@@ -363,23 +363,67 @@ as $$
 declare
   v_row jsonb;
   v_municipality_id uuid;
+  v_parent_id uuid;
 begin
   if not (select private.is_super_admin()) then
-    return coalesce(new, old);
+    if tg_op = 'DELETE' then
+      return old;
+    end if;
+    return new;
   end if;
 
   v_row := case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end;
   v_municipality_id := nullif(v_row ->> 'municipality_id', '')::uuid;
 
   if v_municipality_id is null then
-    raise exception 'Operação municipal sem município definido';
+    case tg_table_name
+      when 'owner_contacts' then
+        v_parent_id := nullif(v_row ->> 'owner_id', '')::uuid;
+        select o.municipality_id into v_municipality_id
+        from public.owners o where o.id = v_parent_id;
+
+      when 'registration_decisions' then
+        v_parent_id := nullif(v_row ->> 'registration_id', '')::uuid;
+        select r.municipality_id into v_municipality_id
+        from public.registrations r where r.id = v_parent_id;
+
+      when 'vehicle_status_history' then
+        v_parent_id := nullif(v_row ->> 'vehicle_id', '')::uuid;
+        select v.municipality_id into v_municipality_id
+        from public.vehicles v where v.id = v_parent_id;
+
+      when 'ownership_history' then
+        v_parent_id := nullif(v_row ->> 'vehicle_id', '')::uuid;
+        select v.municipality_id into v_municipality_id
+        from public.vehicles v where v.id = v_parent_id;
+
+      when 'fiscalization_evidence' then
+        v_parent_id := nullif(v_row ->> 'fiscalization_id', '')::uuid;
+        select f.municipality_id into v_municipality_id
+        from public.fiscalizations f where f.id = v_parent_id;
+
+      when 'payments' then
+        v_parent_id := nullif(v_row ->> 'charge_id', '')::uuid;
+        select ch.municipality_id into v_municipality_id
+        from public.charges ch where ch.id = v_parent_id;
+
+      else
+        v_municipality_id := null;
+    end case;
+  end if;
+
+  if v_municipality_id is null then
+    raise exception 'Não foi possível determinar o município da operação em %', tg_table_name;
   end if;
 
   if not (select private.super_admin_has_assistance(v_municipality_id)) then
     raise exception 'Esta operação exige uma sessão activa em modo Assistência para o município';
   end if;
 
-  return coalesce(new, old);
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
 end;
 $$;
 
