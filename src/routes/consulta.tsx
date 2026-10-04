@@ -1,6 +1,7 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, QrCode, Search, ShieldCheck } from "lucide-react";
-export const Route=createFileRoute("/consulta")({component:Consulta});
+export const Route=createFileRoute("/consulta")({component: ConsultaRouteBoundary});
 function Consulta(){
   return <main className="min-h-screen bg-slate-50">
     <header className="border-b bg-white"><div className="mx-auto flex h-20 max-w-5xl items-center justify-between px-5"><Link to="/"><img src="/mobigest-logo.svg" className="h-11 w-auto" alt="MobiGest"/></Link><Link to="/login" className="text-sm font-semibold text-slate-600">Área reservada</Link></div></header>
@@ -17,4 +18,8 @@ function Consulta(){
       </div>
     </div>
   </main>
+}
+
+function ConsultaRouteBoundary() {
+  return <RouteIndexBoundary pattern="/consulta"><Consulta /></RouteIndexBoundary>;
 }
