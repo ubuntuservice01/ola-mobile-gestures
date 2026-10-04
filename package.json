@@ -13,7 +13,8 @@
     "generate-routes": "tsr generate",
     "predev": "npm run generate-routes",
     "prebuild": "npm run generate-routes",
-    "audit-routes": "node scripts/audit-routes.mjs"
+    "audit-routes": "node scripts/audit-routes.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "overrides": {
     "rolldown": "1.2.1"
