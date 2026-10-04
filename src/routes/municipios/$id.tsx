@@ -1,6 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Building2, MapPin, Settings2 } from "lucide-react";
-import { MobiGestShell, Card } from "../../components/MobiGestShell";
-export const Route=createFileRoute("/municipios/$id")({component:Detalhe});
-function Detalhe(){const{id}=Route.useParams();return <MobiGestShell title="Detalhes do município" subtitle="Configuração e estrutura territorial."><Link to="/municipios" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"><ArrowLeft className="h-4 w-4"/>Municípios</Link><div className="grid gap-6 lg:grid-cols-[1fr_360px]"><Card className="p-7"><div className="flex items-center gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><Building2/></div><div><h2 className="text-2xl font-bold">{id}</h2><p className="text-sm text-slate-500">Código administrativo · Estado activo</p></div></div><div className="mt-7 grid gap-4 sm:grid-cols-3"><div className="rounded-xl bg-slate-50 p-4"><b>2 562</b><p className="text-xs text-slate-500">Veículos</p></div><div className="rounded-xl bg-slate-50 p-4"><b>6</b><p className="text-xs text-slate-500">Postos</p></div><div className="rounded-xl bg-slate-50 p-4"><b>18</b><p className="text-xs text-slate-500">Utilizadores</p></div></div><h3 className="mt-8 font-semibold">Dados institucionais</h3><div className="mt-4 grid gap-3 sm:grid-cols-2"><Info label="Código" value="LIC"/><Info label="Província" value="Niassa"/><Info label="Contacto" value="+258 00 000 000"/><Info label="Estado" value="Activo"/></div></Card><div className="space-y-4"><Card className="p-6"><h3 className="font-semibold">Configuração</h3><p className="mt-1 text-sm text-slate-500">Defina numeração, identidade e regras do município.</p><div className="mt-5 flex flex-wrap gap-2"><Link to="/postos-administrativos" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"><MapPin className="h-4 w-4"/>Ver postos</Link><Link to="/localidades" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Ver localidades</Link></div></Card><Card className="p-6"><div className="flex items-center gap-3"><MapPin className="h-5 w-5 text-sky-600"/><div><p className="text-xs text-slate-400">Estrutura territorial</p><p className="text-sm font-semibold">6 postos · 39 localidades/bairros</p></div></div></Card></div></div></MobiGestShell>}
-function Info({label,value}:{label:string;value:string}){return <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-400">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>}
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+
+export const Route = createFileRoute("/municipios/$id")({
+  component: LegacyMunicipioDetailRedirect,
+});
+
+function LegacyMunicipioDetailRedirect() {
+  useEffect(() => {
+    window.location.replace("/meu-municipio");
+  }, []);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
+      A abrir Meu Município...
+    </div>
+  );
+}
