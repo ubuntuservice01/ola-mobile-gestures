@@ -115,6 +115,19 @@ export function permissionSet(
   );
 }
 
+export function permissionCodeSet(
+  permissions: PermissionRow[],
+  rolePermissions: RolePermissionRow[],
+  role: RoleCode,
+) {
+  const allowedIds = permissionSet(rolePermissions, role);
+  return new Set(
+    permissions
+      .filter((permission) => allowedIds.has(permission.id))
+      .map((permission) => permission.code),
+  );
+}
+
 export function moduleLabel(module: string) {
   const labels: Record<string, string> = {
     vehicles: "Veículos",
