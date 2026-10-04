@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "src/**"
+      - "scripts/**"
       - "package.json"
       - "vite.config.ts"
       - "tsr.config.json"
@@ -15,6 +16,7 @@ on:
       - main
     paths:
       - "src/**"
+      - "scripts/**"
       - "package.json"
       - "vite.config.ts"
       - "tsr.config.json"
@@ -44,6 +46,9 @@ jobs:
 
       - name: Generate route tree
         run: npm run generate-routes
+
+      - name: Audit internal routes
+        run: npm run audit-routes
 
       - name: Build application
         run: npm run build
