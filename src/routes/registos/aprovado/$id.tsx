@@ -11,6 +11,16 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { decideRegistration } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../../components/mobigest/Experience";
+import { formatDateTime } from "../../../lib/format";
 
 export const Route = createFileRoute("/registos/aprovado/$id")({
   component: RegistoAprovado,
@@ -48,6 +58,7 @@ function RegistoAprovado() {
   const [approving, setApproving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -130,14 +141,18 @@ function RegistoAprovado() {
         observation: observation.trim() || null,
       });
 
+      notify.success(
+        "Processo aprovado",
+        registration.registration_type === "transferencia"
+          ? "A transferência foi consolidada com sucesso."
+          : "O registo foi aprovado e o número MobiGest foi atribuído.",
+      );
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao aprovar processo:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível aprovar o processo.",
-      );
+      const safeMessage = "Não foi possível aprovar o processo.";
+      setActionError(safeMessage);
+      notify.error("Aprovação não concluída", safeMessage);
     } finally {
       setApproving(false);
     }
@@ -166,11 +181,16 @@ function RegistoAprovado() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">A carregar processo...</Card>
+        <div className="mx-auto max-w-3xl">
+          <SkeletonCard />
+        </div>
       ) : loadError || !registration ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Processo não encontrado."}
-        </Card>
+        <div className="mx-auto max-w-3xl">
+          <NetworkErrorState
+            message={loadError ?? "Processo não encontrado."}
+            onRetry={() => setRefreshToken((value) => value + 1)}
+          />
+        </div>
       ) : !approved ? (
         <div className="mx-auto max-w-3xl">
           <Card className="p-7">
@@ -225,15 +245,14 @@ function RegistoAprovado() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={approving}
-                onClick={approve}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                {approving ? "A aprovar..." : "Confirmar aprovação"}
-              </button>
+              <LoadingButton
+                onClick={() => setConfirmOpen(true)}
+                state={approving ? "loading" : "idle"}
+                idleLabel="Confirmar aprovação"
+                loadingLabel="A aprovar..."
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                className="bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40"
+              />
             </div>
           </Card>
         </div>
@@ -256,9 +275,7 @@ function RegistoAprovado() {
                     {registration.reference || registration.id}
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                  Aprovado
-                </span>
+                <StatusBadge status="aprovada" />
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -294,7 +311,7 @@ function RegistoAprovado() {
                   label="Data de aprovação"
                   value={
                     registration.approved_at
-                      ? new Date(registration.approved_at).toLocaleString("pt-MZ")
+                      ? formatDateTime(registration.approved_at)
                       : "—"
                   }
                 />
@@ -387,6 +404,38 @@ function RegistoAprovado() {
           </Card>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open && !approving) setConfirmOpen(false);
+        }}
+        title={
+          registration?.registration_type === "transferencia"
+            ? "Aprovar esta transferência?"
+            : "Aprovar este registo?"
+        }
+        description={
+          registration?.registration_type === "transferencia"
+            ? "O servidor validará os requisitos e consolidará o novo proprietário. A alteração de propriedade ficará preservada no histórico."
+            : "O servidor validará os documentos obrigatórios e, se estiver tudo correcto, atribuirá o número MobiGest ao veículo."
+        }
+        confirmLabel="Aprovar processo"
+        busy={approving}
+        onConfirm={async () => {
+          await approve();
+          setConfirmOpen(false);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={approving}
+        message={
+          registration?.registration_type === "transferencia"
+            ? "A concluir a transferência de propriedade..."
+            : "A validar o processo e gerar o número MobiGest..."
+        }
+      />
     </MobiGestShell>
   );
 }
