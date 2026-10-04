@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, QrCode, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Copy,
+  Download,
+  Printer,
+  QrCode,
+  Save,
+} from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
@@ -176,18 +184,56 @@ function NovoTaxista() {
           encodeURIComponent(created.reference)
         : created.reference;
 
+    const copyPublicLink = async () => {
+      try {
+        await navigator.clipboard.writeText(qrValue);
+        notify.success("Link público copiado");
+      } catch (error) {
+        console.error("Falha ao copiar link público:", error);
+        notify.error("Não foi possível copiar o link");
+      }
+    };
+
+    const downloadQr = () => {
+      const svg = document.getElementById("driver-qr-code");
+      if (!(svg instanceof SVGElement)) {
+        notify.error("QR Code indisponível para download");
+        return;
+      }
+
+      const source =
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = created.reference + "-qr.svg";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      notify.success("QR Code preparado para download");
+    };
+
     return (
       <MobiGestShell
         title="Taxista/condutor registado"
         subtitle="Referência individual gerada pelo servidor."
       >
-        <Card className="mx-auto max-w-2xl p-8 text-center">
+        <Card className="driver-qr-print-card mx-auto max-w-2xl p-8 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
           <h2 className="mt-4 text-3xl font-bold">{created.reference}</h2>
           <p className="mt-2 text-sm text-slate-500">{fullName}</p>
 
           <div className="mx-auto mt-6 flex h-52 w-52 items-center justify-center rounded-2xl border border-slate-200 bg-white p-4">
-            <QRCodeSVG value={qrValue} size={175} level="M" />
+            <QRCodeSVG
+              id="driver-qr-code"
+              value={qrValue}
+              size={175}
+              level="M"
+              className="mobigest-soft-pop"
+            />
           </div>
 
           <p className="mt-4 text-sm leading-6 text-slate-500">
@@ -196,7 +242,34 @@ function NovoTaxista() {
               : "Série CDT atribuída a condutor."}
           </p>
 
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
+          <div className="mobigest-no-print mt-5 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="mobigest-button inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            >
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </button>
+            <button
+              type="button"
+              onClick={downloadQr}
+              className="mobigest-button inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4" />
+              Baixar QR
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyPublicLink()}
+              className="mobigest-button inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            >
+              <Copy className="h-4 w-4" />
+              Copiar link
+            </button>
+          </div>
+
+          <div className="mobigest-no-print mt-7 flex flex-wrap justify-center gap-3">
             <Link
               to="/taxistas/$id"
               params={{ id: created.id }}
