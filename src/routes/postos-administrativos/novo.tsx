@@ -3,6 +3,10 @@ import { ArrowLeft, Building2, Save } from "lucide-react";
 import { useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createAdministrativePost } from "../../lib/territory";
+import {
+  LoadingButton,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/postos-administrativos/novo")({
   component: NovoPosto,
@@ -27,13 +31,15 @@ function NovoPosto() {
         code: code.trim() || null,
       });
       setCreatedId(id);
+      notify.success("Posto administrativo criado");
     } catch (error) {
       console.error("Falha ao criar posto administrativo:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar o posto administrativo.",
-      );
+          : "Não foi possível criar o posto administrativo.";
+      setErrorMessage(message);
+      notify.error("Não foi possível criar o posto", message);
     } finally {
       setSaving(false);
     }
@@ -128,15 +134,15 @@ function NovoPosto() {
           >
             Cancelar
           </Link>
-          <button
-            type="button"
-            disabled={name.trim().length < 2 || saving}
+          <LoadingButton
             onClick={save}
-            className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-          >
-            <Save className="h-4 w-4" />
-            {saving ? "A guardar..." : "Criar posto"}
-          </button>
+            disabled={name.trim().length < 2}
+            state={saving ? "loading" : "idle"}
+            idleLabel="Criar posto"
+            loadingLabel="A guardar..."
+            icon={<Save className="h-4 w-4" />}
+            className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+          />
         </div>
       </Card>
     </MobiGestShell>
