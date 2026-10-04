@@ -19,6 +19,16 @@ import {
   type PaymentMethod,
 } from "../../lib/finance";
 import { supabase } from "../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatDateTime, formatMoneyMt } from "../../lib/format";
 
 export const Route = createFileRoute("/financeiro/$id")({
   head: () => ({
@@ -123,6 +133,9 @@ function Detalhe() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "payment" | "status" | "exemption" | "refund" | null
+  >(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -361,17 +374,16 @@ function Detalhe() {
         note: paymentNote.trim() || null,
       });
 
-      setMessage(
-        "Pagamento confirmado. Recibo " + result.receipt_number + " emitido.",
-      );
+      const successMessage =
+        "Pagamento confirmado. Recibo " + result.receipt_number + " emitido.";
+      setMessage(successMessage);
+      notify.success("Pagamento confirmado", "O recibo foi emitido com sucesso.");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao registar pagamento:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível registar o pagamento.",
-      );
+      const safeMessage = "Não foi possível registar o pagamento.";
+      setActionError(safeMessage);
+      notify.error("Pagamento não concluído", safeMessage);
     } finally {
       setAction(null);
     }
@@ -399,14 +411,13 @@ function Detalhe() {
       });
 
       setMessage("Estado da cobrança actualizado.");
+      notify.success("Estado actualizado");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao alterar estado da cobrança:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível alterar o estado da cobrança.",
-      );
+      const safeMessage = "Não foi possível alterar o estado da cobrança.";
+      setActionError(safeMessage);
+      notify.error("Estado não actualizado", safeMessage);
     } finally {
       setAction(null);
     }
@@ -427,14 +438,13 @@ function Detalhe() {
       });
 
       setMessage("Isenção aplicada e registada na auditoria.");
+      notify.success("Isenção aplicada", "A decisão ficou registada na auditoria.");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao aplicar isenção:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível aplicar a isenção.",
-      );
+      const safeMessage = "Não foi possível aplicar a isenção.";
+      setActionError(safeMessage);
+      notify.error("Isenção não aplicada", safeMessage);
     } finally {
       setAction(null);
     }
@@ -456,14 +466,13 @@ function Detalhe() {
       setMessage(
         "Reembolso " + result.refund_reference + " registado com sucesso.",
       );
+      notify.success("Reembolso registado", result.refund_reference);
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao reembolsar cobrança:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível registar o reembolso.",
-      );
+      const safeMessage = "Não foi possível registar o reembolso.";
+      setActionError(safeMessage);
+      notify.error("Reembolso não concluído", safeMessage);
     } finally {
       setAction(null);
     }
@@ -480,13 +489,15 @@ function Detalhe() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">
-          A carregar cobrança...
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !charge ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Cobrança não encontrada."}
-        </Card>
+        <NetworkErrorState
+          message={loadError ?? "Cobrança não encontrada."}
+          onRetry={() => setRefreshToken((value) => value + 1)}
+        />
       ) : (
         <div className="space-y-6">
           {actionError && (
@@ -532,16 +543,16 @@ function Detalhe() {
                 />
                 <Info
                   label="Valor aplicado"
-                  value={formatMoney(charge.amount)}
+                  value={formatMoneyMt(charge.amount)}
                 />
                 <Info
                   label="Data da cobrança"
-                  value={new Date(charge.created_at).toLocaleString("pt-MZ")}
+                  value={formatDateTime(charge.created_at)}
                 />
                 <Info label="Criada por" value={creatorName} />
                 <Info
                   label="Última actualização"
-                  value={new Date(charge.updated_at).toLocaleString("pt-MZ")}
+                  value={formatDateTime(charge.updated_at)}
                 />
               </div>
 
@@ -574,13 +585,13 @@ function Detalhe() {
                     />
                     <Info
                       label="Valor"
-                      value={formatMoney(payment.amount)}
+                      value={formatMoneyMt(payment.amount)}
                     />
                     <Info
                       label="Pago em"
                       value={
                         payment.paid_at
-                          ? new Date(payment.paid_at).toLocaleString("pt-MZ")
+                          ? formatDateTime(payment.paid_at)
                           : "—"
                       }
                     />
@@ -627,10 +638,10 @@ function Detalhe() {
                     Reembolso {refund.reference}
                   </p>
                   <p className="mt-2 text-sm text-rose-800">
-                    {formatMoney(refund.amount)} · {refund.reason}
+                    {formatMoneyMt(refund.amount)} · {refund.reason}
                   </p>
                   <p className="mt-2 text-xs text-rose-700">
-                    {new Date(refund.refunded_at).toLocaleString("pt-MZ")} ·{" "}
+                    {formatDateTime(refund.refunded_at)} ·{" "}
                     {refundUserName}
                   </p>
                 </div>
@@ -711,19 +722,17 @@ function Detalhe() {
 
                   <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 p-4 text-sm">
                     <span className="text-slate-500">Valor a confirmar</span>
-                    <b>{formatMoney(charge.amount)}</b>
+                    <b>{formatMoneyMt(charge.amount)}</b>
                   </div>
 
-                  <button
-                    type="button"
+                  <LoadingButton
+                    onClick={() => setConfirmAction("payment")}
                     disabled={Boolean(action)}
-                    onClick={registerPayment}
-                    className="mt-4 w-full rounded-xl bg-sky-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
-                  >
-                    {action === "payment"
-                      ? "A confirmar..."
-                      : "Confirmar pagamento"}
-                  </button>
+                    state={action === "payment" ? "loading" : "idle"}
+                    idleLabel="Confirmar pagamento"
+                    loadingLabel="A confirmar pagamento..."
+                    className="mt-4 w-full bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+                  />
                 </Card>
               )}
 
@@ -767,21 +776,19 @@ function Detalhe() {
                     />
                   </label>
 
-                  <button
-                    type="button"
+                  <LoadingButton
+                    onClick={() => setConfirmAction("status")}
                     disabled={
                       !workflowStatus ||
                       workflowReason.trim().length < 4 ||
                       Boolean(action)
                     }
-                    onClick={changeWorkflowStatus}
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 text-sm font-semibold disabled:opacity-40"
-                  >
-                    <Save className="h-4 w-4" />
-                    {action === "status"
-                      ? "A guardar..."
-                      : "Guardar estado"}
-                  </button>
+                    state={action === "status" ? "loading" : "idle"}
+                    idleLabel="Guardar estado"
+                    loadingLabel="A actualizar estado..."
+                    icon={<Save className="h-4 w-4" />}
+                    className="mt-4 w-full border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-40"
+                  />
                 </Card>
               )}
 
@@ -818,19 +825,17 @@ function Detalhe() {
                       />
                     </label>
 
-                    <button
-                      type="button"
+                    <LoadingButton
+                      onClick={() => setConfirmAction("exemption")}
                       disabled={
                         exemptionReason.trim().length < 4 ||
                         Boolean(action)
                       }
-                      onClick={exempt}
-                      className="mt-4 w-full rounded-xl border border-sky-200 bg-sky-50 py-3 text-sm font-semibold text-sky-700 disabled:opacity-40"
-                    >
-                      {action === "exemption"
-                        ? "A aplicar..."
-                        : "Aplicar isenção"}
-                    </button>
+                      state={action === "exemption" ? "loading" : "idle"}
+                      idleLabel="Aplicar isenção"
+                      loadingLabel="A aplicar isenção..."
+                      className="mt-4 w-full border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 disabled:opacity-40"
+                    />
                   </Card>
                 )}
 
@@ -854,19 +859,17 @@ function Detalhe() {
                     />
                   </label>
 
-                  <button
-                    type="button"
+                  <LoadingButton
+                    onClick={() => setConfirmAction("refund")}
                     disabled={
                       refundReason.trim().length < 4 || Boolean(action)
                     }
-                    onClick={refundPayment}
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-semibold text-rose-700 disabled:opacity-40"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    {action === "refund"
-                      ? "A reembolsar..."
-                      : "Registar reembolso"}
-                  </button>
+                    state={action === "refund" ? "loading" : "idle"}
+                    idleLabel="Registar reembolso"
+                    loadingLabel="A registar reembolso..."
+                    icon={<RotateCcw className="h-4 w-4" />}
+                    className="mt-4 w-full border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:opacity-40"
+                  />
                 </Card>
               )}
 
@@ -876,7 +879,7 @@ function Detalhe() {
                 <div className="mt-4 space-y-3">
                   <Line
                     label="Valor"
-                    value={formatMoney(charge.amount)}
+                    value={formatMoneyMt(charge.amount)}
                   />
                   <Line label="Estado" value={statusLabel(charge.status)} />
                   <Line
@@ -893,6 +896,74 @@ function Detalhe() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onOpenChange={(open) => {
+          if (!open && !action) setConfirmAction(null);
+        }}
+        title={
+          confirmAction === "payment"
+            ? "Confirmar este pagamento?"
+            : confirmAction === "refund"
+              ? "Registar este reembolso?"
+              : confirmAction === "exemption"
+                ? "Aplicar esta isenção?"
+                : workflowStatus === "cancelado"
+                  ? "Cancelar esta cobrança?"
+                  : "Alterar o estado da cobrança?"
+        }
+        description={
+          confirmAction === "payment"
+            ? "Será confirmado o pagamento integral de " +
+              formatMoneyMt(charge?.amount ?? 0) +
+              " e será emitido um recibo oficial."
+            : confirmAction === "refund"
+              ? "O pagamento original será preservado e o sistema criará um registo de reembolso separado."
+              : confirmAction === "exemption"
+                ? "A cobrança será marcada como isenta e o motivo ficará registado na auditoria."
+                : workflowStatus === "cancelado"
+                  ? "A cobrança será cancelada. O motivo informado ficará registado na auditoria."
+                  : "O estado da cobrança será actualizado com o motivo informado."
+        }
+        confirmLabel={
+          confirmAction === "payment"
+            ? "Confirmar pagamento"
+            : confirmAction === "refund"
+              ? "Registar reembolso"
+              : confirmAction === "exemption"
+                ? "Aplicar isenção"
+                : workflowStatus === "cancelado"
+                  ? "Cancelar cobrança"
+                  : "Actualizar estado"
+        }
+        destructive={
+          confirmAction === "refund" ||
+          (confirmAction === "status" && workflowStatus === "cancelado")
+        }
+        busy={Boolean(action)}
+        onConfirm={async () => {
+          const selected = confirmAction;
+          if (selected === "payment") await registerPayment();
+          if (selected === "status") await changeWorkflowStatus();
+          if (selected === "exemption") await exempt();
+          if (selected === "refund") await refundPayment();
+          setConfirmAction(null);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={Boolean(action)}
+        message={
+          action === "payment"
+            ? "A confirmar pagamento e emitir recibo..."
+            : action === "refund"
+              ? "A registar o reembolso..."
+              : action === "exemption"
+                ? "A aplicar a isenção..."
+                : "A actualizar o estado da cobrança..."
+        }
+      />
     </MobiGestShell>
   );
 }
@@ -915,23 +986,6 @@ function Line({ label, value }: { label: string; value: string }) {
       <span className="text-slate-500">{label}</span>
       <b className="text-right">{value}</b>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const className =
-    status === "pago"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "isento"
-        ? "bg-sky-50 text-sky-700"
-        : status === "cancelado" || status === "reembolsado"
-          ? "bg-rose-50 text-rose-700"
-          : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-3 py-1.5 text-xs font-semibold " + className}>
-      {statusLabel(status)}
-    </span>
   );
 }
 
@@ -963,13 +1017,4 @@ function vehicleTypeLabel(type: string) {
   if (type === "carro") return "Carro";
   if (type === "bicicleta") return "Bicicleta";
   return type;
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
