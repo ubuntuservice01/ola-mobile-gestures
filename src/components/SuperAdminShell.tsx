@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Link } from "@tanstack/react-router";
 import {
@@ -40,6 +40,41 @@ export function SuperAdminShell({
 }) {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadUnreadNotifications = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active || !user) return;
+
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_user_id", user.id)
+        .is("read_at", null);
+
+      if (!active) return;
+
+      if (error) {
+        console.error("Falha ao contar notificações não lidas:", error);
+        return;
+      }
+
+      setUnreadNotifications(count ?? 0);
+    };
+
+    void loadUnreadNotifications();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleSignOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut({ scope: "local" });
@@ -205,7 +240,11 @@ export function SuperAdminShell({
               aria-label="Notificações"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-sky-500" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-sky-600 px-1 text-[9px] font-bold text-white">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
             </Link>
             <div className="hidden items-center gap-2 sm:flex">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
