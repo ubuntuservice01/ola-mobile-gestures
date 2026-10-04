@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "generate-routes": "tsr generate",
     "predev": "npm run generate-routes",
-    "prebuild": "npm run generate-routes"
+    "prebuild": "npm run generate-routes",
+    "audit-routes": "node scripts/audit-routes.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
