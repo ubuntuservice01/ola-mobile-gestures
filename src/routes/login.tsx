@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   accessReasonMessage,
   defaultRouteForProfile,
@@ -20,9 +20,11 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(
-    accessReasonMessage(new URLSearchParams(window.location.search).get("reason")),
-  );
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMessage(accessReasonMessage(new URLSearchParams(window.location.search).get("reason")));
+  }, []);
 
   return (
     <main className="min-h-screen bg-slate-50">
