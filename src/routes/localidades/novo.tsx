@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createLocality } from "../../lib/territory";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  SkeletonCard,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/localidades/novo")({
   component: NovaLocalidade,
@@ -26,6 +33,7 @@ function NovaLocalidade() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
 
@@ -58,7 +66,7 @@ function NovaLocalidade() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const save = async () => {
     if (!postId || name.trim().length < 2 || saving) return;
@@ -74,13 +82,15 @@ function NovaLocalidade() {
         type,
       });
       setCreatedId(id);
+      notify.success("Localidade criada");
     } catch (error) {
       console.error("Falha ao criar localidade:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar a localidade/bairro.",
-      );
+          : "Não foi possível criar a localidade/bairro.";
+      setErrorMessage(message);
+      notify.error("Não foi possível criar a localidade", message);
     } finally {
       setSaving(false);
     }
@@ -143,14 +153,30 @@ function NovaLocalidade() {
         </div>
 
         {loading ? (
-          <p className="mt-7 text-sm text-slate-500">A carregar postos...</p>
+          <div className="mt-7">
+            <SkeletonCard />
+          </div>
         ) : loadError ? (
-          <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="mt-7">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         ) : posts.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Crie primeiro um posto administrativo activo.
+          <div className="mt-7">
+            <EmptyState
+              title="Ainda não existe um posto administrativo activo"
+              description="Crie primeiro um posto administrativo para associar a nova localidade ou bairro."
+              action={
+                <Link
+                  to="/postos-administrativos/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Criar posto administrativo
+                </Link>
+              }
+            />
           </div>
         ) : (
           <>
@@ -213,15 +239,15 @@ function NovaLocalidade() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={!postId || name.trim().length < 2 || saving}
+              <LoadingButton
                 onClick={save}
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? "A guardar..." : "Criar localidade"}
-              </button>
+                disabled={!postId || name.trim().length < 2}
+                state={saving ? "loading" : "idle"}
+                idleLabel="Criar localidade"
+                loadingLabel="A guardar..."
+                icon={<Save className="h-4 w-4" />}
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </>
         )}
