@@ -30,7 +30,7 @@ import {
 import { supabase } from "../lib/supabase";
 import {
   loadRbac,
-  permissionSet,
+  permissionCodeSet,
   type RoleCode,
 } from "../lib/permissions";
 
@@ -156,7 +156,11 @@ export function MobiGestShell({
           const rbac = await loadRbac();
           if (!active) return;
           setAllowedPermissions(
-            permissionSet(rbac.rolePermissions, profileResult.data.role),
+            permissionCodeSet(
+              rbac.permissions,
+              rbac.rolePermissions,
+              profileResult.data.role,
+            ),
           );
         } catch (error) {
           console.error("Falha ao carregar permissões do menu:", error);
