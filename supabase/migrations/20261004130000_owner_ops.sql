@@ -37,7 +37,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select case
     when p_permission not in ('owners.create','owners.update') then false
     when (select private.is_super_admin())
@@ -46,7 +46,7 @@ as $
       p_municipality_id = (select private.current_municipality_id())
       and (select private.authorize(p_permission))
   end;
-$;
+$$;
 
 revoke all on function private.can_manage_operational_owner(uuid,text) from public;
 grant execute on function private.can_manage_operational_owner(uuid,text) to authenticated;
