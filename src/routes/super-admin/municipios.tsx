@@ -1,10 +1,11 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, ChevronRight, MapPin, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 import { supabase } from "../../lib/supabase";
 
-export const Route = createFileRoute("/super-admin/municipios")({ component: MunicipiosGlobais });
+export const Route = createFileRoute("/super-admin/municipios")({ component: MunicipiosGlobaisRouteBoundary });
 
 type MunicipalityRow = {
   id: string;
@@ -247,4 +248,9 @@ function StatusBadge({ status }: { status: string }) {
       {labels[status] ?? status}
     </span>
   );
+}
+
+
+function MunicipiosGlobaisRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/municipios"><MunicipiosGlobais /></RouteIndexBoundary>;
 }
