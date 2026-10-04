@@ -28,14 +28,22 @@ type MunicipalitySummary = {
 type DashboardCounts = {
   municipalities: number;
   users: number;
+  vehicles: number;
   registrations: number;
+  motorcycles: number;
+  cars: number;
+  bicycles: number;
   auditEvents: number;
 };
 
 const EMPTY_COUNTS: DashboardCounts = {
   municipalities: 0,
   users: 0,
+  vehicles: 0,
   registrations: 0,
+  motorcycles: 0,
+  cars: 0,
+  bicycles: 0,
   auditEvents: 0,
 };
 
@@ -56,7 +64,11 @@ function SuperAdminDashboard() {
         municipalitiesResult,
         municipalitiesCountResult,
         usersCountResult,
+        vehiclesCountResult,
         registrationsCountResult,
+        motorcyclesCountResult,
+        carsCountResult,
+        bicyclesCountResult,
         auditCountResult,
       ] = await Promise.all([
         supabase
@@ -65,7 +77,11 @@ function SuperAdminDashboard() {
           .order("name", { ascending: true }),
         supabase.from("municipalities").select("id", { count: "exact", head: true }),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("vehicles").select("id", { count: "exact", head: true }),
         supabase.from("registrations").select("id", { count: "exact", head: true }),
+        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "motorizada"),
+        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "carro"),
+        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "bicicleta"),
         supabase.from("audit_logs").select("id", { count: "exact", head: true }),
       ]);
 
@@ -75,7 +91,11 @@ function SuperAdminDashboard() {
         municipalitiesResult.error ??
         municipalitiesCountResult.error ??
         usersCountResult.error ??
+        vehiclesCountResult.error ??
         registrationsCountResult.error ??
+        motorcyclesCountResult.error ??
+        carsCountResult.error ??
+        bicyclesCountResult.error ??
         auditCountResult.error;
 
       if (firstError) {
@@ -89,7 +109,11 @@ function SuperAdminDashboard() {
       setCounts({
         municipalities: municipalitiesCountResult.count ?? 0,
         users: usersCountResult.count ?? 0,
+        vehicles: vehiclesCountResult.count ?? 0,
         registrations: registrationsCountResult.count ?? 0,
+        motorcycles: motorcyclesCountResult.count ?? 0,
+        cars: carsCountResult.count ?? 0,
+        bicycles: bicyclesCountResult.count ?? 0,
         auditEvents: auditCountResult.count ?? 0,
       });
       setLoading(false);
@@ -142,9 +166,36 @@ function SuperAdminDashboard() {
         />
         <Kpi
           icon={<FileText />}
+          label="Veículos"
+          value={loading ? "—" : counts.vehicles.toLocaleString("pt-MZ")}
+          detail="frota total registada"
+        />
+        <Kpi
+          icon={<Activity />}
           label="Registos"
           value={loading ? "—" : counts.registrations.toLocaleString("pt-MZ")}
-          detail="todos os municípios"
+          detail="processos em todos os municípios"
+        />
+      </section>
+
+      <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Kpi
+          icon={<Activity />}
+          label="Motorizadas"
+          value={loading ? "—" : counts.motorcycles.toLocaleString("pt-MZ")}
+          detail="registadas na plataforma"
+        />
+        <Kpi
+          icon={<Activity />}
+          label="Carros"
+          value={loading ? "—" : counts.cars.toLocaleString("pt-MZ")}
+          detail="registados na plataforma"
+        />
+        <Kpi
+          icon={<Activity />}
+          label="Bicicletas"
+          value={loading ? "—" : counts.bicycles.toLocaleString("pt-MZ")}
+          detail="registadas na plataforma"
         />
         <Kpi
           icon={<Activity />}
