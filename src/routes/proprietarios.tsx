@@ -8,6 +8,7 @@ import {
   EmptyState,
   IconTooltip,
   NetworkErrorState,
+  PaginationBar,
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
@@ -33,6 +34,7 @@ function Props() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [page, setPage] = useState(1);
   const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
@@ -109,6 +111,18 @@ function Props() {
       ),
     [rows, debouncedQuery],
   );
+  const PAGE_SIZE = 20;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagedRows = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery]);
+
 
   return (
     <MobiGestShell title="Proprietários">
@@ -192,7 +206,7 @@ function Props() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((row) => (
+                pagedRows.map((row) => (
                   <tr key={row.id} className="mobigest-table-row hover:bg-slate-50/60">
                     <td className="px-5 py-4 font-semibold">{row.full_name}</td>
                     <td className="px-5 py-4">
@@ -225,6 +239,14 @@ function Props() {
             </tbody>
           </table>
         </div>
+        {!loading && filtered.length > 0 && (
+          <PaginationBar
+            page={safePage}
+            pageSize={PAGE_SIZE}
+            totalItems={filtered.length}
+            onPageChange={setPage}
+          />
+        )}
       </Card>
     </MobiGestShell>
   );
