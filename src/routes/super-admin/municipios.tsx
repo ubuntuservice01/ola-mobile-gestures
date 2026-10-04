@@ -1,9 +1,17 @@
 import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Building2, ChevronRight, MapPin, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
+import { Building2, ChevronRight, MapPin, Plus, Search, SlidersHorizontal, Users, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 import { supabase } from "../../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  StatusBadge,
+} from "../../components/mobigest/Experience";
+import { useDebouncedValue } from "../../hooks/use-debounced-value";
 
 export const Route = createFileRoute("/super-admin/municipios")({ component: MunicipiosGlobaisRouteBoundary });
 
@@ -23,6 +31,8 @@ function MunicipiosGlobais() {
   const [municipalities, setMunicipalities] = useState<MunicipalityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -90,7 +100,7 @@ function MunicipiosGlobais() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(
     () =>
@@ -98,14 +108,14 @@ function MunicipiosGlobais() {
         const matchesQuery = [municipality.name, municipality.code, municipality.province]
           .join(" ")
           .toLowerCase()
-          .includes(query.trim().toLowerCase());
+          .includes(debouncedQuery.trim().toLowerCase());
 
         const matchesStatus =
           status === "Todos" || municipality.status === status;
 
         return matchesQuery && matchesStatus;
       }),
-    [municipalities, query, status],
+    [municipalities, debouncedQuery, status],
   );
 
   return (
@@ -150,31 +160,75 @@ function MunicipiosGlobais() {
             </select>
           </label>
         </div>
+
+        {(query.trim() || status !== "Todos") && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {status !== "Todos" && (
+              <button
+                type="button"
+                onClick={() => setStatus("Todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                {municipalityStatusLabel(status)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        )}
       </SuperCard>
 
       {loadError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-5">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
       {loading ? (
-        <SuperCard className="p-8 text-sm text-slate-500">A carregar municípios...</SuperCard>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
-        <SuperCard className="p-8">
-          <p className="text-sm font-semibold text-slate-700">
-            {municipalities.length === 0
-              ? "Ainda não existe nenhum município registado."
-              : "Nenhum município corresponde aos filtros."}
-          </p>
-          {municipalities.length === 0 && (
-            <Link
-              to="/super-admin/municipios/novo"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              <Plus className="h-4 w-4" /> Criar primeiro município
-            </Link>
-          )}
+        <SuperCard>
+          <EmptyState
+            title={
+              municipalities.length === 0
+                ? "Ainda não existe nenhum município registado"
+                : "Nenhum município encontrado"
+            }
+            description={
+              municipalities.length === 0
+                ? "Crie o primeiro município para iniciar a configuração da plataforma."
+                : "Tente alterar a pesquisa ou o filtro de estado."
+            }
+            action={
+              municipalities.length === 0 ? (
+                <Link
+                  to="/super-admin/municipios/novo"
+                  className="mobigest-button inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  <Plus className="h-4 w-4" /> Criar primeiro município
+                </Link>
+              ) : undefined
+            }
+          />
         </SuperCard>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -185,7 +239,7 @@ function MunicipiosGlobais() {
               params={{ id: municipality.id }}
               className="group"
             >
-              <SuperCard className="h-full p-5 transition group-hover:border-sky-200 group-hover:shadow-sm">
+              <SuperCard className="mobigest-card-interactive h-full p-5 group-hover:border-sky-200">
                 <div className="flex items-start gap-4">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
                     <Building2 className="h-5 w-5" />
@@ -199,18 +253,18 @@ function MunicipiosGlobais() {
                           {municipality.province} · Código {municipality.code}
                         </p>
                       </div>
-                      <StatusBadge status={municipality.status} />
+                      <StatusBadge status={municipality.status} label={municipalityStatusLabel(municipality.status)} />
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-3">
                       <div className="rounded-xl bg-slate-50 p-3">
                         <Users className="h-4 w-4 text-slate-400" />
-                        <p className="mt-2 text-lg font-bold">{municipality.users.toLocaleString("pt-MZ")}</p>
+                        <p className="mt-2 text-lg font-bold"><AnimatedNumber value={municipality.users} /></p>
                         <p className="text-xs text-slate-500">Utilizadores</p>
                       </div>
                       <div className="rounded-xl bg-slate-50 p-3">
                         <Building2 className="h-4 w-4 text-slate-400" />
-                        <p className="mt-2 text-lg font-bold">{municipality.vehicles.toLocaleString("pt-MZ")}</p>
+                        <p className="mt-2 text-lg font-bold"><AnimatedNumber value={municipality.vehicles} /></p>
                         <p className="text-xs text-slate-500">Veículos</p>
                       </div>
                     </div>
@@ -226,30 +280,15 @@ function MunicipiosGlobais() {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function municipalityStatusLabel(status: string) {
   const labels: Record<string, string> = {
     activo: "Activo",
     configuracao: "Configuração",
     suspenso: "Suspenso",
     inactivo: "Inactivo",
   };
-
-  const classes =
-    status === "activo"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "suspenso"
-        ? "bg-rose-50 text-rose-700"
-        : status === "inactivo"
-          ? "bg-slate-100 text-slate-600"
-          : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + classes}>
-      {labels[status] ?? status}
-    </span>
-  );
+  return labels[status] ?? status;
 }
-
 
 function MunicipiosGlobaisRouteBoundary() {
   return <RouteIndexBoundary pattern="/super-admin/municipios"><MunicipiosGlobais /></RouteIndexBoundary>;
