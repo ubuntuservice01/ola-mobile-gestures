@@ -19,6 +19,16 @@ import {
   type DriverType,
 } from "../../lib/drivers";
 import { supabase } from "../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  StatusBadge,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatDate } from "../../lib/format";
 
 export const Route = createFileRoute("/taxistas/$id")({
   component: DriverDetail,
@@ -82,6 +92,7 @@ function DriverDetail() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
+  const [confirmingStatus, setConfirmingStatus] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -219,12 +230,13 @@ function DriverDetail() {
 
       setEditing(false);
       setMessage("Dados do taxista/condutor actualizados.");
+      notify.success("Dados actualizados");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao actualizar taxista/condutor:", error);
-      setErrorMessage(
-        error instanceof Error ? error.message : "Não foi possível actualizar.",
-      );
+      const safeMessage = "Não foi possível actualizar o taxista/condutor.";
+      setErrorMessage(safeMessage);
+      notify.error("Actualização não concluída", safeMessage);
     } finally {
       setSaving(false);
     }
@@ -246,12 +258,16 @@ function DriverDetail() {
       setPendingStatus(null);
       setStatusReason("");
       setMessage("Estado actualizado e registado na auditoria.");
+      notify.success(
+        "Estado actualizado",
+        pendingStatus ? statusLabel(pendingStatus) : undefined,
+      );
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao alterar estado:", error);
-      setErrorMessage(
-        error instanceof Error ? error.message : "Não foi possível alterar o estado.",
-      );
+      const safeMessage = "Não foi possível alterar o estado.";
+      setErrorMessage(safeMessage);
+      notify.error("Estado não actualizado", safeMessage);
     } finally {
       setChangingStatus(false);
     }
@@ -290,11 +306,15 @@ function DriverDetail() {
       </div>
 
       {loading ? (
-        <Card className="p-8 text-sm text-slate-500">A carregar ficha...</Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : !driver ? (
-        <Card className="p-8 text-sm font-medium text-red-700">
-          {errorMessage || "Registo não encontrado."}
-        </Card>
+        <NetworkErrorState
+          message={errorMessage || "Registo não encontrado."}
+          onRetry={() => setRefreshToken((value) => value + 1)}
+        />
       ) : (
         <div className="space-y-6">
           {editing && (
@@ -396,15 +416,15 @@ function DriverDetail() {
               </div>
 
               <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  disabled={fullName.trim().length < 3 || saving}
+                <LoadingButton
                   onClick={save}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving ? "A guardar..." : "Guardar alterações"}
-                </button>
+                  disabled={fullName.trim().length < 3}
+                  state={saving ? "loading" : "idle"}
+                  idleLabel="Guardar alterações"
+                  loadingLabel="A guardar..."
+                  icon={<Save className="h-4 w-4" />}
+                  className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+                />
               </div>
             </Card>
           )}
@@ -422,16 +442,14 @@ function DriverDetail() {
                 className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2"
               />
               <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  disabled={
-                    statusReason.trim().length < 4 || changingStatus
-                  }
-                  onClick={changeStatus}
-                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  {changingStatus ? "A processar..." : "Confirmar"}
-                </button>
+                <LoadingButton
+                  onClick={() => setConfirmingStatus(true)}
+                  disabled={statusReason.trim().length < 4 || changingStatus}
+                  state={changingStatus ? "loading" : "idle"}
+                  idleLabel="Confirmar"
+                  loadingLabel="A processar..."
+                  className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+                />
                 <button
                   type="button"
                   onClick={() => {
@@ -510,7 +528,7 @@ function DriverDetail() {
                   label="Nascimento"
                   value={
                     driver.birth_date
-                      ? new Date(driver.birth_date).toLocaleDateString("pt-MZ")
+                      ? formatDate(driver.birth_date)
                       : "—"
                   }
                 />
@@ -521,7 +539,7 @@ function DriverDetail() {
                 <Link
                   to="/veiculos/$id"
                   params={{ id: currentVehicle.id }}
-                  className="mt-3 flex items-center gap-3 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
+                  className="mobigest-card-interactive mt-3 flex items-center gap-3 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
                 >
                   <Bike className="h-5 w-5 text-sky-600" />
                   <div>
@@ -605,6 +623,51 @@ function DriverDetail() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmingStatus}
+        onOpenChange={(open) => {
+          if (!open && !changingStatus) setConfirmingStatus(false);
+        }}
+        title={
+          pendingStatus === "bloqueado"
+            ? "Bloquear este taxista/condutor?"
+            : pendingStatus === "suspenso"
+              ? "Suspender este taxista/condutor?"
+              : pendingStatus === "inactivo"
+                ? "Inactivar este taxista/condutor?"
+                : "Reactivar este taxista/condutor?"
+        }
+        description={
+          pendingStatus === "bloqueado"
+            ? "O acesso operacional associado a este registo ficará bloqueado. O motivo ficará registado na auditoria."
+            : pendingStatus === "suspenso"
+              ? "O registo ficará temporariamente suspenso até nova reactivação."
+              : pendingStatus === "inactivo"
+                ? "O registo deixará de estar activo, mas o histórico será preservado."
+                : "O registo voltará ao estado activo."
+        }
+        confirmLabel={
+          pendingStatus ? statusLabel(pendingStatus) : "Confirmar"
+        }
+        destructive={
+          pendingStatus === "bloqueado" || pendingStatus === "inactivo"
+        }
+        busy={changingStatus}
+        onConfirm={async () => {
+          await changeStatus();
+          setConfirmingStatus(false);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={saving || changingStatus}
+        message={
+          changingStatus
+            ? "A actualizar o estado do taxista/condutor..."
+            : "A guardar os dados do taxista/condutor..."
+        }
+      />
     </MobiGestShell>
   );
 }
@@ -657,19 +720,4 @@ function statusLabel(status: DriverStatus) {
     inactivo: "Inactivo",
   };
   return labels[status];
-}
-
-function StatusBadge({ status }: { status: DriverStatus }) {
-  const className =
-    status === "activo"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "suspenso"
-        ? "bg-amber-50 text-amber-700"
-        : "bg-rose-50 text-rose-700";
-
-  return (
-    <span className={"rounded-full px-3 py-1 text-xs font-semibold " + className}>
-      {statusLabel(status)}
-    </span>
-  );
 }
