@@ -6,8 +6,9 @@ import {
   BarChart3,
   Bell,
   Building2,
-  ChevronDown,
+  ChevronRight,
   LockKeyhole,
+  LogOut,
   HeartPulse,
   KeyRound,
   LayoutDashboard,
@@ -17,6 +18,8 @@ import {
   Users,
   X,
 } from "lucide-react";
+
+import { PageTransition } from "./mobigest/Experience";
 
 const items = [
   ["/super-admin", "Dashboard", LayoutDashboard],
@@ -131,7 +134,7 @@ export function SuperAdminShell({
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/super-admin" }}
                 activeProps={{ className: "bg-sky-600 text-white" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -146,7 +149,7 @@ export function SuperAdminShell({
               to="/super-admin/relatorios"
               onClick={() => setOpen(false)}
               activeProps={{ className: "bg-sky-600 text-white" }}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+              className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
             >
               <BarChart3 className="h-4 w-4" />
               Relatórios globais
@@ -156,7 +159,7 @@ export function SuperAdminShell({
               to="/super-admin/notificacoes"
               onClick={() => setOpen(false)}
               activeProps={{ className: "bg-sky-600 text-white" }}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+              className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
             >
               <Bell className="h-4 w-4" />
               Notificações
@@ -168,7 +171,7 @@ export function SuperAdminShell({
                 to={to}
                 onClick={() => setOpen(false)}
               activeProps={{ className: "bg-sky-600 text-white" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -182,7 +185,7 @@ export function SuperAdminShell({
               <Link
                 to="/super-admin/acesso-municipal"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <LockKeyhole className="h-4 w-4" />
                 Acesso à área municipal
@@ -199,8 +202,15 @@ export function SuperAdminShell({
                 <p className="truncate text-sm font-semibold">Super Administrador</p>
                 <p className="truncate text-xs text-slate-500">Acesso global</p>
               </div>
-              <button type="button" onClick={handleSignOut} disabled={signingOut} aria-label="Sair" className="text-slate-500 hover:text-white disabled:opacity-50">
-                <ChevronDown className="h-4 w-4" />
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                aria-label="Terminar sessão"
+                title="Terminar sessão"
+                className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white disabled:opacity-50"
+              >
+                <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -212,7 +222,7 @@ export function SuperAdminShell({
           type="button"
           aria-label="Fechar menu"
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
+          className="mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
         />
       )}
 
@@ -259,8 +269,28 @@ export function SuperAdminShell({
         </header>
 
         <main className="mx-auto max-w-[1600px] px-5 py-7 md:px-8 md:py-8">
-          {subtitle && <p className="mb-6 text-sm text-slate-500">{subtitle}</p>}
-          {children}
+          {title !== "Dashboard" && (
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400"
+            >
+              <Link
+                to="/super-admin"
+                className="font-medium hover:text-sky-600"
+              >
+                Administração global
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="font-medium text-slate-600">{title}</span>
+            </nav>
+          )}
+
+          <PageTransition>
+            {subtitle && (
+              <p className="mb-6 text-sm text-slate-500">{subtitle}</p>
+            )}
+            {children}
+          </PageTransition>
         </main>
       </div>
     </div>
