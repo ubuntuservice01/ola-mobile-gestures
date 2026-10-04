@@ -17,6 +17,13 @@ import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  StatusBadge,
+} from "../../components/mobigest/Experience";
+import { formatDate } from "../../lib/format";
 
 export const Route = createFileRoute("/veiculos/$id")({
   component: DetalheRouteBoundary,
@@ -78,6 +85,7 @@ function Detalhe() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -187,7 +195,7 @@ function Detalhe() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   const publicCode = vehicle?.mobigest_number ?? null;
   const qrValue =
@@ -243,13 +251,15 @@ function Detalhe() {
       </div>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">
-          A carregar veículo...
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !vehicle ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Veículo não encontrado."}
-        </Card>
+        <NetworkErrorState
+          message={loadError ?? "Veículo não encontrado."}
+          onRetry={() => setReloadKey((value) => value + 1)}
+        />
       ) : (
         <Card className="overflow-hidden">
           <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-center">
@@ -264,11 +274,14 @@ function Detalhe() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <VehicleStatusBadge
-                status={vehicle.status}
-                commercialStatus={vehicle.commercial_status}
+              <StatusBadge
+                status={
+                  vehicle.commercial_status === "a_venda"
+                    ? "a_venda"
+                    : vehicle.status
+                }
               />
-              {registration && <RegistrationBadge status={registration.status} />}
+              {registration && <StatusBadge status={registration.status} />}
             </div>
           </div>
 
@@ -307,9 +320,7 @@ function Detalhe() {
                   label="Data de registo"
                   value={
                     vehicle.registration_date
-                      ? new Date(vehicle.registration_date).toLocaleDateString(
-                          "pt-MZ",
-                        )
+                      ? formatDate(vehicle.registration_date)
                       : "Ainda não aprovado"
                   }
                 />
@@ -320,7 +331,7 @@ function Detalhe() {
                 <Link
                   to="/proprietarios/$id"
                   params={{ id: owner.id }}
-                  className="mt-4 flex items-center gap-4 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
+                  className="mobigest-card-interactive mt-4 flex items-center gap-4 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-50 text-sky-600">
                     <UserRound />
@@ -345,8 +356,11 @@ function Detalhe() {
               <SectionTitle title="Documentação do veículo" />
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {documents.length === 0 ? (
-                  <div className="sm:col-span-2 rounded-xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">
-                    Ainda não existem documentos ligados directamente ao veículo.
+                  <div className="sm:col-span-2">
+                    <EmptyState
+                      title="Ainda não existem documentos"
+                      description="Os documentos ligados ao veículo aparecerão aqui depois do carregamento."
+                    />
                   </div>
                 ) : (
                   documents.slice(0, 6).map((document) => (
@@ -358,7 +372,7 @@ function Detalhe() {
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">
                         {document.document_type}
                       </span>
-                      <DocumentStatus status={document.status} />
+                      <StatusBadge status={document.status} />
                     </div>
                   ))
                 )}
@@ -427,7 +441,7 @@ function Detalhe() {
                 <Link
                   to="/registos/$id"
                   params={{ id: registration.id }}
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"
+                  className="mobigest-card-interactive flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"
                 >
                   <FileText className="h-5 w-5 text-sky-600" />
                   <span>
@@ -441,7 +455,7 @@ function Detalhe() {
 
               <Link
                 to="/fiscalizacao/nova"
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"
+                className="mobigest-card-interactive flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-sky-200"
               >
                 <MapPin className="h-5 w-5 text-sky-600" />
                 <span>
@@ -518,77 +532,6 @@ function Info({ label, value }: { label: string; value: string }) {
       </p>
     </div>
   );
-}
-
-function VehicleStatusBadge({
-  status,
-  commercialStatus,
-}: {
-  status: string;
-  commercialStatus: string;
-}) {
-  const label =
-    commercialStatus === "a_venda"
-      ? "À venda"
-      : status === "activa"
-        ? "Activa"
-        : status === "roubada"
-          ? "Roubada"
-          : status === "apreendida"
-            ? "Apreendida"
-            : status === "suspensa"
-              ? "Suspensa"
-              : "Cancelada";
-
-  const className =
-    label === "Activa"
-      ? "bg-emerald-50 text-emerald-700"
-      : label === "Roubada" || label === "Cancelada"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-4 py-2 text-sm font-semibold " + className}>
-      {label}
-    </span>
-  );
-}
-
-function RegistrationBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    pendente: "Registo pendente",
-    em_validacao: "Em validação",
-    correccao: "Em correcção",
-    aprovada: "Registo aprovado",
-    rejeitada: "Registo rejeitado",
-    cancelada: "Processo cancelado",
-  };
-
-  return (
-    <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600">
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-function DocumentStatus({ status }: { status: string }) {
-  const label =
-    status === "validado"
-      ? "Validado"
-      : status === "rejeitado"
-        ? "Rejeitado"
-        : status === "expirado"
-          ? "Expirado"
-          : "Pendente";
-
-  const className =
-    status === "validado"
-      ? "text-emerald-600"
-      : status === "rejeitado" || status === "expirado"
-        ? "text-rose-600"
-        : "text-amber-600";
-
-  return <span className={"text-xs font-semibold " + className}>{label}</span>;
 }
 
 function DetalheRouteBoundary() {
