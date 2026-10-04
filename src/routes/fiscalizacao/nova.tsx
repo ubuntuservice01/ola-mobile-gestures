@@ -15,6 +15,11 @@ import {
   type FiscalizationResult,
 } from "../../lib/enforcement";
 import { supabase } from "../../lib/supabase";
+import {
+  LoadingButton,
+  ProcessingOverlay,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/fiscalizacao/nova")({
   component: NovaFiscalizacao,
@@ -157,22 +162,30 @@ function NovaFiscalizacao() {
           });
         } catch (evidenceError) {
           console.error("Fiscalização criada, mas evidência falhou:", evidenceError);
-          setEvidenceWarning(
+          const warning =
             evidenceError instanceof Error
               ? evidenceError.message
-              : "A fiscalização foi criada, mas a evidência não pôde ser carregada.",
-          );
+              : "A fiscalização foi criada, mas a evidência não pôde ser carregada.";
+          setEvidenceWarning(warning);
+          notify.warning("Fiscalização criada sem evidência", warning);
         }
       }
 
       setCreatedId(fiscalizationId);
+      notify.success(
+        "Fiscalização registada",
+        evidence
+          ? "O registo foi concluído e a evidência foi processada."
+          : "O registo foi concluído com sucesso.",
+      );
     } catch (error) {
       console.error("Falha ao registar fiscalização:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível registar a fiscalização.",
-      );
+          : "Não foi possível registar a fiscalização.";
+      setErrorMessage(message);
+      notify.error("Não foi possível registar a fiscalização", message);
     } finally {
       setSaving(false);
     }
@@ -261,14 +274,14 @@ function NovaFiscalizacao() {
                 className="h-12 flex-1 px-3 outline-none"
               />
             </div>
-            <button
-              type="button"
-              disabled={!code.trim() || searching}
+            <LoadingButton
               onClick={searchVehicle}
-              className="rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {searching ? "A verificar..." : "Verificar"}
-            </button>
+              disabled={!code.trim()}
+              state={searching ? "loading" : "idle"}
+              idleLabel="Verificar"
+              loadingLabel="A verificar..."
+              className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+            />
           </div>
 
           {vehicle && (
@@ -436,17 +449,26 @@ function NovaFiscalizacao() {
             >
               Cancelar
             </Link>
-            <button
-              type="button"
-              disabled={!vehicle || !confirmed || saving}
+            <LoadingButton
               onClick={save}
-              className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {saving ? "A registar..." : "Registar fiscalização"}
-            </button>
+              disabled={!vehicle || !confirmed}
+              state={saving ? "loading" : "idle"}
+              idleLabel="Registar fiscalização"
+              loadingLabel={evidence ? "A registar e carregar evidência..." : "A registar..."}
+              className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+            />
           </div>
         </Card>
       </div>
+
+      <ProcessingOverlay
+        open={saving}
+        message={
+          evidence
+            ? "A registar fiscalização e carregar evidência..."
+            : "A registar fiscalização..."
+        }
+      />
     </MobiGestShell>
   );
 }
