@@ -53,7 +53,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  row_data jsonb := to_jsonb(new);
+  row_data jsonb;
   target_municipality uuid;
   target_post uuid;
   target_locality uuid;
@@ -61,6 +61,7 @@ declare
   locality_municipality uuid;
   locality_post uuid;
 begin
+  row_data := to_jsonb(new);
   target_municipality := nullif(row_data ->> 'municipality_id', '')::uuid;
   target_post := nullif(row_data ->> 'administrative_post_id', '')::uuid;
   target_locality := nullif(row_data ->> 'locality_id', '')::uuid;
@@ -261,6 +262,7 @@ declare
   v_municipality uuid;
   ft_municipality uuid;
   f_municipality uuid;
+  c_municipality uuid;
 begin
   select municipality_id into d_municipality
   from public.drivers
@@ -294,6 +296,16 @@ begin
 
     if f_municipality is null or new.municipality_id <> f_municipality then
       raise exception 'Fiscal deve pertencer ao mesmo município da multa';
+    end if;
+  end if;
+
+  if new.charge_id is not null then
+    select municipality_id into c_municipality
+    from public.charges
+    where id = new.charge_id;
+
+    if c_municipality is null or new.municipality_id <> c_municipality then
+      raise exception 'Cobrança deve pertencer ao mesmo município da multa';
     end if;
   end if;
 
