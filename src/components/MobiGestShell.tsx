@@ -34,6 +34,10 @@ import {
   municipalityLogoUrl,
 } from "../lib/municipality-settings";
 import {
+  AppTooltip,
+  PageTransition,
+} from "./MobiGestFeedback";
+import {
   loadRbac,
   permissionCodeSet,
   type RoleCode,
@@ -252,7 +256,7 @@ export function MobiGestShell({
     >
       <aside
         className={
-          "fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 text-white transition-transform lg:translate-x-0 " +
+          "fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 text-white transition-transform duration-200 ease-out lg:translate-x-0 " +
           (open ? "translate-x-0" : "-translate-x-full")
         }
       >
@@ -276,7 +280,7 @@ export function MobiGestShell({
           <div className="border-b border-white/10 px-4 py-3">
             <Link
               to="/meu-municipio"
-              className="flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/10"
+              className="mobigest-interactive flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/10"
             >
               <div
                 className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10"
@@ -371,7 +375,7 @@ export function MobiGestShell({
               <Link
                 to="/perfil"
                 onClick={() => setOpen(false)}
-                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-white/5"
+                className="mobigest-interactive flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-white/5"
                 aria-label="Abrir meu perfil"
               >
                 <div
@@ -392,16 +396,17 @@ export function MobiGestShell({
                 </div>
               </Link>
 
-              <button
-                type="button"
-                onClick={handleSignOut}
-                disabled={signingOut}
-                aria-label="Terminar sessão"
-                title="Terminar sessão"
-                className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white disabled:opacity-50"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
+              <AppTooltip label="Terminar sessão" side="top">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  aria-label="Terminar sessão"
+                  className="mobigest-interactive rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white disabled:opacity-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </AppTooltip>
             </div>
           </div>
         </div>
@@ -445,18 +450,20 @@ export function MobiGestShell({
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              to="/notificacoes"
-              className="relative rounded-xl border border-slate-200 p-2.5 text-slate-500"
-              aria-label="Notificações"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-sky-600 px-1 text-[9px] font-bold text-white">
-                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                </span>
-              )}
-            </Link>
+            <AppTooltip label="Notificações" side="bottom">
+              <Link
+                to="/notificacoes"
+                className="mobigest-interactive relative rounded-xl border border-slate-200 p-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                aria-label="Notificações"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-sky-600 px-1 text-[9px] font-bold text-white">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                )}
+              </Link>
+            </AppTooltip>
             <Link
               to="/perfil"
               className="hidden items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50 sm:flex"
@@ -634,7 +641,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={"rounded-2xl border border-slate-200 bg-white " + className}>
+    <section className={"mobigest-card rounded-2xl border border-slate-200 bg-white " + className}>
       {children}
     </section>
   );
