@@ -11,6 +11,14 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { supabase } from "../../../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  StatusBadge,
+} from "../../../components/mobigest/Experience";
+import { formatDateTime } from "../../../lib/format";
 
 export const Route = createFileRoute("/veiculos/$id/historico")({
   component: Historico,
@@ -41,6 +49,7 @@ function Historico() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -234,7 +243,7 @@ function Historico() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   const lastUpdate = useMemo(
     () => events[0]?.at ?? vehicle?.created_at ?? null,
@@ -255,13 +264,15 @@ function Historico() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">
-          A carregar histórico...
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : loadError || !vehicle ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Veículo não encontrado."}
-        </Card>
+        <NetworkErrorState
+          message={loadError ?? "Veículo não encontrado."}
+          onRetry={() => setReloadKey((value) => value + 1)}
+        />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <Card className="p-6">
@@ -274,14 +285,21 @@ function Historico() {
                     vehicle.id}
                 </h2>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                {statusLabel(vehicle.status)}
-              </span>
+              <StatusBadge
+                status={
+                  vehicle.commercial_status === "a_venda"
+                    ? "a_venda"
+                    : vehicle.status
+                }
+              />
             </div>
 
             {events.length === 0 ? (
-              <div className="mt-8 rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-                Ainda não existem eventos históricos para este veículo.
+              <div className="mt-8">
+                <EmptyState
+                  title="Ainda não existem eventos históricos"
+                  description="Alterações de estado, propriedade e processos aparecerão aqui quando ocorrerem."
+                />
               </div>
             ) : (
               <div className="relative mt-8 space-y-7 before:absolute before:left-5 before:top-2 before:h-[calc(100%-12px)] before:w-px before:bg-slate-200">
@@ -310,7 +328,7 @@ function Historico() {
                       <div className="flex flex-wrap justify-between gap-2">
                         <p className="font-semibold">{event.title}</p>
                         <span className="text-xs text-slate-400">
-                          {new Date(event.at).toLocaleString("pt-MZ")}
+                          {formatDateTime(event.at)}
                         </span>
                       </div>
                       <p className="mt-1 text-sm font-medium text-slate-600">
@@ -333,9 +351,7 @@ function Historico() {
                 <div>
                   <p className="text-xs text-slate-400">Última actualização</p>
                   <p className="text-sm font-semibold">
-                    {lastUpdate
-                      ? new Date(lastUpdate).toLocaleString("pt-MZ")
-                      : "—"}
+                    {lastUpdate ? formatDateTime(lastUpdate) : "—"}
                   </p>
                 </div>
               </div>
@@ -347,7 +363,7 @@ function Historico() {
                 <div>
                   <p className="text-xs text-slate-400">Eventos registados</p>
                   <p className="text-sm font-semibold">
-                    {events.length.toLocaleString("pt-MZ")}
+                    <AnimatedNumber value={events.length} />
                   </p>
                 </div>
               </div>
