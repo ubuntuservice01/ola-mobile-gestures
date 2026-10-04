@@ -42,7 +42,6 @@ import {
   permissionCodeSet,
   type RoleCode,
 } from "../lib/permissions";
-import { PageTransition } from "./mobigest/Experience";
 
 const items = [
   ["/dashboard", "Dashboard", LayoutDashboard, "dashboard.view"],
@@ -729,7 +728,7 @@ function MobiGestBreadcrumbs({
               <span className="font-medium text-slate-600">{label}</span>
             ) : (
               <Link
-                to={path}
+                to={path as never}
                 className="mobigest-interactive rounded px-1 py-0.5 hover:text-sky-700"
               >
                 {label}
