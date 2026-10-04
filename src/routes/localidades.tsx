@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, ChevronRight, MapPin } from "lucide-react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 
-export const Route = createFileRoute("/localidades")({ component: Localidades });
+export const Route = createFileRoute("/localidades")({ component: LocalidadesRouteBoundary });
 
 const data = [
   ["Centro", "Chiuaula", "Município de Lichinga", "182"],
@@ -37,4 +38,9 @@ function Localidades() {
       </div>
     </MobiGestShell>
   );
+}
+
+
+function LocalidadesRouteBoundary() {
+  return <RouteIndexBoundary pattern="/localidades"><Localidades /></RouteIndexBoundary>;
 }
