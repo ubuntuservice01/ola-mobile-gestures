@@ -134,6 +134,13 @@ function LoginPage() {
                 <button type="submit" disabled={loading} className="h-12 w-full rounded-xl bg-sky-600 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:opacity-60">
                   {loading ? "A entrar..." : "Entrar"}
                 </button>
+
+                <a
+                  href="/ativar-conta"
+                  className="block text-center text-sm font-semibold text-sky-600 hover:text-sky-700"
+                >
+                  Primeiro acesso? Activar conta
+                </a>
               </form>
 
               <p className="mt-7 border-t border-slate-100 pt-6 text-center text-xs leading-5 text-slate-400">
