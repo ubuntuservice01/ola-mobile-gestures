@@ -1,5 +1,5 @@
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
   Bike,
@@ -653,4 +653,97 @@ export function EmptyTable({
   message?: string;
 }) {
   return <div className="py-16 text-center text-sm text-slate-400">{message}</div>;
+}
+
+
+const BREADCRUMB_LABELS: Record<string, string> = {
+  dashboard: "Dashboard",
+  veiculos: "Veículos",
+  novo: "Novo",
+  proprietarios: "Proprietários",
+  taxistas: "Taxistas / Condutores",
+  fiscalizacao: "Fiscalização",
+  historico: "Histórico",
+  multas: "Multas",
+  tipos: "Tipos de multa",
+  registos: "Registos",
+  financeiro: "Financeiro",
+  relatorios: "Relatórios",
+  utilizadores: "Utilizadores",
+  "meu-municipio": "Meu Município",
+  "postos-administrativos": "Postos administrativos",
+  localidades: "Localidades / bairros",
+  definicoes: "Definições",
+  taxas: "Taxas",
+  documentos: "Documentos",
+  numeracao: "Numeração",
+  permissoes: "Permissões",
+  auditoria: "Auditoria",
+  notificacoes: "Notificações",
+  perfil: "Meu Perfil",
+  imprimir: "Imprimir",
+  qr: "QR Code",
+  transferencia: "Transferência",
+};
+
+function MobiGestBreadcrumbs({
+  currentTitle,
+}: {
+  currentTitle: string;
+}) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments.length === 0) return null;
+
+  return (
+    <nav
+      aria-label="Breadcrumb"
+      className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-slate-400"
+    >
+      <Link
+        to="/dashboard"
+        className="mobigest-interactive rounded px-1 py-0.5 hover:text-sky-700"
+      >
+        MobiGest
+      </Link>
+
+      {segments.map((segment, index) => {
+        const isLast = index === segments.length - 1;
+        const path = "/" + segments.slice(0, index + 1).join("/");
+        const looksLikeId =
+          /^[0-9a-f]{8}-[0-9a-f-]{20,}$/i.test(segment) ||
+          /^[A-Za-z0-9_-]{20,}$/.test(segment);
+        const label = isLast
+          ? BREADCRUMB_LABELS[segment] ??
+            (looksLikeId ? currentTitle : humanizeBreadcrumb(segment))
+          : BREADCRUMB_LABELS[segment] ??
+            (looksLikeId ? "Detalhe" : humanizeBreadcrumb(segment));
+
+        return (
+          <span key={path} className="flex items-center gap-1.5">
+            <span aria-hidden="true">/</span>
+            {isLast || looksLikeId ? (
+              <span className="font-medium text-slate-600">{label}</span>
+            ) : (
+              <Link
+                to={path}
+                className="mobigest-interactive rounded px-1 py-0.5 hover:text-sky-700"
+              >
+                {label}
+              </Link>
+            )}
+          </span>
+        );
+      })}
+    </nav>
+  );
+}
+
+function humanizeBreadcrumb(value: string) {
+  return decodeURIComponent(value)
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
