@@ -10,6 +10,13 @@ import { useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { issueFine } from "../../lib/enforcement";
 import { supabase } from "../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  ProcessingOverlay,
+  notify,
+} from "../../components/mobigest/Experience";
+import { formatMoneyMt } from "../../lib/format";
 
 export const Route = createFileRoute("/multas/nova")({
   component: NovaMulta,
@@ -52,6 +59,7 @@ function NovaMulta() {
   const [searching, setSearching] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [created, setCreated] = useState<{
     fineId: string;
     reference: string;
@@ -196,13 +204,20 @@ function NovaMulta() {
         chargeId: result.charge_id,
         amount: result.amount,
       });
+      setConfirmOpen(false);
+      notify.success(
+        "Multa emitida",
+        "A multa e a cobrança foram criadas numa única transacção.",
+      );
     } catch (error) {
       console.error("Falha ao emitir multa:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível emitir a multa.",
-      );
+          : "Não foi possível emitir a multa.";
+      setErrorMessage(message);
+      setConfirmOpen(false);
+      notify.error("Não foi possível emitir a multa", message);
     } finally {
       setIssuing(false);
     }
@@ -222,7 +237,7 @@ function NovaMulta() {
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Info label="Valor" value={formatMoney(created.amount)} />
+            <Info label="Valor" value={formatMoneyMt(created.amount)} />
             <Info label="Cobrança" value={created.chargeId} />
           </div>
 
@@ -296,14 +311,14 @@ function NovaMulta() {
                 className="h-12 flex-1 px-3 outline-none"
               />
             </div>
-            <button
-              type="button"
-              disabled={!reference.trim() || searching}
+            <LoadingButton
               onClick={searchDriver}
-              className="rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {searching ? "A consultar..." : "Consultar"}
-            </button>
+              disabled={!reference.trim()}
+              state={searching ? "loading" : "idle"}
+              idleLabel="Consultar"
+              loadingLabel="A consultar registos..."
+              className="bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+            />
           </div>
 
           {driver && (
@@ -358,7 +373,7 @@ function NovaMulta() {
                   >
                     {fineTypes.map((type) => (
                       <option key={type.id} value={type.id}>
-                        {type.code} · {type.name} — {formatMoney(type.amount)}
+                        {type.code} · {type.name} — {formatMoneyMt(type.amount)}
                       </option>
                     ))}
                   </select>
@@ -407,7 +422,7 @@ function NovaMulta() {
               {selectedType && (
                 <div className="mt-5 grid gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-3">
                   <Info label="Código" value={selectedType.code} />
-                  <Info label="Valor" value={formatMoney(selectedType.amount)} />
+                  <Info label="Valor" value={formatMoneyMt(selectedType.amount)} />
                   <Info
                     label="Veículo"
                     value={
@@ -418,14 +433,14 @@ function NovaMulta() {
                 </div>
               )}
 
-              <button
-                type="button"
+              <LoadingButton
+                onClick={() => setConfirmOpen(true)}
                 disabled={!canIssue}
-                onClick={emitFine}
-                className="mt-6 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                {issuing ? "A emitir..." : "Emitir multa e criar cobrança"}
-              </button>
+                state={issuing ? "loading" : "idle"}
+                idleLabel="Emitir multa e criar cobrança"
+                loadingLabel="A emitir multa..."
+                className="mt-6 bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </>
           )}
 
@@ -436,6 +451,29 @@ function NovaMulta() {
           )}
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Emitir esta multa?"
+        description={
+          "Será emitida a multa " +
+          (selectedType?.code ?? "") +
+          " para " +
+          (driver?.reference ?? "o condutor") +
+          ", no valor de " +
+          formatMoneyMt(selectedType?.amount ?? 0) +
+          ". A operação também criará uma cobrança no módulo Financeiro."
+        }
+        confirmLabel="Emitir multa"
+        onConfirm={emitFine}
+        busy={issuing}
+      />
+
+      <ProcessingOverlay
+        open={issuing}
+        message="A emitir multa e criar cobrança..."
+      />
     </MobiGestShell>
   );
 }
@@ -474,13 +512,4 @@ function vehicleTypeLabel(type: string) {
   if (type === "carro") return "Carro";
   if (type === "bicicleta") return "Bicicleta";
   return type;
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
