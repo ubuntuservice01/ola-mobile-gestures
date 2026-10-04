@@ -11,6 +11,7 @@ import {
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card, PageHeader } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
 import {
   AnimatedNumber,
   EmptyState,
