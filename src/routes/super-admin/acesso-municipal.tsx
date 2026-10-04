@@ -1,9 +1,10 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Building2, LockKeyhole, Search, ShieldCheck, Users, CarFront } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 
-export const Route = createFileRoute("/super-admin/acesso-municipal")({ component: AcessoMunicipal });
+export const Route = createFileRoute("/super-admin/acesso-municipal")({ component: AcessoMunicipalRouteBoundary });
 
 const municipalities = [
   { id: "lichinga", name: "Município de Lichinga", code: "LIC", province: "Niassa", users: 18, vehicles: 2562, status: "Activo" },
@@ -86,4 +87,9 @@ function AcessoMunicipal() {
 
 function Info({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return <div className="rounded-xl bg-slate-50 p-3"><div className="flex items-center gap-2 text-slate-400">{icon}<span className="text-xs">{label}</span></div><p className="mt-1 text-lg font-bold">{value}</p></div>;
+}
+
+
+function AcessoMunicipalRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/acesso-municipal"><AcessoMunicipal /></RouteIndexBoundary>;
 }
