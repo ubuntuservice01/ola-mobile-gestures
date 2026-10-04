@@ -82,3 +82,13 @@ export function accessReasonMessage(reason: string | null) {
       return null;
   }
 }
+
+
+export function isSafeInternalPath(pathname: string | null): pathname is string {
+  return Boolean(
+    pathname &&
+      pathname.startsWith("/") &&
+      !pathname.startsWith("//") &&
+      !pathname.includes("\\")
+  );
+}
