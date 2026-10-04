@@ -4,6 +4,7 @@ import {
   Bell,
   Bike,
   Building2,
+  ChevronRight,
   ClipboardList,
   Clock3,
   FileBarChart,
@@ -37,6 +38,7 @@ import {
   permissionCodeSet,
   type RoleCode,
 } from "../lib/permissions";
+import { PageTransition } from "./mobigest/Experience";
 
 const items = [
   ["/dashboard", "Dashboard", LayoutDashboard, "dashboard.view"],
@@ -320,7 +322,7 @@ export function MobiGestShell({
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/dashboard" }}
                 activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -340,7 +342,7 @@ export function MobiGestShell({
                   to="/permissoes"
                   onClick={() => setOpen(false)}
                   activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                  className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <ShieldCheck className="h-4 w-4" />
                   Permissões
@@ -355,7 +357,7 @@ export function MobiGestShell({
                   to="/auditoria"
                   onClick={() => setOpen(false)}
                   activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                  className="mobigest-sidebar-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <FileText className="h-4 w-4" />
                   Auditoria
@@ -410,7 +412,7 @@ export function MobiGestShell({
           type="button"
           aria-label="Fechar menu"
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
+          className="mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
         />
       )}
 
@@ -510,8 +512,28 @@ export function MobiGestShell({
         )}
 
         <main className="mx-auto max-w-[1500px] px-5 py-7 md:px-8 md:py-8">
-          {subtitle && <p className="mb-6 text-sm text-slate-500">{subtitle}</p>}
-          {children}
+          {title !== "Dashboard" && (
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400"
+            >
+              <Link
+                to="/dashboard"
+                className="font-medium hover:text-sky-600"
+              >
+                MobiGest
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="font-medium text-slate-600">{title}</span>
+            </nav>
+          )}
+
+          <PageTransition>
+            {subtitle && (
+              <p className="mb-6 text-sm text-slate-500">{subtitle}</p>
+            )}
+            {children}
+          </PageTransition>
         </main>
       </div>
     </div>
