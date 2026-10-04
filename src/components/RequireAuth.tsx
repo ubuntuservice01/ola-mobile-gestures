@@ -7,6 +7,7 @@ import {
   profileAccessProblem,
 } from "../lib/access-control";
 import { supabase } from "../lib/supabase";
+import { loadCurrentMunicipalAccess } from "../lib/municipal-access";
 
 const PUBLIC_PATHS = ["/", "/login", "/recuperar-password", "/nova-password", "/consulta", "/q"];
 
@@ -67,9 +68,18 @@ export function RequireAuth({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!isPathAllowedForProfile(location.pathname, profile)) {
+      const municipalAccess =
+        profile.role === "super_admin"
+          ? await loadCurrentMunicipalAccess()
+          : null;
+
+      if (!active) return;
+
+      const hasMunicipalAccess = Boolean(municipalAccess);
+
+      if (!isPathAllowedForProfile(location.pathname, profile, hasMunicipalAccess)) {
         redirecting = true;
-        window.location.replace(defaultRouteForProfile(profile));
+        window.location.replace(defaultRouteForProfile(profile, hasMunicipalAccess));
         return;
       }
 
