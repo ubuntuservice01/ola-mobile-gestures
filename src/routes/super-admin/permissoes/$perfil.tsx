@@ -21,9 +21,7 @@ import {
   type RolePermissionRow,
 } from "../../../lib/permissions";
 
-export const Route = createFileRoute(
-  "/super-admin/permissoes/$perfil",
-)({
+export const Route = createFileRoute("/super-admin/permissoes/$perfil")({
   component: PerfilDetalhe,
 });
 
