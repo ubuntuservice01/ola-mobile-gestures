@@ -4,13 +4,13 @@ import {
   Bell,
   Bike,
   Building2,
-  ChevronDown,
   ClipboardList,
   Clock3,
   FileBarChart,
   FileText,
   LayoutDashboard,
   LockKeyhole,
+  LogOut,
   MapPin,
   Menu,
   ReceiptText,
@@ -365,31 +365,40 @@ export function MobiGestShell({
           </nav>
 
           <div className="border-t border-white/10 p-4">
-            <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
-                style={{ backgroundColor: municipalPrimaryColor }}
+            <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2">
+              <Link
+                to="/perfil"
+                onClick={() => setOpen(false)}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-white/5"
+                aria-label="Abrir meu perfil"
               >
-                {isSuperAdminAccess ? "SA" : initials(profileName)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
-                  {isSuperAdminAccess ? "Super Administrador" : profileName}
-                </p>
-                <p className="truncate text-xs text-slate-500">
-                  {isSuperAdminAccess
-                    ? accessSession?.municipality_name
-                    : profileRole + " · " + profileMunicipality}
-                </p>
-              </div>
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                  style={{ backgroundColor: municipalPrimaryColor }}
+                >
+                  {isSuperAdminAccess ? "SA" : initials(profileName)}
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-sm font-semibold">
+                    {isSuperAdminAccess ? "Super Administrador" : profileName}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {isSuperAdminAccess
+                      ? accessSession?.municipality_name
+                      : profileRole + " · " + profileMunicipality}
+                  </p>
+                </div>
+              </Link>
+
               <button
                 type="button"
                 onClick={handleSignOut}
                 disabled={signingOut}
-                aria-label="Sair"
-                className="text-slate-500 hover:text-white disabled:opacity-50"
+                aria-label="Terminar sessão"
+                title="Terminar sessão"
+                className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white disabled:opacity-50"
               >
-                <ChevronDown className="h-4 w-4" />
+                <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -439,14 +448,21 @@ export function MobiGestShell({
                 </span>
               )}
             </Link>
-            <div className="hidden items-center gap-2 sm:flex">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+            <Link
+              to="/perfil"
+              className="hidden items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50 sm:flex"
+              aria-label="Abrir meu perfil"
+            >
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: municipalPrimaryColor }}
+              >
                 {isSuperAdminAccess ? "SA" : initials(profileName)}
               </span>
               <span className="text-sm font-medium">
                 {isSuperAdminAccess ? "Super Administrador" : profileRole}
               </span>
-            </div>
+            </Link>
           </div>
         </header>
 
