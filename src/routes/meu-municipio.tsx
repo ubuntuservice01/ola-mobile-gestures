@@ -24,6 +24,7 @@ import {
   loadMunicipalityIdentity,
   loadMunicipalityStatistics,
   municipalityLogoUrl,
+  removeMunicipalityLogo,
   saveMunicipalityIdentity,
   uploadMunicipalityLogo,
   type MunicipalityIdentity,
@@ -34,6 +35,7 @@ import {
   AnimatedNumber,
   LoadingButton,
   SkeletonCard,
+  StatusBadge,
   notify,
   type LoadingButtonState,
 } from "../components/mobigest/Experience";
@@ -67,6 +69,7 @@ function MeuMunicipioPage() {
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<LoadingButtonState>("idle");
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -166,6 +169,10 @@ function MeuMunicipioPage() {
     const file = event.target.files?.[0];
     if (!file || !identity || !canManage) return;
 
+    const previewUrl = URL.createObjectURL(file);
+    const previousPath = identity.logo_path;
+
+    setLogoPreviewUrl(previewUrl);
     setUploadingLogo(true);
     setMessage(null);
     setErrorMessage(null);
@@ -175,6 +182,11 @@ function MeuMunicipioPage() {
       const nextIdentity = { ...identity, logo_path: path };
       await saveMunicipalityIdentity(nextIdentity);
       setIdentity(nextIdentity);
+
+      if (previousPath && previousPath !== path) {
+        await removeMunicipalityLogo(previousPath);
+      }
+
       setMessage("Logótipo actualizado com sucesso.");
       notify.success("Logótipo actualizado");
     } catch (error) {
@@ -188,6 +200,8 @@ function MeuMunicipioPage() {
     } finally {
       event.target.value = "";
       setUploadingLogo(false);
+      URL.revokeObjectURL(previewUrl);
+      setLogoPreviewUrl(null);
     }
   };
 
@@ -229,7 +243,8 @@ function MeuMunicipioPage() {
     );
   }
 
-  const logoUrl = municipalityLogoUrl(identity.logo_path);
+  const logoUrl =
+    logoPreviewUrl ?? municipalityLogoUrl(identity.logo_path);
   const displayName = identity.display_name || identity.name;
 
   return (
@@ -275,12 +290,9 @@ function MeuMunicipioPage() {
                 {identity.province} · Código {identity.code}
                 {identity.abbreviation ? " · " + identity.abbreviation : ""}
               </p>
-              <span
-                className="mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold text-white"
-                style={{ backgroundColor: identity.primary_color }}
-              >
-                {statusLabel(identity.status)}
-              </span>
+              <div className="mt-3">
+                <StatusBadge status={identity.status} />
+              </div>
             </div>
           </div>
 
@@ -854,10 +866,3 @@ function OperationalLink({
   );
 }
 
-function statusLabel(status: string) {
-  if (status === "activo") return "Activo";
-  if (status === "configuracao") return "Em configuração";
-  if (status === "suspenso") return "Suspenso";
-  if (status === "inactivo") return "Inactivo";
-  return status;
-}
