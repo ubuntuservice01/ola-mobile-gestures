@@ -145,7 +145,7 @@ function UsersPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Utilizadores</h2>
           <p className="mt-2 text-sm text-slate-500">
-            A lista é carregada do Supabase e respeita o âmbito definido pelo RLS.
+            A lista apresenta apenas as contas autorizadas no seu âmbito municipal.
           </p>
         </div>
 
