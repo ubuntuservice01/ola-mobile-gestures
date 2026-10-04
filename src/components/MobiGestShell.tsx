@@ -1,8 +1,8 @@
 import { ReactNode, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Link } from "@tanstack/react-router";
-import { Bell, Bike, Building2, CarFront, ChevronDown, ClipboardList, FileBarChart, FileText, LayoutDashboard, MapPin, Menu, Settings, ShieldCheck, Users, Wallet, X } from "lucide-react";
-const items=[["/dashboard","Dashboard",LayoutDashboard],["/veiculos","Veículos",Bike],["/proprietarios","Proprietários",Users],["/fiscalizacao","Fiscalização",ShieldCheck],["/registos","Registos",ClipboardList],["/financeiro","Financeiro",Wallet],["/relatorios","Relatórios",FileBarChart],["/utilizadores","Utilizadores",Users],["/municipios","Municípios",Building2],["/postos-administrativos","Postos administrativos",Building2],["/localidades","Localidades / bairros",MapPin],["/definicoes","Definições",Settings]] as const;
+import { Bell, Bike, Building2, CarFront, ChevronDown, ClipboardList, FileBarChart, FileText, LayoutDashboard, MapPin, Menu, Settings, ShieldCheck, Users, UserRoundCheck, Wallet, X } from "lucide-react";
+const items=[["/dashboard","Dashboard",LayoutDashboard],["/veiculos","Veículos",Bike],["/proprietarios","Proprietários",Users],["/taxistas","Taxistas",UserRoundCheck],["/fiscalizacao","Fiscalização",ShieldCheck],["/registos","Registos",ClipboardList],["/financeiro","Financeiro",Wallet],["/relatorios","Relatórios",FileBarChart],["/utilizadores","Utilizadores",Users],["/municipios","Municípios",Building2],["/postos-administrativos","Postos administrativos",Building2],["/localidades","Localidades / bairros",MapPin],["/definicoes","Definições",Settings]] as const;
 export function MobiGestShell({title,subtitle,children}:{title:string;subtitle?:string;children:ReactNode}){
 const[open,setOpen]=useState(false);
 const[signingOut,setSigningOut]=useState(false);
