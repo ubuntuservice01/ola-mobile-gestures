@@ -60,6 +60,10 @@ export function MobiGestShell({
   const [accessSession, setAccessSession] = useState<MunicipalAccessSession | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [endingAccess, setEndingAccess] = useState(false);
+  const [profileName, setProfileName] = useState("Utilizador");
+  const [profileRole, setProfileRole] = useState("Utilizador");
+  const [profileMunicipality, setProfileMunicipality] = useState("Área municipal");
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -90,6 +94,73 @@ export function MobiGestShell({
     return () => {
       active = false;
       if (timer) clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadIdentity = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active || !user) return;
+
+      const [profileResult, notificationsResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("full_name, role, municipality_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("recipient_user_id", user.id)
+          .is("read_at", null),
+      ]);
+
+      if (!active) return;
+
+      if (notificationsResult.error) {
+        console.error(
+          "Falha ao contar notificações não lidas:",
+          notificationsResult.error,
+        );
+      } else {
+        setUnreadNotifications(notificationsResult.count ?? 0);
+      }
+
+      if (profileResult.error || !profileResult.data) {
+        console.error(
+          "Falha ao carregar identidade municipal:",
+          profileResult.error,
+        );
+        return;
+      }
+
+      setProfileName(profileResult.data.full_name || "Utilizador");
+      setProfileRole(roleLabel(profileResult.data.role));
+
+      if (profileResult.data.municipality_id) {
+        const municipalityResult = await supabase
+          .from("municipalities")
+          .select("name")
+          .eq("id", profileResult.data.municipality_id)
+          .maybeSingle();
+
+        if (!active) return;
+
+        if (!municipalityResult.error && municipalityResult.data?.name) {
+          setProfileMunicipality(municipalityResult.data.name);
+        }
+      }
+    };
+
+    void loadIdentity();
+
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -182,16 +253,16 @@ export function MobiGestShell({
           <div className="border-t border-white/10 p-4">
             <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500 text-xs font-bold">
-                {isSuperAdminAccess ? "SA" : "AD"}
+                {isSuperAdminAccess ? "SA" : initials(profileName)}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">
-                  {isSuperAdminAccess ? "Super Administrador" : "Administrador"}
+                  {isSuperAdminAccess ? "Super Administrador" : profileName}
                 </p>
                 <p className="truncate text-xs text-slate-500">
                   {isSuperAdminAccess
                     ? accessSession?.municipality_name
-                    : "Área municipal"}
+                    : profileRole + " · " + profileMunicipality}
                 </p>
               </div>
               <button
@@ -245,14 +316,18 @@ export function MobiGestShell({
               aria-label="Notificações"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-sky-500" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-sky-600 px-1 text-[9px] font-bold text-white">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
             </Link>
             <div className="hidden items-center gap-2 sm:flex">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
-                {isSuperAdminAccess ? "SA" : "AD"}
+                {isSuperAdminAccess ? "SA" : initials(profileName)}
               </span>
               <span className="text-sm font-medium">
-                {isSuperAdminAccess ? "Super Administrador" : "Administrador"}
+                {isSuperAdminAccess ? "Super Administrador" : profileRole}
               </span>
             </div>
           </div>
@@ -308,6 +383,30 @@ export function MobiGestShell({
       </div>
     </div>
   );
+}
+
+function roleLabel(role: string) {
+  const labels: Record<string, string> = {
+    super_admin: "Super Administrador",
+    admin_municipal: "Administrador Municipal",
+    tecnico: "Técnico",
+    fiscal: "Fiscal",
+    financeiro: "Financeiro",
+  };
+
+  return labels[role] ?? role;
+}
+
+function initials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return parts.length
+    ? parts.map((part) => part[0]?.toUpperCase() ?? "").join("")
+    : "US";
 }
 
 function formatRemaining(seconds: number | null) {
