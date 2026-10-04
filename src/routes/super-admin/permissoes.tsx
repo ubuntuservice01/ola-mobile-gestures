@@ -1,8 +1,9 @@
+import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ChevronRight, Globe2, LockKeyhole, ShieldCheck, Users } from "lucide-react";
 import { SuperAdminShell, SuperCard } from "../../components/SuperAdminShell";
 
-export const Route = createFileRoute("/super-admin/permissoes")({ component: PermissoesGlobais });
+export const Route = createFileRoute("/super-admin/permissoes")({ component: PermissoesGlobaisRouteBoundary });
 
 const profiles = [
   { key:"super-administrador", name:"Super Administrador", scope:"Plataforma inteira", description:"Administração global, municípios, segurança e configuração da plataforma." },
@@ -47,4 +48,9 @@ function PermissoesGlobais(){
   </div>
   <div className="mt-5 rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm leading-6 text-amber-900"><b>Nota técnica:</b> esta matriz é a regra funcional. Ainda não concede permissões reais. A fase Supabase deverá criar perfis, relações de município/posto, políticas RLS e testes de acesso permitido e negado.</div>
  </SuperAdminShell>;
+}
+
+
+function PermissoesGlobaisRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin/permissoes"><PermissoesGlobais /></RouteIndexBoundary>;
 }
