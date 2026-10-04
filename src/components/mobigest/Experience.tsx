@@ -308,6 +308,14 @@ const statusStyles: Record<string, { label: string; className: string }> = {
     label: "Em configuração",
     className: "border-sky-200 bg-sky-50 text-sky-700",
   },
+  aguarda_inicio: {
+    label: "Aguarda início",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  expirada: {
+    label: "Expirada",
+    className: "border-rose-200 bg-rose-50 text-rose-700",
+  },
 };
 
 export function StatusBadge({
