@@ -8,10 +8,21 @@ import {
   ChevronRight,
   CircleDollarSign,
   Search,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { formatDateTime, formatMoneyMt } from "../lib/format";
 
 export const Route = createFileRoute("/financeiro")({
   head: () => ({
@@ -67,6 +78,8 @@ function Financeiro() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -295,10 +308,10 @@ function Financeiro() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = debouncedQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
       const haystack = [
@@ -317,7 +330,7 @@ function Financeiro() {
         (statusFilter === "todos" || row.status === statusFilter)
       );
     });
-  }, [rows, query, statusFilter]);
+  }, [rows, debouncedQuery, statusFilter]);
 
   const metrics = useMemo(() => {
     const sum = (statuses: string[]) =>
@@ -345,22 +358,18 @@ function Financeiro() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Metric
-          label="Total emitido"
-          value={loading ? "—" : formatMoney(metrics.issued)}
-        />
-        <Metric
-          label="Total pago"
-          value={loading ? "—" : formatMoney(metrics.paid)}
-        />
-        <Metric
-          label="Total pendente"
-          value={loading ? "—" : formatMoney(metrics.pending)}
-        />
-        <Metric
-          label="Isento / reembolsado"
-          value={loading ? "—" : formatMoney(metrics.special)}
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Metric label="Total emitido" value={metrics.issued} />
+            <Metric label="Total pago" value={metrics.paid} />
+            <Metric label="Total pendente" value={metrics.pending} />
+            <Metric label="Isento / reembolsado" value={metrics.special} />
+          </>
+        )}
       </div>
 
       <Card className="mt-6 overflow-hidden">
@@ -401,15 +410,56 @@ function Financeiro() {
           </div>
         </div>
 
+        {(query.trim() || statusFilter !== "todos") && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {statusFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {chargeStatusLabel(statusFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setStatusFilter("todos");
+              }}
+              className="text-xs font-semibold text-sky-700 hover:text-sky-800"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1150px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs text-slate-500">
+            <thead className="sticky top-0 z-10 bg-slate-50 text-xs text-slate-500">
               <tr>
                 {[
                   "Referência",
@@ -434,23 +484,53 @@ function Financeiro() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
-                    A carregar operações financeiras...
+                  <td colSpan={11} className="p-4">
+                    <SkeletonTable rows={6} columns={8} />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
-                    {rows.length === 0
-                      ? "Ainda não existem cobranças."
-                      : "Nenhuma cobrança corresponde aos filtros."}
+                  <td colSpan={11}>
+                    <EmptyState
+                      title={
+                        rows.length === 0
+                          ? "Ainda não existem cobranças"
+                          : "Nenhuma cobrança encontrada"
+                      }
+                      description={
+                        rows.length === 0
+                          ? "As cobranças, pagamentos e recibos do município aparecerão aqui."
+                          : "Tente alterar a pesquisa ou limpar os filtros."
+                      }
+                      action={
+                        rows.length === 0 ? (
+                          <Link
+                            to="/financeiro/nova"
+                            className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                          >
+                            Nova cobrança
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuery("");
+                              setStatusFilter("todos");
+                            }}
+                            className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                          >
+                            Limpar filtros
+                          </button>
+                        )
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
                 filtered.map((charge) => (
                   <tr
                     key={charge.id}
-                    className="border-t border-slate-100 hover:bg-slate-50"
+                    className="mobigest-table-row border-t border-slate-100 hover:bg-slate-50"
                   >
                     <td className="px-4 py-3 font-semibold">
                       <Link
@@ -462,7 +542,7 @@ function Financeiro() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500">
-                      {new Date(charge.created_at).toLocaleString("pt-MZ")}
+                      {formatDateTime(charge.created_at)}
                     </td>
                     <td className="px-4 py-3">{charge.municipalityName}</td>
                     <td className="px-4 py-3">{charge.ownerName}</td>
@@ -471,7 +551,7 @@ function Financeiro() {
                     </td>
                     <td className="px-4 py-3">{charge.serviceLabel}</td>
                     <td className="px-4 py-3 font-semibold">
-                      {formatMoney(charge.amount)}
+                      {formatMoneyMt(charge.amount)}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={charge.status} />
@@ -498,17 +578,19 @@ function Financeiro() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: { label: string; value: number }) {
   return (
     <Card className="p-5">
       <CircleDollarSign className="h-5 w-5 text-sky-600" />
       <p className="mt-4 text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">
+        <AnimatedNumber value={value} formatter={formatMoneyMt} />
+      </p>
     </Card>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function chargeStatusLabel(status: string) {
   const labels: Record<string, string> = {
     pendente: "Pendente",
     em_confirmacao: "Em confirmação",
@@ -517,21 +599,7 @@ function StatusBadge({ status }: { status: string }) {
     cancelado: "Cancelado",
     reembolsado: "Reembolsado",
   };
-
-  const className =
-    status === "pago"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "isento"
-        ? "bg-sky-50 text-sky-700"
-        : status === "cancelado" || status === "reembolsado"
-          ? "bg-rose-50 text-rose-700"
-          : "bg-amber-50 text-amber-700";
-
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[status] ?? status}
-    </span>
-  );
+  return labels[status] ?? status;
 }
 
 function paymentMethodLabel(method: string) {
@@ -543,13 +611,4 @@ function paymentMethodLabel(method: string) {
     outro: "Outro",
   };
   return labels[method] ?? method;
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
