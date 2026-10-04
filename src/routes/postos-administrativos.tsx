@@ -1,6 +1,12 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, MapPin, Users, Bike, Plus } from "lucide-react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
-export const Route=createFileRoute("/postos-administrativos")({component:Postos});
+export const Route=createFileRoute("/postos-administrativos")({component: PostosRouteBoundary});
 const data=[["Chiuaula","8 bairros","684","4"],["Massenger","6 bairros","421","2"],["San Maria","5 bairros","398","2"],["Lulimile","7 bairros","367","2"],["Meponda","9 bairros","401","2"],["Chimbunila","6 bairros","291","2"]];
 function Postos(){return <MobiGestShell title="Postos administrativos" subtitle="Divisão administrativa usada para organizar os registos de mobilidade."><PageHeader title="Postos administrativos" description="Consulte a distribuição dos veículos e mantenha a estrutura territorial do município." action="+ Novo posto" actionTo="/postos-administrativos"/><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{data.map(([name,bairros,veiculos,utilizadores])=><Link to="/postos-administrativos/$id" params={{id:name}} key={name}><Card className="p-5 h-full"><div className="flex items-start justify-between"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><Building2/></div><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Activo</span></div><h3 className="mt-5 font-semibold">{name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3 w-3"/>{bairros}</p><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-xl bg-slate-50 p-3"><Bike className="h-4 w-4 text-slate-400"/><p className="mt-2 text-lg font-bold">{veiculos}</p><p className="text-xs text-slate-500">Veículos</p></div><div className="rounded-xl bg-slate-50 p-3"><Users className="h-4 w-4 text-slate-400"/><p className="mt-2 text-lg font-bold">{utilizadores}</p><p className="text-xs text-slate-500">Utilizadores</p></div></div></Card></Link>)}</div></MobiGestShell>}
+
+
+function PostosRouteBoundary() {
+  return <RouteIndexBoundary pattern="/postos-administrativos"><Postos /></RouteIndexBoundary>;
+}
