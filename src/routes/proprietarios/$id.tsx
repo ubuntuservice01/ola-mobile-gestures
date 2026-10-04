@@ -1,11 +1,314 @@
 import { RouteIndexBoundary } from "../../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Bike, Edit3, Phone, UserRound } from "lucide-react";
+import { ArrowLeft, Bike, Edit3, FileText, Phone, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
-export const Route=createFileRoute("/proprietarios/$id")({component: PerfilRouteBoundary});
-function Perfil(){const{id}=Route.useParams();return <MobiGestShell title="Perfil do proprietário" subtitle="Dados cadastrais e veículos associados"><Link to="/proprietarios" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"><ArrowLeft className="h-4 w-4"/>Proprietários</Link><div className="grid gap-6 lg:grid-cols-[380px_1fr]"><Card className="p-6"><div className="flex items-center gap-4"><div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-50 text-sky-600"><UserRound className="h-8 w-8"/></div><div><h2 className="text-xl font-bold">{id}</h2><p className="text-sm text-slate-500">Proprietário registado</p></div></div><div className="mt-7 space-y-4">{[["Documento","BI 11020345LA"],["Telefone","+258 84 000 0000"],["Morada","Lichinga, Niassa"],["NUIT","—"]].map(x=><div key={x[0]}><p className="text-xs text-slate-400">{x[0]}</p><p className="mt-1 text-sm font-medium">{x[1]}</p></div>)}</div><div className="mt-6 flex gap-2"><Link to="/proprietarios/$id/editar" params={{id}} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"><Edit3 className="h-4 w-4"/>Editar</Link><button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"><Phone className="h-4 w-4"/>Contacto</button><Link to="/proprietarios/$id/documentos" params={{id}} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold">Documentos</Link></div></Card><Card className="p-6"><div className="flex items-center justify-between"><div><h3 className="font-semibold">Veículos associados</h3><p className="mt-1 text-xs text-slate-500">Histórico de propriedade ligado a este cidadão.</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">2 veículos</span></div><div className="mt-5 space-y-3">{[["Honda CB 125","MZ-LIC-004821","Activa"],["TVS HLX 125","MZ-LIC-004818","Pendente"]].map(x=><Link to="/veiculos/$id" params={{id:x[1]}} className="flex items-center justify-between rounded-xl border border-slate-200 p-4 hover:border-sky-200" key={x[1]}><div className="flex items-center gap-3"><Bike className="text-sky-600"/><div><p className="font-semibold">{x[0]}</p><p className="text-xs text-slate-500">{x[1]}</p></div></div><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${x[2]==="Activa"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-700"}`}>{x[2]}</span></Link>)}</div></Card></div></MobiGestShell>}
+import { supabase } from "../../lib/supabase";
 
+export const Route = createFileRoute("/proprietarios/$id")({
+  component: PerfilRouteBoundary,
+});
+
+type Owner = {
+  id: string;
+  full_name: string;
+  document_type: string | null;
+  document_number: string | null;
+  nuit: string | null;
+  phone: string | null;
+  alternate_phone: string | null;
+  email: string | null;
+  address: string | null;
+  administrative_post_id: string | null;
+  locality_id: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+};
+
+type Vehicle = {
+  id: string;
+  mobigest_number: string | null;
+  vehicle_type: string;
+  make: string | null;
+  model: string | null;
+  status: string;
+  commercial_status: string;
+};
+
+function Perfil() {
+  const { id } = Route.useParams();
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [postName, setPostName] = useState("—");
+  const [localityName, setLocalityName] = useState("—");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const ownerResult = await supabase
+        .from("owners")
+        .select(
+          "id, full_name, document_type, document_number, nuit, phone, alternate_phone, email, address, administrative_post_id, locality_id, notes, status, created_at",
+        )
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!active) return;
+
+      if (ownerResult.error || !ownerResult.data) {
+        console.error("Falha ao carregar proprietário:", ownerResult.error);
+        setLoadError("Proprietário não encontrado ou fora do seu âmbito.");
+        setLoading(false);
+        return;
+      }
+
+      const current = ownerResult.data as Owner;
+
+      const [postResult, localityResult, vehiclesResult] = await Promise.all([
+        current.administrative_post_id
+          ? supabase
+              .from("administrative_posts")
+              .select("name")
+              .eq("id", current.administrative_post_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        current.locality_id
+          ? supabase
+              .from("localities")
+              .select("name")
+              .eq("id", current.locality_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        supabase
+          .from("vehicles")
+          .select(
+            "id, mobigest_number, vehicle_type, make, model, status, commercial_status",
+          )
+          .eq("current_owner_id", id)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (!active) return;
+
+      const error = postResult.error ?? localityResult.error ?? vehiclesResult.error;
+      if (error) {
+        console.error("Falha ao carregar relações do proprietário:", error);
+        setLoadError("O proprietário foi encontrado, mas os dados relacionados não puderam ser carregados.");
+        setLoading(false);
+        return;
+      }
+
+      setOwner(current);
+      setPostName(postResult.data?.name ?? "—");
+      setLocalityName(localityResult.data?.name ?? "—");
+      setVehicles((vehiclesResult.data ?? []) as Vehicle[]);
+      setLoading(false);
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  return (
+    <MobiGestShell
+      title="Perfil do proprietário"
+      subtitle="Dados cadastrais e veículos associados."
+    >
+      <Link
+        to="/proprietarios"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600"
+      >
+        <ArrowLeft className="h-4 w-4" /> Proprietários
+      </Link>
+
+      {loading ? (
+        <Card className="p-10 text-sm text-slate-500">A carregar proprietário...</Card>
+      ) : loadError || !owner ? (
+        <Card className="p-10 text-sm font-medium text-red-700">
+          {loadError ?? "Proprietário não encontrado."}
+        </Card>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+                <UserRound className="h-8 w-8" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold">{owner.full_name}</h2>
+                <p className="text-sm text-slate-500">
+                  {owner.status === "activo"
+                    ? "Proprietário activo"
+                    : owner.status === "bloqueado"
+                      ? "Proprietário bloqueado"
+                      : "Proprietário inactivo"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <Info
+                label="Documento"
+                value={
+                  owner.document_number
+                    ? [owner.document_type, owner.document_number]
+                        .filter(Boolean)
+                        .join(" · ")
+                    : "—"
+                }
+              />
+              <Info label="NUIT" value={owner.nuit || "—"} />
+              <Info label="Telefone" value={owner.phone || "—"} />
+              <Info label="Telefone alternativo" value={owner.alternate_phone || "—"} />
+              <Info label="Email" value={owner.email || "—"} />
+              <Info label="Morada" value={owner.address || "—"} />
+              <Info label="Posto" value={postName} />
+              <Info label="Localidade / bairro" value={localityName} />
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Link
+                to="/proprietarios/$id/editar"
+                params={{ id }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+              >
+                <Edit3 className="h-4 w-4" /> Editar
+              </Link>
+
+              {owner.phone && (
+                <a
+                  href={"tel:" + owner.phone.replace(/\s+/g, "")}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                >
+                  <Phone className="h-4 w-4" /> Contactar
+                </a>
+              )}
+
+              <Link
+                to="/proprietarios/$id/documentos"
+                params={{ id }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+              >
+                <FileText className="h-4 w-4" /> Documentos
+              </Link>
+            </div>
+
+            {owner.notes && (
+              <div className="mt-5 rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400">Observações</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">{owner.notes}</p>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold">Veículos associados</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Veículos actualmente ligados a este proprietário.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+                {vehicles.length.toLocaleString("pt-MZ")} veículo(s)
+              </span>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {vehicles.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+                  Este proprietário ainda não possui veículos associados.
+                </div>
+              ) : (
+                vehicles.map((vehicle) => (
+                  <Link
+                    to="/veiculos/$id"
+                    params={{ id: vehicle.id }}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 hover:border-sky-200"
+                    key={vehicle.id}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Bike className="text-sky-600" />
+                      <div>
+                        <p className="font-semibold">
+                          {[vehicle.make, vehicle.model].filter(Boolean).join(" ") ||
+                            vehicleTypeLabel(vehicle.vehicle_type)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {vehicle.mobigest_number || "Sem número MobiGest"}
+                        </p>
+                      </div>
+                    </div>
+                    <Status vehicle={vehicle} />
+                  </Link>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+    </MobiGestShell>
+  );
+}
+
+function vehicleTypeLabel(type: string) {
+  if (type === "motorizada") return "Motorizada";
+  if (type === "carro") return "Carro";
+  if (type === "bicicleta") return "Bicicleta";
+  return "Veículo";
+}
+
+function Status({ vehicle }: { vehicle: Vehicle }) {
+  const label =
+    vehicle.commercial_status === "a_venda"
+      ? "À venda"
+      : vehicle.status === "activa"
+        ? "Activa"
+        : vehicle.status === "roubada"
+          ? "Roubada"
+          : vehicle.status === "apreendida"
+            ? "Apreendida"
+            : vehicle.status === "suspensa"
+              ? "Suspensa"
+              : "Cancelada";
+
+  const className =
+    label === "Activa"
+      ? "bg-emerald-50 text-emerald-700"
+      : label === "Roubada" || label === "Cancelada"
+        ? "bg-rose-50 text-rose-700"
+        : "bg-amber-50 text-amber-700";
+
+  return (
+    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
+      {label}
+    </span>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className="mt-1 break-words text-sm font-medium">{value}</p>
+    </div>
+  );
+}
 
 function PerfilRouteBoundary() {
-  return <RouteIndexBoundary pattern="/proprietarios/$id"><Perfil /></RouteIndexBoundary>;
+  return (
+    <RouteIndexBoundary pattern="/proprietarios/$id">
+      <Perfil />
+    </RouteIndexBoundary>
+  );
 }
