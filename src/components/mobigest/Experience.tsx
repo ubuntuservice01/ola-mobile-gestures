@@ -14,6 +14,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useRouterState } from "@tanstack/react-router";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,17 @@ export function LoadingButton({
   icon?: ReactNode;
 }) {
   const busy = state === "loading";
+  const [showBusyFeedback, setShowBusyFeedback] = useState(false);
+
+  useEffect(() => {
+    if (!busy) {
+      setShowBusyFeedback(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setShowBusyFeedback(true), 280);
+    return () => window.clearTimeout(timer);
+  }, [busy]);
 
   return (
     <button
@@ -69,7 +81,7 @@ export function LoadingButton({
         className
       }
     >
-      {state === "loading" ? (
+      {busy && showBusyFeedback ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
       ) : state === "success" ? (
         <Check className="h-4 w-4" aria-hidden="true" />
@@ -79,7 +91,7 @@ export function LoadingButton({
         icon
       )}
       <span>
-        {state === "loading"
+        {busy && showBusyFeedback
           ? loadingLabel
           : state === "success"
             ? successLabel
@@ -92,7 +104,15 @@ export function LoadingButton({
 }
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  return <div className="mobigest-page-enter">{children}</div>;
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
+  return (
+    <div key={pathname} className="mobigest-page-enter">
+      {children}
+    </div>
+  );
 }
 
 export function SkeletonCard() {
