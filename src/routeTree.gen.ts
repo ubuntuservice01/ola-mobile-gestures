@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AtivarContaRouteImport } from './routes/ativar-conta'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ConsultaRouteImport } from './routes/consulta'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -104,6 +105,11 @@ import { Route as SuperAdminMunicipiosIdAdministradorNovoRouteImport } from './r
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtivarContaRoute = AtivarContaRouteImport.update({
+  id: '/ativar-conta',
+  path: '/ativar-conta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditoriaRoute = AuditoriaRouteImport.update({
@@ -570,6 +576,7 @@ const SuperAdminMunicipiosIdAdministradorNovoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
@@ -663,6 +670,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
@@ -757,6 +765,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
@@ -852,6 +861,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
     | '/dashboard'
@@ -945,6 +955,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
     | '/dashboard'
@@ -1038,6 +1049,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
     | '/dashboard'
@@ -1132,6 +1144,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AtivarContaRoute: typeof AtivarContaRoute
   AuditoriaRoute: typeof AuditoriaRoute
   ConsultaRoute: typeof ConsultaRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
@@ -1166,6 +1179,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ativar-conta': {
+      id: '/ativar-conta'
+      path: '/ativar-conta'
+      fullPath: '/ativar-conta'
+      preLoaderRoute: typeof AtivarContaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auditoria': {
@@ -2177,6 +2197,7 @@ const VeiculosRouteWithChildren = VeiculosRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AtivarContaRoute: AtivarContaRoute,
   AuditoriaRoute: AuditoriaRoute,
   ConsultaRoute: ConsultaRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
