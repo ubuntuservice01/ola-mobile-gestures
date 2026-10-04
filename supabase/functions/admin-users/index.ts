@@ -249,28 +249,56 @@ Deno.serve(async (request) => {
   let body: Record<string, unknown>;
   try {
     body = await request.json();
-  } catch {
-    return response(request, 400, { error: "Pedido inválido." });
+  } catch (error) {
+    console.error("admin-users invalid JSON body", {
+      contentType: request.headers.get("content-type"),
+      contentLength: request.headers.get("content-length"),
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return response(request, 400, {
+      error: "Pedido inválido.",
+      code: "INVALID_JSON_BODY",
+    });
   }
 
-  const action = body.action;
+  const action = typeof body.action === "string" ? body.action.trim() : "";
 
   try {
     if (action === "create") {
       const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
       const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
       const phone = typeof body.phone === "string" ? body.phone.trim() || null : null;
-      const role = body.role;
+      const role = typeof body.role === "string" ? body.role.trim() : body.role;
       const municipalityId =
-        typeof body.municipalityId === "string" ? body.municipalityId : null;
+        typeof body.municipalityId === "string"
+          ? body.municipalityId.trim()
+          : typeof body.municipality_id === "string"
+            ? body.municipality_id.trim()
+            : null;
       const postId = typeof body.administrativePostId === "string"
-        ? body.administrativePostId || null
-        : null;
+        ? body.administrativePostId.trim() || null
+        : typeof body.administrative_post_id === "string"
+          ? body.administrative_post_id.trim() || null
+          : null;
       const accessSessionId =
-        typeof body.accessSessionId === "string" ? body.accessSessionId : null;
+        typeof body.accessSessionId === "string"
+          ? body.accessSessionId.trim() || null
+          : typeof body.access_session_id === "string"
+            ? body.access_session_id.trim() || null
+            : null;
 
       if (!email || !email.includes("@") || !fullName || !isRole(role) || !municipalityId) {
-        return response(request, 400, { error: "Dados obrigatórios do utilizador estão incompletos." });
+        console.error("admin-users invalid create payload", {
+          action,
+          hasEmail: Boolean(email && email.includes("@")),
+          hasFullName: Boolean(fullName),
+          role: typeof role === "string" ? role : typeof role,
+          hasMunicipalityId: Boolean(municipalityId),
+        });
+        return response(request, 400, {
+          error: "Dados obrigatórios do utilizador estão incompletos.",
+          code: "INVALID_CREATE_PAYLOAD",
+        });
       }
 
       if (!canManageTarget(actor, role, municipalityId)) {
