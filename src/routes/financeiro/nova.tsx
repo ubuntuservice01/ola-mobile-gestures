@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createCharge } from "../../lib/finance";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  notify,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/financeiro/nova")({
   head: () => ({
@@ -63,6 +71,7 @@ function Nova() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -120,7 +129,7 @@ function Nova() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const ownerVehicles = useMemo(
     () =>
@@ -183,6 +192,11 @@ function Nova() {
         note: note.trim() || null,
       });
 
+      notify.success(
+        "Cobrança criada",
+        "A cobrança municipal foi registada com sucesso.",
+      );
+
       await navigate({
         to: "/financeiro/$id",
         params: { id: created.charge_id },
@@ -190,11 +204,12 @@ function Nova() {
       });
     } catch (error) {
       console.error("Falha ao criar cobrança:", error);
-      setSaveError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível criar a cobrança.",
-      );
+          : "Não foi possível criar a cobrança.";
+      setSaveError(message);
+      notify.error("Não foi possível criar a cobrança", message);
     } finally {
       setSaving(false);
     }
@@ -228,16 +243,31 @@ function Nova() {
         </div>
 
         {loading ? (
-          <p className="mt-7 text-sm text-slate-500">
-            A carregar dados financeiros...
-          </p>
+          <div className="mt-7 grid gap-4 sm:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         ) : loadError ? (
-          <div className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="mt-7">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         ) : owners.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-            Não existem proprietários activos para associar à cobrança.
+          <div className="mt-7">
+            <EmptyState
+              title="Ainda não existem proprietários activos"
+              description="Registe primeiro um proprietário para poder gerar uma cobrança municipal."
+              action={
+                <Link
+                  to="/proprietarios/novo"
+                  className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Registar proprietário
+                </Link>
+              }
+            />
           </div>
         ) : (
           <div className="mt-7 grid gap-4">
@@ -365,18 +395,23 @@ function Nova() {
             )}
 
             <div className="flex justify-end">
-              <button
-                type="button"
-                disabled={!ownerId || !selectedFee || saving}
+              <LoadingButton
                 onClick={submit}
-                className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                {saving ? "A criar..." : "Criar cobrança"}
-              </button>
+                disabled={!ownerId || !selectedFee}
+                state={saving ? "loading" : "idle"}
+                idleLabel="Criar cobrança"
+                loadingLabel="A criar cobrança..."
+                className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+              />
             </div>
           </div>
         )}
       </Card>
+
+      <ProcessingOverlay
+        open={saving}
+        message="A criar a cobrança municipal..."
+      />
     </MobiGestShell>
   );
 }
