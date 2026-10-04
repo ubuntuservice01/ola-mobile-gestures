@@ -29,6 +29,10 @@ import {
 } from "../lib/municipal-access";
 import { supabase } from "../lib/supabase";
 import {
+  loadMunicipalityIdentity,
+  municipalityLogoUrl,
+} from "../lib/municipality-settings";
+import {
   loadRbac,
   permissionCodeSet,
   type RoleCode,
@@ -45,7 +49,7 @@ const items = [
   ["/financeiro", "Financeiro", Wallet, "finance.view"],
   ["/relatorios", "Relatórios", FileBarChart, "reports.view"],
   ["/utilizadores", "Utilizadores", Users, "users.view"],
-  ["/municipios", "Municípios", Building2, "municipalities.view"],
+  ["/meu-municipio", "Meu Município", Building2, "settings.view"],
   ["/postos-administrativos", "Postos administrativos", Building2, "settings.view"],
   ["/localidades", "Localidades / bairros", MapPin, "settings.view"],
   ["/definicoes", "Definições", Settings, "settings.view"],
@@ -73,6 +77,9 @@ export function MobiGestShell({
     new Set(),
   );
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
+  const [municipalBrandName, setMunicipalBrandName] = useState("Área municipal");
+  const [municipalLogoUrl, setMunicipalLogoUrl] = useState<string | null>(null);
+  const [municipalPrimaryColor, setMunicipalPrimaryColor] = useState("#0284C7");
 
   useEffect(() => {
     let active = true;
@@ -151,6 +158,26 @@ export function MobiGestShell({
       setProfileName(profileResult.data.full_name || "Utilizador");
       setProfileRole(roleLabel(profileResult.data.role));
 
+      try {
+        const municipalIdentity = await loadMunicipalityIdentity();
+        if (active && municipalIdentity) {
+          setMunicipalBrandName(
+            municipalIdentity.display_name || municipalIdentity.name,
+          );
+          setMunicipalLogoUrl(
+            municipalityLogoUrl(municipalIdentity.logo_path),
+          );
+          setMunicipalPrimaryColor(
+            municipalIdentity.primary_color || "#0284C7",
+          );
+          setProfileMunicipality(
+            municipalIdentity.display_name || municipalIdentity.name,
+          );
+        }
+      } catch (error) {
+        console.error("Falha ao carregar identidade visual municipal:", error);
+      }
+
       if (isRoleCode(profileResult.data.role)) {
         try {
           const rbac = await loadRbac();
@@ -215,7 +242,12 @@ export function MobiGestShell({
   const isSuperAdminAccess = Boolean(accessSession);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div
+      className="min-h-screen bg-slate-50 text-slate-900"
+      style={{
+        "--municipal-primary": municipalPrimaryColor,
+      } as React.CSSProperties}
+    >
       <aside
         className={
           "fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 text-white transition-transform lg:translate-x-0 " +
@@ -239,6 +271,39 @@ export function MobiGestShell({
             </button>
           </div>
 
+          <div className="border-b border-white/10 px-4 py-3">
+            <Link
+              to="/meu-municipio"
+              className="flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/10"
+            >
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10"
+                style={{ border: "1px solid " + municipalPrimaryColor }}
+              >
+                {municipalLogoUrl ? (
+                  <img
+                    src={municipalLogoUrl}
+                    alt=""
+                    className="h-full w-full object-contain bg-white p-1"
+                  />
+                ) : (
+                  <Building2
+                    className="h-5 w-5"
+                    style={{ color: municipalPrimaryColor }}
+                  />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                  Município
+                </p>
+                <p className="truncate text-sm font-semibold text-white">
+                  {municipalBrandName}
+                </p>
+              </div>
+            </Link>
+          </div>
+
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
             {items
               .filter(([, , , permission]) =>
@@ -254,7 +319,7 @@ export function MobiGestShell({
                 to={to}
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/dashboard" }}
-                activeProps={{ className: "bg-sky-600 text-white" }}
+                activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
@@ -274,7 +339,7 @@ export function MobiGestShell({
                 <Link
                   to="/permissoes"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-sky-600 text-white" }}
+                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <ShieldCheck className="h-4 w-4" />
@@ -289,7 +354,7 @@ export function MobiGestShell({
                 <Link
                   to="/auditoria"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-sky-600 text-white" }}
+                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white" }}
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
                   <FileText className="h-4 w-4" />
@@ -301,7 +366,10 @@ export function MobiGestShell({
 
           <div className="border-t border-white/10 p-4">
             <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500 text-xs font-bold">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: municipalPrimaryColor }}
+              >
                 {isSuperAdminAccess ? "SA" : initials(profileName)}
               </div>
               <div className="min-w-0 flex-1">
