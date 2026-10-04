@@ -427,13 +427,20 @@ export function MobiGestShell({
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div>
-              <p className="text-xs text-slate-400">
+            {!isSuperAdminAccess && municipalLogoUrl && (
+              <img
+                src={municipalLogoUrl}
+                alt=""
+                className="hidden h-9 w-9 rounded-lg border border-slate-200 bg-white object-contain p-1 sm:block"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="max-w-[52vw] truncate text-xs text-slate-400 sm:max-w-none">
                 {isSuperAdminAccess
                   ? "MobiGest · Acesso municipal do Super Admin"
-                  : "MobiGest"}
+                  : "MobiGest · " + municipalBrandName}
               </p>
-              <h1 className="font-semibold">{title}</h1>
+              <h1 className="truncate font-semibold">{title}</h1>
             </div>
           </div>
 
