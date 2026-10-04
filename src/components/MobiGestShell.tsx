@@ -28,22 +28,27 @@ import {
   type MunicipalAccessSession,
 } from "../lib/municipal-access";
 import { supabase } from "../lib/supabase";
+import {
+  loadRbac,
+  permissionSet,
+  type RoleCode,
+} from "../lib/permissions";
 
 const items = [
-  ["/dashboard", "Dashboard", LayoutDashboard],
-  ["/veiculos", "Veículos", Bike],
-  ["/proprietarios", "Proprietários", Users],
-  ["/taxistas", "Taxistas", UserRoundCheck],
-  ["/fiscalizacao", "Fiscalização", ShieldCheck],
-  ["/multas", "Multas", ReceiptText],
-  ["/registos", "Registos", ClipboardList],
-  ["/financeiro", "Financeiro", Wallet],
-  ["/relatorios", "Relatórios", FileBarChart],
-  ["/utilizadores", "Utilizadores", Users],
-  ["/municipios", "Municípios", Building2],
-  ["/postos-administrativos", "Postos administrativos", Building2],
-  ["/localidades", "Localidades / bairros", MapPin],
-  ["/definicoes", "Definições", Settings],
+  ["/dashboard", "Dashboard", LayoutDashboard, "dashboard.view"],
+  ["/veiculos", "Veículos", Bike, "vehicles.view"],
+  ["/proprietarios", "Proprietários", Users, "owners.view"],
+  ["/taxistas", "Taxistas", UserRoundCheck, "drivers.view"],
+  ["/fiscalizacao", "Fiscalização", ShieldCheck, "fiscalization.view"],
+  ["/multas", "Multas", ReceiptText, "fines.view"],
+  ["/registos", "Registos", ClipboardList, "registrations.view"],
+  ["/financeiro", "Financeiro", Wallet, "finance.view"],
+  ["/relatorios", "Relatórios", FileBarChart, "reports.view"],
+  ["/utilizadores", "Utilizadores", Users, "users.view"],
+  ["/municipios", "Municípios", Building2, "municipalities.view"],
+  ["/postos-administrativos", "Postos administrativos", Building2, "settings.view"],
+  ["/localidades", "Localidades / bairros", MapPin, "settings.view"],
+  ["/definicoes", "Definições", Settings, "settings.view"],
 ] as const;
 
 export function MobiGestShell({
@@ -64,6 +69,10 @@ export function MobiGestShell({
   const [profileRole, setProfileRole] = useState("Utilizador");
   const [profileMunicipality, setProfileMunicipality] = useState("Área municipal");
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [allowedPermissions, setAllowedPermissions] = useState<Set<string>>(
+    new Set(),
+  );
+  const [permissionsLoaded, setPermissionsLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -142,6 +151,22 @@ export function MobiGestShell({
       setProfileName(profileResult.data.full_name || "Utilizador");
       setProfileRole(roleLabel(profileResult.data.role));
 
+      if (isRoleCode(profileResult.data.role)) {
+        try {
+          const rbac = await loadRbac();
+          if (!active) return;
+          setAllowedPermissions(
+            permissionSet(rbac.rolePermissions, profileResult.data.role),
+          );
+        } catch (error) {
+          console.error("Falha ao carregar permissões do menu:", error);
+        } finally {
+          if (active) setPermissionsLoaded(true);
+        }
+      } else {
+        setPermissionsLoaded(true);
+      }
+
       if (profileResult.data.municipality_id) {
         const municipalityResult = await supabase
           .from("municipalities")
@@ -211,7 +236,15 @@ export function MobiGestShell({
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-            {items.map(([to, label, Icon]) => (
+            {items
+              .filter(([, , , permission]) =>
+                canShowMenuItem(
+                  permission,
+                  allowedPermissions,
+                  permissionsLoaded,
+                ),
+              )
+              .map(([to, label, Icon]) => (
               <Link
                 key={to}
                 to={to}
@@ -229,24 +262,36 @@ export function MobiGestShell({
               <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Sistema
               </p>
-              <Link
-                to="/permissoes"
-                onClick={() => setOpen(false)}
-                activeProps={{ className: "bg-sky-600 text-white" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                Permissões
-              </Link>
-              <Link
-                to="/auditoria"
-                onClick={() => setOpen(false)}
-                activeProps={{ className: "bg-sky-600 text-white" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
-              >
-                <FileText className="h-4 w-4" />
-                Auditoria
-              </Link>
+              {canShowMenuItem(
+                "users.view",
+                allowedPermissions,
+                permissionsLoaded,
+              ) && (
+                <Link
+                  to="/permissoes"
+                  onClick={() => setOpen(false)}
+                  activeProps={{ className: "bg-sky-600 text-white" }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Permissões
+                </Link>
+              )}
+              {canShowMenuItem(
+                "audit.view",
+                allowedPermissions,
+                permissionsLoaded,
+              ) && (
+                <Link
+                  to="/auditoria"
+                  onClick={() => setOpen(false)}
+                  activeProps={{ className: "bg-sky-600 text-white" }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                >
+                  <FileText className="h-4 w-4" />
+                  Auditoria
+                </Link>
+              )}
             </div>
           </nav>
 
@@ -383,6 +428,25 @@ export function MobiGestShell({
       </div>
     </div>
   );
+}
+
+function isRoleCode(role: string): role is RoleCode {
+  return [
+    "super_admin",
+    "admin_municipal",
+    "tecnico",
+    "fiscal",
+    "financeiro",
+  ].includes(role);
+}
+
+function canShowMenuItem(
+  permission: string,
+  allowedPermissions: Set<string>,
+  loaded: boolean,
+) {
+  if (!loaded) return permission === "dashboard.view";
+  return allowedPermissions.has(permission);
 }
 
 function roleLabel(role: string) {
