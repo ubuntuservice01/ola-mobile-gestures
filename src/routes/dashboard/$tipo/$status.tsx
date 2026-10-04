@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, BarChart3, Bike, CarFront, ChevronRight, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, Card } from "../../components/MobiGestShell";
-import { supabase } from "../../lib/supabase";
+import { MobiGestShell, Card } from "../../../components/MobiGestShell";
+import { supabase } from "../../../lib/supabase";
 
 export const Route = createFileRoute("/dashboard/$tipo/$status")({
   component: StatusDetailPage,
@@ -123,11 +123,15 @@ function StatusDetailPage() {
         return;
       }
 
-      const ownerMap = new Map(
-        (ownerResult.data ?? []).map((owner) => [owner.id, owner.full_name]),
+      const ownerMap = new Map<string, string>(
+        ((ownerResult.data ?? []) as Array<{ id: string; full_name: string }>).map(
+          (owner) => [owner.id, owner.full_name],
+        ),
       );
-      const postMap = new Map(
-        (postResult.data ?? []).map((post) => [post.id, post.name]),
+      const postMap = new Map<string, string>(
+        ((postResult.data ?? []) as Array<{ id: string; name: string }>).map(
+          (post) => [post.id, post.name],
+        ),
       );
 
       setPosts(postResult.data ?? []);
