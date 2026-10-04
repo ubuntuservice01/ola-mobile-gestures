@@ -24,7 +24,7 @@ create or replace function pg_temp.exists_function(
 returns boolean
 language sql
 stable
-as $
+as $$
   select exists (
     select 1
     from pg_catalog.pg_proc p
@@ -32,7 +32,7 @@ as $
     where n.nspname = p_schema
       and p.proname = p_name
   );
-$;
+$$;
 
 insert into mobigest_migration_audit (version, migration_file) values
 ('20260927000000','20260927000000_mobigest_initial_schema.sql'),
