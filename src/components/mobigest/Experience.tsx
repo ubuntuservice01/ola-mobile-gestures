@@ -435,6 +435,108 @@ export function AnimatedNumber({
   return <>{formatter(display)}</>;
 }
 
+export function ProgressSteps({
+  steps,
+}: {
+  steps: Array<{
+    label: string;
+    status: "complete" | "current" | "upcoming" | "error";
+    meta?: string;
+  }>;
+}) {
+  return (
+    <ol className="space-y-0">
+      {steps.map((step, index) => {
+        const complete = step.status === "complete";
+        const current = step.status === "current";
+        const error = step.status === "error";
+
+        return (
+          <li key={step.label} className="relative flex gap-4 pb-6 last:pb-0">
+            {index < steps.length - 1 && (
+              <span
+                className={
+                  "absolute left-[15px] top-8 h-[calc(100%-24px)] w-px " +
+                  (complete ? "bg-emerald-300" : "bg-slate-200")
+                }
+                aria-hidden="true"
+              />
+            )}
+            <span
+              className={
+                "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold " +
+                (complete
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : current
+                    ? "border-sky-600 bg-sky-600 text-white"
+                    : error
+                      ? "border-rose-200 bg-rose-50 text-rose-700"
+                      : "border-slate-200 bg-white text-slate-400")
+              }
+            >
+              {complete ? (
+                <Check className="h-4 w-4" />
+              ) : error ? (
+                <CircleAlert className="h-4 w-4" />
+              ) : (
+                index + 1
+              )}
+            </span>
+            <div className="min-w-0 pt-1">
+              <p
+                className={
+                  "text-sm font-semibold " +
+                  (current
+                    ? "text-sky-800"
+                    : error
+                      ? "text-rose-800"
+                      : "text-slate-800")
+                }
+              >
+                {step.label}
+              </p>
+              {step.meta && (
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  {step.meta}
+                </p>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function ProcessingOverlay({
+  open,
+  message,
+}: {
+  open: boolean;
+  message: string;
+}) {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/35 p-5 backdrop-blur-[2px]"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="mobigest-page-enter w-full max-w-sm rounded-2xl border border-white/60 bg-white p-6 text-center shadow-2xl">
+        <Loader2 className="mx-auto h-7 w-7 animate-spin text-sky-600" />
+        <p className="mt-4 text-sm font-semibold text-slate-900">
+          {message}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          Aguarde até a operação terminar.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export const notify = {
   success(message: string, description?: string) {
     toast.success(message, { description });
