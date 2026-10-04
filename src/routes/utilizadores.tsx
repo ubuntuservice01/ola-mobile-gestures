@@ -8,6 +8,7 @@ import { loadCurrentMunicipalAccess } from "../lib/municipal-access";
 import { supabase } from "../lib/supabase";
 import {
   EmptyState,
+  FilterChips,
   NetworkErrorState,
   PaginationBar,
   SkeletonTable,
@@ -196,6 +197,34 @@ function UsersPage() {
             </span>
           </div>
         </div>
+
+        <FilterChips
+          items={[
+            ...(roleFilter !== "todos"
+              ? [
+                  {
+                    id: "role",
+                    label: ROLE_LABELS[roleFilter] ?? roleFilter,
+                    onRemove: () => setRoleFilter("todos"),
+                  },
+                ]
+              : []),
+            ...(query.trim()
+              ? [
+                  {
+                    id: "query",
+                    label: "Pesquisa: " + query.trim(),
+                    onRemove: () => setQuery(""),
+                  },
+                ]
+              : []),
+          ]}
+          onClear={() => {
+            setQuery("");
+            setRoleFilter("todos");
+          }}
+        />
+
         {loading ? (
           <div className="p-4">
             <SkeletonTable rows={5} columns={4} />
