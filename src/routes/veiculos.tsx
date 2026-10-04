@@ -1,9 +1,17 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bike, CarFront, Eye, QrCode, Search } from "lucide-react";
+import { Bike, CarFront, Eye, QrCode, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import {
+  EmptyState,
+  IconTooltip,
+  NetworkErrorState,
+  SkeletonTable,
+  StatusBadge,
+} from "../components/mobigest/Experience";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
 
 export const Route = createFileRoute("/veiculos")({
   component: VeiculosRouteBoundary,
@@ -32,6 +40,8 @@ function Veiculos() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const debouncedQuery = useDebouncedValue(query, 350);
 
   useEffect(() => {
     let active = true;
@@ -126,7 +136,7 @@ function Veiculos() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const filtered = useMemo(
     () =>
@@ -144,12 +154,12 @@ function Veiculos() {
         const statusKey = displayStatusKey(row);
 
         return (
-          searchable.includes(query.trim().toLowerCase()) &&
+          searchable.includes(debouncedQuery.trim().toLowerCase()) &&
           (typeFilter === "todos" || row.vehicle_type === typeFilter) &&
           (statusFilter === "todos" || statusKey === statusFilter)
         );
       }),
-    [rows, query, typeFilter, statusFilter],
+    [rows, debouncedQuery, typeFilter, statusFilter],
   );
 
   return (
@@ -205,15 +215,67 @@ function Veiculos() {
           </select>
         </div>
 
+        {(typeFilter !== "todos" || statusFilter !== "todos" || query.trim()) && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+            <span className="text-xs font-medium text-slate-400">
+              {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            </span>
+            {typeFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setTypeFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {vehicleTypeLabel(typeFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {statusFilter !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter("todos")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                {statusLabel(statusFilter)}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Pesquisa: {query.trim()}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setTypeFilter("todos");
+                setStatusFilter("todos");
+              }}
+              className="text-xs font-semibold text-sky-700 hover:text-sky-800"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+
         {loadError && (
-          <div className="border-b border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {loadError}
+          <div className="border-b border-red-100 p-4">
+            <NetworkErrorState
+              message={loadError}
+              onRetry={() => setReloadKey((value) => value + 1)}
+            />
           </div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 {[
                   "MobiGest",
@@ -234,21 +296,52 @@ function Veiculos() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
-                    A carregar veículos...
+                  <td colSpan={7} className="p-4">
+                    <SkeletonTable rows={6} columns={7} />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
-                    {rows.length === 0
-                      ? "Ainda não existem veículos registados."
-                      : "Nenhum veículo corresponde aos filtros."}
+                  <td colSpan={7}>
+                    <EmptyState
+                      title={
+                        rows.length === 0
+                          ? "Ainda não existem veículos registados"
+                          : "Nenhum veículo encontrado"
+                      }
+                      description={
+                        rows.length === 0
+                          ? "Registe o primeiro veículo para começar a construir a frota municipal."
+                          : "Tente alterar a pesquisa ou limpar os filtros aplicados."
+                      }
+                      action={
+                        rows.length === 0 ? (
+                          <Link
+                            to="/veiculos/novo"
+                            className="mobigest-button inline-flex rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                          >
+                            + Registar veículo
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuery("");
+                              setTypeFilter("todos");
+                              setStatusFilter("todos");
+                            }}
+                            className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                          >
+                            Limpar filtros
+                          </button>
+                        )
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
+                  <tr key={row.id} className="mobigest-table-row hover:bg-slate-50">
                     <td className="px-5 py-4 font-semibold text-sky-700">
                       {row.mobigest_number || "Aguardando aprovação"}
                     </td>
@@ -271,28 +364,32 @@ function Veiculos() {
                     <td className="px-5 py-4">{row.ownerName}</td>
                     <td className="px-5 py-4 text-slate-500">{row.postName}</td>
                     <td className="px-5 py-4">
-                      <Status row={row} />
+                      <StatusBadge status={displayStatusKey(row)} />
                     </td>
 
                     <td className="px-5 py-4">
                       <div className="flex gap-1">
-                        <Link
-                          to="/veiculos/$id"
-                          params={{ id: row.id }}
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                          title="Ver ficha"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                        {row.mobigest_number && (
+                        <IconTooltip label="Ver ficha">
                           <Link
-                            to="/imprimir/qr/$id"
+                            to="/veiculos/$id"
                             params={{ id: row.id }}
                             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                            title="QR Code"
+                            aria-label="Ver ficha do veículo"
                           >
-                            <QrCode className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Link>
+                        </IconTooltip>
+                        {row.mobigest_number && (
+                          <IconTooltip label="Abrir QR Code">
+                            <Link
+                              to="/imprimir/qr/$id"
+                              params={{ id: row.id }}
+                              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                              aria-label="Abrir QR Code do veículo"
+                            >
+                              <QrCode className="h-4 w-4" />
+                            </Link>
+                          </IconTooltip>
                         )}
                       </div>
                     </td>
@@ -314,20 +411,7 @@ function vehicleTypeLabel(type: string) {
   return type;
 }
 
-function displayStatusKey(row: VehicleRow) {
-  if (
-    row.registrationStatus &&
-    ["pendente", "em_validacao", "correccao"].includes(row.registrationStatus)
-  ) {
-    return row.registrationStatus;
-  }
-
-  if (row.commercial_status === "a_venda") return "a_venda";
-  return row.status;
-}
-
-function Status({ row }: { row: VehicleRow }) {
-  const value = displayStatusKey(row);
+function statusLabel(value: string) {
   const labels: Record<string, string> = {
     pendente: "Pendente",
     em_validacao: "Em validação",
@@ -339,21 +423,19 @@ function Status({ row }: { row: VehicleRow }) {
     suspensa: "Suspensa",
     cancelada: "Cancelada",
   };
+  return labels[value] ?? value;
+}
 
-  const className =
-    value === "activa"
-      ? "bg-emerald-50 text-emerald-700"
-      : value === "roubada" || value === "cancelada"
-        ? "bg-red-50 text-red-700"
-        : value === "a_venda"
-          ? "bg-blue-50 text-blue-700"
-          : "bg-amber-50 text-amber-700";
+function displayStatusKey(row: VehicleRow) {
+  if (
+    row.registrationStatus &&
+    ["pendente", "em_validacao", "correccao"].includes(row.registrationStatus)
+  ) {
+    return row.registrationStatus;
+  }
 
-  return (
-    <span className={"rounded-full px-2.5 py-1 text-xs font-semibold " + className}>
-      {labels[value] ?? value}
-    </span>
-  );
+  if (row.commercial_status === "a_venda") return "a_venda";
+  return row.status;
 }
 
 function VeiculosRouteBoundary() {
