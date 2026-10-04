@@ -120,12 +120,20 @@ function UtilizadoresGlobais() {
       title="Utilizadores"
       subtitle="Gestão global das contas, perfis e vínculo aos municípios."
     >
-      <div className="mb-6">
-        <p className="text-sm text-slate-500">Administração global</p>
-        <h2 className="mt-1 text-2xl font-bold tracking-tight">Todos os utilizadores</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Esta lista apresenta apenas perfis reais registados no MobiGest.
-        </p>
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-sm text-slate-500">Administração global</p>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight">Todos os utilizadores</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Esta lista apresenta apenas perfis reais registados no MobiGest.
+          </p>
+        </div>
+        <Link
+          to="/super-admin/utilizadores/novo"
+          className="inline-flex w-fit items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+        >
+          Novo utilizador
+        </Link>
       </div>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
