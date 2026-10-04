@@ -466,3 +466,106 @@ begin
     );
   end loop;
 end $$;
+
+
+-- O contexto municipal também restringe as políticas que historicamente davam
+-- visão global directa ao Super Admin.
+drop policy if exists "municipalities_select_scoped" on public.municipalities;
+create policy "municipalities_select_scoped"
+on public.municipalities for select to authenticated
+using (
+  case
+    when (select private.is_super_admin()) then
+      (select private.current_super_admin_access_municipality()) is null
+      or id = (select private.current_super_admin_access_municipality())
+    else
+      id = (select private.current_municipality_id())
+  end
+);
+
+drop policy if exists "profiles_select_self_or_manager" on public.profiles;
+create policy "profiles_select_self_or_manager"
+on public.profiles for select to authenticated
+using (
+  id = (select auth.uid())
+  or (
+    (select private.is_super_admin())
+    and (
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    )
+  )
+  or (
+    (select private.current_role()) = 'admin_municipal'
+    and municipality_id = (select private.current_municipality_id())
+  )
+);
+
+drop policy if exists "licenses_select_scoped" on public.licenses;
+create policy "licenses_select_scoped"
+on public.licenses for select to authenticated
+using (
+  case
+    when (select private.is_super_admin()) then
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    else
+      municipality_id = (select private.current_municipality_id())
+      and (select private.authorize('settings.view'))
+  end
+);
+
+drop policy if exists "notifications_select_own" on public.notifications;
+create policy "notifications_select_own"
+on public.notifications for select to authenticated
+using (
+  recipient_user_id = (select auth.uid())
+  or (
+    (select private.is_super_admin())
+    and (
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    )
+  )
+);
+
+drop policy if exists "notifications_update_own" on public.notifications;
+create policy "notifications_update_own"
+on public.notifications for update to authenticated
+using (
+  recipient_user_id = (select auth.uid())
+  or (
+    (select private.is_super_admin())
+    and (
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    )
+  )
+)
+with check (
+  recipient_user_id = (select auth.uid())
+  or (
+    (select private.is_super_admin())
+    and (
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    )
+  )
+);
+
+drop policy if exists "audit_logs_select_scoped" on public.audit_logs;
+create policy "audit_logs_select_scoped"
+on public.audit_logs for select to authenticated
+using (
+  (
+    (select private.is_super_admin())
+    and (
+      (select private.current_super_admin_access_municipality()) is null
+      or municipality_id = (select private.current_super_admin_access_municipality())
+    )
+  )
+  or (
+    municipality_id = (select private.current_municipality_id())
+    and (select private.authorize('audit.view'))
+  )
+);
