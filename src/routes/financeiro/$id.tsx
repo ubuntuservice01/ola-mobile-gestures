@@ -1,69 +1,975 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ReceiptText, Printer } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowLeft,
+  CircleDollarSign,
+  FileText,
+  Printer,
+  ReceiptText,
+  RotateCcw,
+  Save,
+  ShieldCheck,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
-import { DemoNotice, StatusBadge, fmtDate, inputCls } from "../../components/financeiro/ui";
-import { applyExemption, changeStatus, municipalityName, useCharges, useFees } from "../../lib/financeiro/store";
-import { methodLabel, mt, serviceLabel, statusLabel, vehicleLabel, type ChargeStatus, type PaymentMethod } from "../../lib/financeiro/types";
+import {
+  applyChargeExemption,
+  refundCharge,
+  registerChargePayment,
+  setChargeStatus,
+  type PaymentMethod,
+} from "../../lib/finance";
+import { supabase } from "../../lib/supabase";
 
 export const Route = createFileRoute("/financeiro/$id")({
-  head: () => ({ meta: [{ title: "Detalhe da cobrança — MobiGest" }, { name: "description", content: "Pagamento, isenção e histórico da cobrança." }] }),
+  head: () => ({
+    meta: [
+      { title: "Detalhe da cobrança — MobiGest" },
+      {
+        name: "description",
+        content: "Pagamento, isenção, reembolso e histórico da cobrança.",
+      },
+    ],
+  }),
   component: Detalhe,
 });
 
+type Charge = {
+  id: string;
+  reference: string;
+  municipality_id: string;
+  fee_config_id: string | null;
+  registration_id: string | null;
+  owner_id: string | null;
+  vehicle_id: string | null;
+  service_type: string;
+  amount: number;
+  currency: string;
+  status: string;
+  exemption: boolean;
+  exemption_reason: string | null;
+  exemption_approved_by: string | null;
+  exemption_approved_at: string | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type Payment = {
+  id: string;
+  method: string;
+  amount: number;
+  reference: string | null;
+  receipt_number: string | null;
+  paid_at: string | null;
+  confirmed_by: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+type Refund = {
+  id: string;
+  reference: string;
+  amount: number;
+  reason: string;
+  refunded_at: string;
+  refunded_by: string | null;
+};
+
+type Fee = {
+  id: string;
+  code: string;
+  name: string;
+  amount: number;
+  exemption_allowed: boolean;
+};
+
 function Detalhe() {
   const { id } = Route.useParams();
-  const c = useCharges().find((x) => x.id === id);
-  const fee = useFees().find((f) => f.id === c?.feeId);
-  const [to, setTo] = useState<ChargeStatus>("pago");
+
+  const [charge, setCharge] = useState<Charge | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [refund, setRefund] = useState<Refund | null>(null);
+  const [fee, setFee] = useState<Fee | null>(null);
+  const [ownerName, setOwnerName] = useState("—");
+  const [vehicleLabel, setVehicleLabel] = useState("Sem veículo");
+  const [municipalityName, setMunicipalityName] = useState("Município");
+  const [creatorName, setCreatorName] = useState("—");
+  const [paymentUserName, setPaymentUserName] = useState("—");
+  const [exemptionUserName, setExemptionUserName] = useState("—");
+  const [refundUserName, setRefundUserName] = useState("—");
+  const [fine, setFine] = useState<{ id: string; reference: string } | null>(
+    null,
+  );
+  const [role, setRole] = useState<string | null>(null);
+
   const [method, setMethod] = useState<PaymentMethod>("numerario");
-  const [ref, setRef] = useState("");
-  const [note, setNote] = useState("");
-  const [reason, setReason] = useState("");
-  if (!c) return <MobiGestShell title="Cobrança"><Card className="p-10 text-center text-sm text-slate-500">Cobrança não encontrada neste município. <Link to="/financeiro" className="text-sky-600">Voltar</Link></Card></MobiGestShell>;
-  const open = c.status === "pendente" || c.status === "em_confirmacao";
-  const targets: ChargeStatus[] = open ? ["em_confirmacao", "pago", "cancelado"].filter((s) => s !== c.status) as ChargeStatus[] : c.status === "pago" ? ["reembolsado"] : [];
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+
+  const [workflowStatus, setWorkflowStatus] = useState<
+    "pendente" | "em_confirmacao" | "cancelado" | ""
+  >("");
+  const [workflowReason, setWorkflowReason] = useState("");
+
+  const [exemptionReason, setExemptionReason] = useState("");
+  const [exemptionNote, setExemptionNote] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [action, setAction] = useState<
+    "payment" | "status" | "exemption" | "refund" | null
+  >(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const chargeResult = await supabase
+        .from("charges")
+        .select(
+          "id, reference, municipality_id, fee_config_id, registration_id, owner_id, vehicle_id, service_type, amount, currency, status, exemption, exemption_reason, exemption_approved_by, exemption_approved_at, note, created_by, created_at, updated_at",
+        )
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!active) return;
+
+      if (chargeResult.error || !chargeResult.data) {
+        console.error("Falha ao carregar cobrança:", chargeResult.error);
+        setLoadError("Cobrança não encontrada ou fora do seu âmbito.");
+        setLoading(false);
+        return;
+      }
+
+      const current = chargeResult.data as Charge;
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const [
+        ownerResult,
+        vehicleResult,
+        municipalityResult,
+        feeResult,
+        paymentResult,
+        refundResult,
+        fineResult,
+        profileResult,
+      ] = await Promise.all([
+        current.owner_id
+          ? supabase
+              .from("owners")
+              .select("full_name")
+              .eq("id", current.owner_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        current.vehicle_id
+          ? supabase
+              .from("vehicles")
+              .select("mobigest_number, make, model, vehicle_type")
+              .eq("id", current.vehicle_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        supabase
+          .from("municipalities")
+          .select("name")
+          .eq("id", current.municipality_id)
+          .maybeSingle(),
+        current.fee_config_id
+          ? supabase
+              .from("fee_configs")
+              .select("id, code, name, amount, exemption_allowed")
+              .eq("id", current.fee_config_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        supabase
+          .from("payments")
+          .select(
+            "id, method, amount, reference, receipt_number, paid_at, confirmed_by, note, created_at",
+          )
+          .eq("charge_id", current.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("payment_refunds")
+          .select(
+            "id, reference, amount, reason, refunded_at, refunded_by",
+          )
+          .eq("charge_id", current.id)
+          .maybeSingle(),
+        supabase
+          .from("fines")
+          .select("id, reference")
+          .eq("charge_id", current.id)
+          .maybeSingle(),
+        user
+          ? supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", user.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      if (!active) return;
+
+      const error =
+        ownerResult.error ??
+        vehicleResult.error ??
+        municipalityResult.error ??
+        feeResult.error ??
+        paymentResult.error ??
+        refundResult.error ??
+        fineResult.error ??
+        profileResult.error;
+
+      if (error) {
+        console.error("Falha ao carregar relações financeiras:", error);
+        setLoadError(
+          "A cobrança foi encontrada, mas os dados relacionados não puderam ser carregados.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      const currentPayment = paymentResult.data as Payment | null;
+      const currentRefund = refundResult.data as Refund | null;
+
+      const profileIds = [
+        current.created_by,
+        currentPayment?.confirmed_by ?? null,
+        current.exemption_approved_by,
+        currentRefund?.refunded_by ?? null,
+      ].filter(Boolean) as string[];
+
+      const profilesResult = profileIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", [...new Set(profileIds)])
+        : { data: [], error: null };
+
+      if (!active) return;
+
+      if (profilesResult.error) {
+        console.error("Falha ao carregar responsáveis financeiros:", profilesResult.error);
+        setLoadError("Não foi possível carregar os responsáveis financeiros.");
+        setLoading(false);
+        return;
+      }
+
+      const profileMap = new Map(
+        (profilesResult.data ?? []).map((profile) => [
+          profile.id,
+          profile.full_name,
+        ]),
+      );
+
+      const vehicle = vehicleResult.data;
+
+      setCharge(current);
+      setPayment(currentPayment);
+      setRefund(currentRefund);
+      setFee(feeResult.data as Fee | null);
+      setOwnerName(ownerResult.data?.full_name ?? "Sem proprietário");
+      setMunicipalityName(municipalityResult.data?.name ?? "Município");
+      setVehicleLabel(
+        vehicle
+          ? (vehicle.mobigest_number ||
+              [vehicle.make, vehicle.model].filter(Boolean).join(" ") ||
+              vehicleTypeLabel(vehicle.vehicle_type))
+          : "Sem veículo",
+      );
+      setCreatorName(
+        current.created_by
+          ? profileMap.get(current.created_by) ?? "Utilizador"
+          : "—",
+      );
+      setPaymentUserName(
+        currentPayment?.confirmed_by
+          ? profileMap.get(currentPayment.confirmed_by) ?? "Utilizador"
+          : "—",
+      );
+      setExemptionUserName(
+        current.exemption_approved_by
+          ? profileMap.get(current.exemption_approved_by) ?? "Utilizador"
+          : "—",
+      );
+      setRefundUserName(
+        currentRefund?.refunded_by
+          ? profileMap.get(currentRefund.refunded_by) ?? "Utilizador"
+          : "—",
+      );
+      setFine(fineResult.data as { id: string; reference: string } | null);
+      setRole(profileResult.data?.role ?? null);
+
+      setWorkflowStatus("");
+      setWorkflowReason("");
+      setPaymentReference("");
+      setPaymentNote("");
+      setExemptionReason("");
+      setExemptionNote("");
+      setRefundReason("");
+      setLoading(false);
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [id, refreshToken]);
+
+  const canManage =
+    role === "super_admin" ||
+    role === "admin_municipal" ||
+    role === "financeiro";
+
+  const open =
+    charge?.status === "pendente" || charge?.status === "em_confirmacao";
+
+  const workflowTargets = useMemo(() => {
+    if (!charge || !open) return [];
+
+    return (["pendente", "em_confirmacao", "cancelado"] as const).filter(
+      (status) => status !== charge.status,
+    );
+  }, [charge, open]);
+
+  const registerPayment = async () => {
+    if (!charge || action) return;
+
+    setAction("payment");
+    setActionError(null);
+    setMessage(null);
+
+    try {
+      const result = await registerChargePayment({
+        chargeId: charge.id,
+        method,
+        reference: paymentReference.trim() || null,
+        note: paymentNote.trim() || null,
+      });
+
+      setMessage(
+        "Pagamento confirmado. Recibo " + result.receipt_number + " emitido.",
+      );
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao registar pagamento:", error);
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível registar o pagamento.",
+      );
+    } finally {
+      setAction(null);
+    }
+  };
+
+  const changeWorkflowStatus = async () => {
+    if (
+      !charge ||
+      !workflowStatus ||
+      workflowReason.trim().length < 4 ||
+      action
+    ) {
+      return;
+    }
+
+    setAction("status");
+    setActionError(null);
+    setMessage(null);
+
+    try {
+      await setChargeStatus({
+        chargeId: charge.id,
+        status: workflowStatus,
+        reason: workflowReason.trim(),
+      });
+
+      setMessage("Estado da cobrança actualizado.");
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao alterar estado da cobrança:", error);
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível alterar o estado da cobrança.",
+      );
+    } finally {
+      setAction(null);
+    }
+  };
+
+  const exempt = async () => {
+    if (!charge || exemptionReason.trim().length < 4 || action) return;
+
+    setAction("exemption");
+    setActionError(null);
+    setMessage(null);
+
+    try {
+      await applyChargeExemption({
+        chargeId: charge.id,
+        reason: exemptionReason.trim(),
+        note: exemptionNote.trim() || null,
+      });
+
+      setMessage("Isenção aplicada e registada na auditoria.");
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao aplicar isenção:", error);
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível aplicar a isenção.",
+      );
+    } finally {
+      setAction(null);
+    }
+  };
+
+  const refundPayment = async () => {
+    if (!charge || refundReason.trim().length < 4 || action) return;
+
+    setAction("refund");
+    setActionError(null);
+    setMessage(null);
+
+    try {
+      const result = await refundCharge({
+        chargeId: charge.id,
+        reason: refundReason.trim(),
+      });
+
+      setMessage(
+        "Reembolso " + result.refund_reference + " registado com sucesso.",
+      );
+      setRefreshToken((value) => value + 1);
+    } catch (error) {
+      console.error("Falha ao reembolsar cobrança:", error);
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível registar o reembolso.",
+      );
+    } finally {
+      setAction(null);
+    }
+  };
+
   return (
     <MobiGestShell title="Detalhe da cobrança">
-      <Link to="/financeiro" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500"><ArrowLeft className="h-4 w-4" />Financeiro</Link>
-      <DemoNotice />
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <Card className="p-7">
-          <div className="flex items-center gap-4"><ReceiptText className="h-7 w-7 text-sky-600" /><div className="flex-1"><h2 className="text-xl font-bold">{c.reference}</h2><p className="text-sm text-slate-500">{municipalityName(c.municipalityId)}</p></div><StatusBadge s={c.status} /></div>
-          <div className="mt-7 space-y-3">
-            <Info l="Proprietário" v={c.ownerName} /><Info l="Veículo" v={`${c.vehicle} (${vehicleLabel[c.vehicleType]})`} />
-            <Info l="Serviço" v={serviceLabel[c.service]} /><Info l="Taxa aplicada" v={c.feeCode} />
-            <Info l="Valor aplicado" v={mt(c.appliedAmount)} />
-            {fee && fee.amount !== c.appliedAmount && <p className="text-xs text-amber-700">A taxa actual é {mt(fee.amount)}; esta cobrança mantém o valor original.</p>}
-            <Info l="Data da cobrança" v={fmtDate(c.createdAt)} /><Info l="Criada por" v={c.createdBy} />
-            {c.note && <Info l="Observação" v={c.note} />}
-            {c.payment && <><Info l="Método" v={methodLabel[c.payment.method]} /><Info l="Ref. pagamento" v={c.payment.reference || "—"} /><Info l="Pago em" v={fmtDate(c.payment.paidAt)} /><Info l="Responsável" v={c.payment.userName} /></>}
-            {c.exemption && <><Info l="Isenção" v={c.exemption.reason} /><Info l="Isento por" v={`${c.exemption.userName} · ${fmtDate(c.exemption.date)}`} /></>}
-          </div>
-          {c.status === "pago" && <Link to="/financeiro/recibo/$id" params={{ id: c.id }} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white"><Printer className="h-4 w-4" />Ver / imprimir recibo</Link>}
+      <Link
+        to="/financeiro"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Financeiro
+      </Link>
+
+      {loading ? (
+        <Card className="p-10 text-sm text-slate-500">
+          A carregar cobrança...
         </Card>
+      ) : loadError || !charge ? (
+        <Card className="p-10 text-sm font-medium text-red-700">
+          {loadError ?? "Cobrança não encontrada."}
+        </Card>
+      ) : (
         <div className="space-y-6">
-          {targets.length > 0 && <Card className="space-y-3 p-6">
-            <h3 className="font-semibold">Registar pagamento / alterar estado</h3>
-            <select className={inputCls} value={targets.includes(to) ? to : targets[0]} onChange={(e) => setTo(e.target.value as ChargeStatus)}>{targets.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}</select>
-            {(targets.includes(to) ? to : targets[0]) === "pago" && <><select className={inputCls} value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>{Object.entries(methodLabel).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select><input className={inputCls} placeholder="Referência do pagamento" value={ref} onChange={(e) => setRef(e.target.value)} /></>}
-            <textarea className={inputCls} placeholder="Observação" value={note} onChange={(e) => setNote(e.target.value)} />
-            <p className="text-xs text-slate-500">Responsável: Administrador</p>
-            <button onClick={() => { changeStatus(c.id, targets.includes(to) ? to : targets[0], { method, reference: ref, note }); setNote(""); setRef(""); }} className="w-full rounded-xl bg-sky-600 py-3 text-sm font-semibold text-white">Confirmar</button>
-          </Card>}
-          {open && fee?.allowsExemption && <Card className="space-y-3 p-6">
-            <h3 className="font-semibold">Aplicar isenção</h3>
-            <input className={inputCls} placeholder="Motivo da isenção (obrigatório)" value={reason} onChange={(e) => setReason(e.target.value)} />
-            <textarea className={inputCls} placeholder="Observação" value={note} onChange={(e) => setNote(e.target.value)} />
-            <button disabled={!reason.trim()} onClick={() => { applyExemption(c.id, reason.trim(), note); setReason(""); setNote(""); }} className="w-full rounded-xl border border-slate-200 py-3 text-sm font-semibold disabled:opacity-40">Aplicar isenção</button>
-          </Card>}
-          <Card className="p-6">
-            <h3 className="mb-4 font-semibold">Histórico</h3>
-            <ol className="space-y-4">{[...c.history].reverse().map((e, i) => <li key={i} className="border-l-2 border-sky-200 pl-4 text-sm"><p className="font-semibold">{e.action}</p><p className="text-xs text-slate-500">{fmtDate(e.at)} · {e.userName}{e.fromStatus && ` · ${statusLabel[e.fromStatus]} → ${statusLabel[e.toStatus!]}`}</p>{e.note && <p className="mt-1 text-xs text-slate-600">{e.note}</p>}</li>)}</ol>
-          </Card>
+          {actionError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+              {actionError}
+            </div>
+          )}
+
+          {message && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-700">
+              {message}
+            </div>
+          )}
+
+          <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
+            <Card className="p-7">
+              <div className="flex flex-wrap items-start gap-4">
+                <ReceiptText className="h-7 w-7 text-sky-600" />
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-2xl font-bold">{charge.reference}</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {municipalityName}
+                  </p>
+                </div>
+                <StatusBadge status={charge.status} />
+              </div>
+
+              <div className="mt-7 grid gap-4 sm:grid-cols-2">
+                <Info label="Proprietário" value={ownerName} />
+                <Info label="Veículo" value={vehicleLabel} />
+                <Info
+                  label="Serviço"
+                  value={
+                    fee?.name ??
+                    (charge.service_type.startsWith("multa:")
+                      ? "Multa · " + charge.service_type.slice(6)
+                      : charge.service_type)
+                  }
+                />
+                <Info
+                  label="Taxa"
+                  value={fee ? fee.code : "Cobrança automática"}
+                />
+                <Info
+                  label="Valor aplicado"
+                  value={formatMoney(charge.amount)}
+                />
+                <Info
+                  label="Data da cobrança"
+                  value={new Date(charge.created_at).toLocaleString("pt-MZ")}
+                />
+                <Info label="Criada por" value={creatorName} />
+                <Info
+                  label="Última actualização"
+                  value={new Date(charge.updated_at).toLocaleString("pt-MZ")}
+                />
+              </div>
+
+              {charge.note && (
+                <div className="mt-6 rounded-xl bg-slate-50 p-4">
+                  <p className="text-xs text-slate-400">Observação</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
+                    {charge.note}
+                  </p>
+                </div>
+              )}
+
+              {payment && (
+                <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                  <p className="text-sm font-semibold text-emerald-900">
+                    Pagamento confirmado
+                  </p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <Info
+                      label="Recibo"
+                      value={payment.receipt_number || "—"}
+                    />
+                    <Info
+                      label="Método"
+                      value={paymentMethodLabel(payment.method)}
+                    />
+                    <Info
+                      label="Referência"
+                      value={payment.reference || "—"}
+                    />
+                    <Info
+                      label="Valor"
+                      value={formatMoney(payment.amount)}
+                    />
+                    <Info
+                      label="Pago em"
+                      value={
+                        payment.paid_at
+                          ? new Date(payment.paid_at).toLocaleString("pt-MZ")
+                          : "—"
+                      }
+                    />
+                    <Info
+                      label="Confirmado por"
+                      value={paymentUserName}
+                    />
+                  </div>
+
+                  <Link
+                    to="/financeiro/recibo/$id"
+                    params={{ id: charge.id }}
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Ver / imprimir recibo
+                  </Link>
+                </div>
+              )}
+
+              {charge.exemption && (
+                <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50 p-5">
+                  <p className="text-sm font-semibold text-sky-900">
+                    Cobrança isenta
+                  </p>
+                  <p className="mt-2 text-sm text-sky-800">
+                    {charge.exemption_reason || "Sem motivo registado."}
+                  </p>
+                  <p className="mt-2 text-xs text-sky-700">
+                    Aprovada por {exemptionUserName}
+                    {charge.exemption_approved_at
+                      ? " · " +
+                        new Date(
+                          charge.exemption_approved_at,
+                        ).toLocaleString("pt-MZ")
+                      : ""}
+                  </p>
+                </div>
+              )}
+
+              {refund && (
+                <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-5">
+                  <p className="text-sm font-semibold text-rose-900">
+                    Reembolso {refund.reference}
+                  </p>
+                  <p className="mt-2 text-sm text-rose-800">
+                    {formatMoney(refund.amount)} · {refund.reason}
+                  </p>
+                  <p className="mt-2 text-xs text-rose-700">
+                    {new Date(refund.refunded_at).toLocaleString("pt-MZ")} ·{" "}
+                    {refundUserName}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                {charge.registration_id && (
+                  <Link
+                    to="/registos/$id"
+                    params={{ id: charge.registration_id }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Abrir processo
+                  </Link>
+                )}
+
+                {fine && (
+                  <Link
+                    to="/multas/$id"
+                    params={{ id: fine.id }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    Multa {fine.reference}
+                  </Link>
+                )}
+              </div>
+            </Card>
+
+            <div className="space-y-6">
+              {canManage && open && (
+                <Card className="p-6">
+                  <h3 className="font-semibold">Registar pagamento</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    O valor é integral e definido pela cobrança. A confirmação
+                    gera automaticamente um recibo REC-*.
+                  </p>
+
+                  <label className="mt-4 block text-sm font-medium">
+                    Método
+                    <select
+                      value={method}
+                      onChange={(event) =>
+                        setMethod(event.target.value as PaymentMethod)
+                      }
+                      className={inputClass}
+                    >
+                      <option value="numerario">Numerário</option>
+                      <option value="pos">POS</option>
+                      <option value="transferencia">Transferência</option>
+                      <option value="pagamento_movel">Pagamento móvel</option>
+                      <option value="outro">Outro</option>
+                    </select>
+                  </label>
+
+                  <label className="mt-3 block text-sm font-medium">
+                    Referência do pagamento
+                    <input
+                      value={paymentReference}
+                      onChange={(event) =>
+                        setPaymentReference(event.target.value)
+                      }
+                      className={inputClass}
+                      placeholder="Talão, operação, transacção..."
+                    />
+                  </label>
+
+                  <label className="mt-3 block text-sm font-medium">
+                    Observação
+                    <textarea
+                      value={paymentNote}
+                      onChange={(event) => setPaymentNote(event.target.value)}
+                      rows={3}
+                      className={inputClass}
+                    />
+                  </label>
+
+                  <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 p-4 text-sm">
+                    <span className="text-slate-500">Valor a confirmar</span>
+                    <b>{formatMoney(charge.amount)}</b>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={Boolean(action)}
+                    onClick={registerPayment}
+                    className="mt-4 w-full rounded-xl bg-sky-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
+                  >
+                    {action === "payment"
+                      ? "A confirmar..."
+                      : "Confirmar pagamento"}
+                  </button>
+                </Card>
+              )}
+
+              {canManage && open && workflowTargets.length > 0 && (
+                <Card className="p-6">
+                  <h3 className="font-semibold">Fluxo da cobrança</h3>
+
+                  <label className="mt-4 block text-sm font-medium">
+                    Novo estado
+                    <select
+                      value={workflowStatus}
+                      onChange={(event) =>
+                        setWorkflowStatus(
+                          event.target.value as
+                            | "pendente"
+                            | "em_confirmacao"
+                            | "cancelado"
+                            | "",
+                        )
+                      }
+                      className={inputClass}
+                    >
+                      <option value="">Seleccione</option>
+                      {workflowTargets.map((status) => (
+                        <option key={status} value={status}>
+                          {statusLabel(status)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="mt-3 block text-sm font-medium">
+                    Motivo *
+                    <textarea
+                      value={workflowReason}
+                      onChange={(event) =>
+                        setWorkflowReason(event.target.value)
+                      }
+                      rows={3}
+                      className={inputClass}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    disabled={
+                      !workflowStatus ||
+                      workflowReason.trim().length < 4 ||
+                      Boolean(action)
+                    }
+                    onClick={changeWorkflowStatus}
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 text-sm font-semibold disabled:opacity-40"
+                  >
+                    <Save className="h-4 w-4" />
+                    {action === "status"
+                      ? "A guardar..."
+                      : "Guardar estado"}
+                  </button>
+                </Card>
+              )}
+
+              {canManage &&
+                open &&
+                fee?.exemption_allowed &&
+                !fine && (
+                  <Card className="p-6">
+                    <h3 className="font-semibold">Aplicar isenção</h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Esta taxa permite isenção. O motivo é obrigatório.
+                    </p>
+
+                    <label className="mt-4 block text-sm font-medium">
+                      Motivo *
+                      <input
+                        value={exemptionReason}
+                        onChange={(event) =>
+                          setExemptionReason(event.target.value)
+                        }
+                        className={inputClass}
+                      />
+                    </label>
+
+                    <label className="mt-3 block text-sm font-medium">
+                      Observação
+                      <textarea
+                        value={exemptionNote}
+                        onChange={(event) =>
+                          setExemptionNote(event.target.value)
+                        }
+                        rows={3}
+                        className={inputClass}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      disabled={
+                        exemptionReason.trim().length < 4 ||
+                        Boolean(action)
+                      }
+                      onClick={exempt}
+                      className="mt-4 w-full rounded-xl border border-sky-200 bg-sky-50 py-3 text-sm font-semibold text-sky-700 disabled:opacity-40"
+                    >
+                      {action === "exemption"
+                        ? "A aplicar..."
+                        : "Aplicar isenção"}
+                    </button>
+                  </Card>
+                )}
+
+              {canManage && charge.status === "pago" && payment && (
+                <Card className="p-6">
+                  <h3 className="font-semibold">Reembolso</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    O reembolso preserva o pagamento original e cria um registo
+                    RMB-* separado.
+                  </p>
+
+                  <label className="mt-4 block text-sm font-medium">
+                    Motivo *
+                    <textarea
+                      value={refundReason}
+                      onChange={(event) =>
+                        setRefundReason(event.target.value)
+                      }
+                      rows={3}
+                      className={inputClass}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    disabled={
+                      refundReason.trim().length < 4 || Boolean(action)
+                    }
+                    onClick={refundPayment}
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-semibold text-rose-700 disabled:opacity-40"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    {action === "refund"
+                      ? "A reembolsar..."
+                      : "Registar reembolso"}
+                  </button>
+                </Card>
+              )}
+
+              <Card className="p-6">
+                <CircleDollarSign className="h-5 w-5 text-sky-600" />
+                <h3 className="mt-3 font-semibold">Resumo financeiro</h3>
+                <div className="mt-4 space-y-3">
+                  <Line
+                    label="Valor"
+                    value={formatMoney(charge.amount)}
+                  />
+                  <Line label="Estado" value={statusLabel(charge.status)} />
+                  <Line
+                    label="Pagamento"
+                    value={payment?.receipt_number || "Não confirmado"}
+                  />
+                  <Line
+                    label="Reembolso"
+                    value={refund?.reference || "Não aplicável"}
+                  />
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </MobiGestShell>
   );
 }
-function Info({ l, v }: { l: string; v: string }) { return <div className="flex justify-between gap-4 border-b border-slate-100 pb-3 text-sm"><span className="text-slate-500">{l}</span><b className="text-right">{v}</b></div>; }
+
+const inputClass =
+  "mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2";
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-4">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function Line({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-slate-100 pb-3 text-sm last:border-0 last:pb-0">
+      <span className="text-slate-500">{label}</span>
+      <b className="text-right">{value}</b>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const className =
+    status === "pago"
+      ? "bg-emerald-50 text-emerald-700"
+      : status === "isento"
+        ? "bg-sky-50 text-sky-700"
+        : status === "cancelado" || status === "reembolsado"
+          ? "bg-rose-50 text-rose-700"
+          : "bg-amber-50 text-amber-700";
+
+  return (
+    <span className={"rounded-full px-3 py-1.5 text-xs font-semibold " + className}>
+      {statusLabel(status)}
+    </span>
+  );
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pendente: "Pendente",
+    em_confirmacao: "Em confirmação",
+    pago: "Pago",
+    cancelado: "Cancelado",
+    reembolsado: "Reembolsado",
+    isento: "Isento",
+  };
+  return labels[status] ?? status;
+}
+
+function paymentMethodLabel(method: string) {
+  const labels: Record<string, string> = {
+    numerario: "Numerário",
+    pos: "POS",
+    transferencia: "Transferência",
+    pagamento_movel: "Pagamento móvel",
+    outro: "Outro",
+  };
+  return labels[method] ?? method;
+}
+
+function vehicleTypeLabel(type: string) {
+  if (type === "motorizada") return "Motorizada";
+  if (type === "carro") return "Carro";
+  if (type === "bicicleta") return "Bicicleta";
+  return type;
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("pt-MZ", {
+    style: "currency",
+    currency: "MZN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
+}
