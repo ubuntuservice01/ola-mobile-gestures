@@ -709,7 +709,10 @@ begin
     raise exception 'Sem permissão para decidir este processo';
   end if;
 
-  if v_registration.status not in ('pendente','em_validacao','correccao') then
+  if v_registration.status not in ('pendente','em_validacao') then
+    if v_registration.status = 'correccao' then
+      raise exception 'O processo está em correcção e deve ser reenviado antes de nova decisão';
+    end if;
     raise exception 'Este processo já possui uma decisão final';
   end if;
 
