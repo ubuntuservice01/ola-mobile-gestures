@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { RequireAuth } from "../components/RequireAuth";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -87,6 +88,13 @@ function RootComponent() {
       <RequireAuth>
         <Outlet />
       </RequireAuth>
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        visibleToasts={3}
+        duration={4000}
+      />
     </QueryClientProvider>
   );
 }
