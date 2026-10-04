@@ -284,6 +284,22 @@ const statusStyles: Record<string, { label: string; className: string }> = {
     label: "Não apresentado",
     className: "border-slate-300 bg-slate-100 text-slate-600",
   },
+  regular: {
+    label: "Regular",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  irregular: {
+    label: "Irregular",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  nao_localizado: {
+    label: "Não localizado",
+    className: "border-slate-300 bg-slate-100 text-slate-600",
+  },
+  outro: {
+    label: "Outro",
+    className: "border-slate-300 bg-slate-100 text-slate-600",
+  },
   configuracao: {
     label: "Em configuração",
     className: "border-sky-200 bg-sky-50 text-sky-700",
