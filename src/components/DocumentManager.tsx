@@ -15,6 +15,14 @@ import {
 } from "../lib/documents";
 import { supabase } from "../lib/supabase";
 import { Card } from "./MobiGestShell";
+import {
+  EmptyState,
+  LoadingButton,
+  SkeletonTable,
+  StatusBadge,
+  notify,
+} from "./mobigest/Experience";
+import { formatDate } from "../lib/format";
 
 type DocumentRow = {
   id: string;
@@ -208,14 +216,16 @@ export function DocumentManager({
       setExpiresAt("");
       setCustomType("");
       setMessage("Documento carregado e enviado para validação.");
+      notify.success("Documento carregado", "O ficheiro foi enviado para validação.");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha no upload documental:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível carregar o documento.",
-      );
+          : "Não foi possível carregar o documento.";
+      setErrorMessage(message);
+      notify.error("Não foi possível carregar o documento", message);
     } finally {
       setUploading(false);
     }
@@ -256,6 +266,7 @@ export function DocumentManager({
         status: "validado",
       });
       setMessage("Documento validado.");
+      notify.success("Documento validado");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao validar documento:", error);
@@ -285,6 +296,7 @@ export function DocumentManager({
       setRejectingId(null);
       setRejectReason("");
       setMessage("Documento rejeitado com fundamentação.");
+      notify.info("Documento rejeitado", "A fundamentação ficou registada.");
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao rejeitar documento:", error);
@@ -308,8 +320,8 @@ export function DocumentManager({
       </div>
 
       {loading ? (
-        <div className="p-8 text-sm text-slate-500">
-          A carregar documentos...
+        <div className="p-4">
+          <SkeletonTable rows={4} columns={4} />
         </div>
       ) : (
         <>
@@ -394,15 +406,15 @@ export function DocumentManager({
               </div>
 
               <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  disabled={!file || !documentType || uploading}
+                <LoadingButton
                   onClick={submitUpload}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Upload className="h-4 w-4" />
-                  {uploading ? "A carregar..." : "Carregar documento"}
-                </button>
+                  disabled={!file || !documentType}
+                  state={uploading ? "loading" : "idle"}
+                  idleLabel="Carregar documento"
+                  loadingLabel="A carregar..."
+                  icon={<Upload className="h-4 w-4" />}
+                  className="bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40"
+                />
               </div>
             </div>
           )}
@@ -421,9 +433,10 @@ export function DocumentManager({
 
           <div className="divide-y divide-slate-100">
             {documents.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">
-                Ainda não existem documentos nesta entidade.
-              </div>
+              <EmptyState
+                title="Ainda não existem documentos"
+                description="Os documentos carregados nesta entidade aparecerão aqui com o respectivo estado de validação."
+              />
             ) : (
               documents.map((document) => {
                 const requirement = requirementMap.get(
@@ -445,9 +458,7 @@ export function DocumentManager({
                           {document.document_number || "Sem número"}
                           {document.expires_at
                             ? " · Validade: " +
-                              new Date(
-                                document.expires_at,
-                              ).toLocaleDateString("pt-MZ")
+                              formatDate(document.expires_at)
                             : ""}
                         </p>
                         {document.rejection_reason && (
@@ -457,7 +468,10 @@ export function DocumentManager({
                         )}
                       </div>
 
-                      <DocumentStatus status={document.status} />
+                      <StatusBadge
+                        status={document.status}
+                        label={documentStatusLabel(document.status)}
+                      />
 
                       <button
                         type="button"
@@ -549,7 +563,7 @@ export function DocumentManager({
   );
 }
 
-function DocumentStatus({ status }: { status: string }) {
+function documentStatusLabel(status: string) {
   const labels: Record<string, string> = {
     nao_apresentado: "Não apresentado",
     em_validacao: "Em validação",
@@ -557,19 +571,5 @@ function DocumentStatus({ status }: { status: string }) {
     rejeitado: "Rejeitado",
     expirado: "Expirado",
   };
-
-  const className =
-    status === "validado"
-      ? "bg-emerald-50 text-emerald-700"
-      : status === "rejeitado" || status === "expirado"
-        ? "bg-rose-50 text-rose-700"
-        : "bg-amber-50 text-amber-700";
-
-  return (
-    <span
-      className={"rounded-full px-3 py-1 text-xs font-semibold " + className}
-    >
-      {labels[status] ?? status}
-    </span>
-  );
+  return labels[status] ?? status;
 }
