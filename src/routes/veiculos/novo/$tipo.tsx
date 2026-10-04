@@ -151,8 +151,12 @@ function RegistoVeiculo() {
       setPosts(postRows);
       setLocalities((localitiesResult.data ?? []) as Locality[]);
 
-      if (!ownerId && ownerRows[0]) setOwnerId(ownerRows[0].id);
-      if (!postId && postRows[0]) setPostId(postRows[0].id);
+      if (ownerRows[0]) {
+        setOwnerId((current) => current || ownerRows[0].id);
+      }
+      if (postRows[0]) {
+        setPostId((current) => current || postRows[0].id);
+      }
 
       setLoading(false);
     };
