@@ -440,6 +440,20 @@ begin
     raise exception 'O veículo já se encontra neste estado';
   end if;
 
+  if v_vehicle.status = 'cancelada' then
+    raise exception 'Um veículo cancelado não pode mudar directamente para outro estado';
+  end if;
+
+  if v_vehicle.status = 'activa'
+     and p_status not in ('suspensa','roubada','apreendida','cancelada') then
+    raise exception 'Transição de estado não autorizada';
+  end if;
+
+  if v_vehicle.status in ('suspensa','roubada','apreendida')
+     and p_status not in ('activa','cancelada') then
+    raise exception 'Transição de estado não autorizada';
+  end if;
+
   update public.vehicles
   set status = p_status,
       updated_by = v_actor
@@ -524,6 +538,11 @@ begin
     raise exception 'O veículo já possui este estado comercial';
   end if;
 
+  if p_status = 'a_venda'
+     and v_vehicle.status <> 'activa' then
+    raise exception 'Apenas veículos activos podem ser marcados como à venda';
+  end if;
+
   update public.vehicles
   set commercial_status = p_status,
       updated_by = v_actor
@@ -591,6 +610,10 @@ begin
 
   if v_vehicle.current_owner_id is null then
     raise exception 'Veículo sem proprietário actual';
+  end if;
+
+  if v_vehicle.status <> 'activa' then
+    raise exception 'A transferência só pode ser iniciada para um veículo activo';
   end if;
 
   if v_vehicle.current_owner_id = p_new_owner_id then
