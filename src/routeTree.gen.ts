@@ -46,6 +46,7 @@ import { Route as FiscalizacaoHistoricoRouteImport } from './routes/fiscalizacao
 import { Route as FiscalizacaoNovaRouteImport } from './routes/fiscalizacao/nova'
 import { Route as LocalidadesIdRouteImport } from './routes/localidades/$id'
 import { Route as LocalidadesNovoRouteImport } from './routes/localidades/novo'
+import { Route as MultasIdRouteImport } from './routes/multas/$id'
 import { Route as MultasNovaRouteImport } from './routes/multas/nova'
 import { Route as MultasTiposRouteImport } from './routes/multas/tipos'
 import { Route as MunicipiosIdRouteImport } from './routes/municipios/$id'
@@ -284,6 +285,11 @@ const LocalidadesNovoRoute = LocalidadesNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
   getParentRoute: () => LocalidadesRoute,
+} as any)
+const MultasIdRoute = MultasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => MultasRoute,
 } as any)
 const MultasNovaRoute = MultasNovaRouteImport.update({
   id: '/nova',
@@ -600,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
   '/localidades/novo': typeof LocalidadesNovoRoute
+  '/multas/$id': typeof MultasIdRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
@@ -692,6 +699,7 @@ export interface FileRoutesByTo {
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
   '/localidades/novo': typeof LocalidadesNovoRoute
+  '/multas/$id': typeof MultasIdRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
@@ -785,6 +793,7 @@ export interface FileRoutesById {
   '/fiscalizacao/nova': typeof FiscalizacaoNovaRoute
   '/localidades/$id': typeof LocalidadesIdRoute
   '/localidades/novo': typeof LocalidadesNovoRoute
+  '/multas/$id': typeof MultasIdRoute
   '/multas/nova': typeof MultasNovaRoute
   '/multas/tipos': typeof MultasTiposRoute
   '/municipios/$id': typeof MunicipiosIdRoute
@@ -879,6 +888,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao/nova'
     | '/localidades/$id'
     | '/localidades/novo'
+    | '/multas/$id'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
@@ -971,6 +981,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao/nova'
     | '/localidades/$id'
     | '/localidades/novo'
+    | '/multas/$id'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
@@ -1063,6 +1074,7 @@ export interface FileRouteTypes {
     | '/fiscalizacao/nova'
     | '/localidades/$id'
     | '/localidades/novo'
+    | '/multas/$id'
     | '/multas/nova'
     | '/multas/tipos'
     | '/municipios/$id'
@@ -1407,6 +1419,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/localidades/novo'
       preLoaderRoute: typeof LocalidadesNovoRouteImport
       parentRoute: typeof LocalidadesRoute
+    }
+    '/multas/$id': {
+      id: '/multas/$id'
+      path: '/$id'
+      fullPath: '/multas/$id'
+      preLoaderRoute: typeof MultasIdRouteImport
+      parentRoute: typeof MultasRoute
     }
     '/multas/nova': {
       id: '/multas/nova'
@@ -1877,11 +1896,13 @@ const LocalidadesRouteWithChildren = LocalidadesRoute._addFileChildren(
 )
 
 interface MultasRouteChildren {
+  MultasIdRoute: typeof MultasIdRoute
   MultasNovaRoute: typeof MultasNovaRoute
   MultasTiposRoute: typeof MultasTiposRoute
 }
 
 const MultasRouteChildren: MultasRouteChildren = {
+  MultasIdRoute: MultasIdRoute,
   MultasNovaRoute: MultasNovaRoute,
   MultasTiposRoute: MultasTiposRoute,
 }
