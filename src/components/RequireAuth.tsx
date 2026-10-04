@@ -1,5 +1,11 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
+import {
+  defaultRouteForProfile,
+  isPathAllowedForProfile,
+  loadAccessProfile,
+  profileAccessProblem,
+} from "../lib/access-control";
 import { supabase } from "../lib/supabase";
 
 const PUBLIC_PATHS = ["/", "/login", "/recuperar-password", "/nova-password", "/consulta", "/q"];
@@ -15,8 +21,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    let redirecting = false;
 
-    const checkSession = async () => {
+    const redirectToLogin = (reason?: string) => {
+      redirecting = true;
+      const params = new URLSearchParams({ redirect: location.pathname });
+      if (reason) params.set("reason", reason);
+      window.location.replace(`/login?${params.toString()}`);
+    };
+
+    const checkSessionAndAccess = async () => {
       if (isPublicPath(location.pathname)) {
         if (active) {
           setAuthenticated(true);
@@ -25,12 +39,37 @@ export function RequireAuth({ children }: { children: ReactNode }) {
         return;
       }
 
-      const { data } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
       if (!active) return;
 
-      if (!data.session) {
-        window.location.replace(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+      if (error || !data.session) {
+        redirectToLogin();
+        return;
+      }
+
+      const profile = await loadAccessProfile(data.session.user.id);
+
+      if (!active) return;
+
+      const accessProblem = profileAccessProblem(profile);
+
+      if (accessProblem || !profile) {
+        redirecting = true;
+        await supabase.auth.signOut({ scope: "local" });
+        if (active) {
+          const params = new URLSearchParams({
+            redirect: location.pathname,
+            reason: accessProblem ?? "missing_profile",
+          });
+          window.location.replace(`/login?${params.toString()}`);
+        }
+        return;
+      }
+
+      if (!isPathAllowedForProfile(location.pathname, profile)) {
+        redirecting = true;
+        window.location.replace(defaultRouteForProfile(profile));
         return;
       }
 
@@ -38,20 +77,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
       setChecking(false);
     };
 
-    void checkSession();
+    void checkSessionAndAccess();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!active || isPublicPath(location.pathname)) return;
+      if (!active || redirecting || isPublicPath(location.pathname)) return;
 
       if (event === "SIGNED_OUT" || !session) {
-        window.location.replace(`/login?redirect=${encodeURIComponent(location.pathname)}`);
-        return;
+        redirectToLogin();
       }
-
-      setAuthenticated(true);
-      setChecking(false);
     });
 
     return () => {
