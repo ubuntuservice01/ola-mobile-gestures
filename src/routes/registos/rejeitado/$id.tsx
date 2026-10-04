@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { decideRegistration } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import {
+  ConfirmDialog,
+  LoadingButton,
+  NetworkErrorState,
+  ProcessingOverlay,
+  SkeletonCard,
+  notify,
+} from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/registos/rejeitado/$id")({
   component: DecisionPage,
@@ -28,6 +36,8 @@ function DecisionPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -94,7 +104,7 @@ function DecisionPage() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   const submit = async () => {
     if (!registration || observation.trim().length < 4 || submitting) return;
@@ -110,13 +120,15 @@ function DecisionPage() {
       });
 
       setCompleted(true);
+      notify.success(
+        "Processo rejeitado",
+        "A rejeição foi registada e associada ao histórico do processo.",
+      );
     } catch (error) {
       console.error("Falha ao registar decisão:", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível registar a decisão.",
-      );
+      const safeMessage = "Não foi possível registar a decisão.";
+      setActionError(safeMessage);
+      notify.error("Decisão não registada", safeMessage);
     } finally {
       setSubmitting(false);
     }
@@ -133,11 +145,16 @@ function DecisionPage() {
       </Link>
 
       {loading ? (
-        <Card className="p-10 text-sm text-slate-500">A carregar processo...</Card>
+        <div className="mx-auto max-w-3xl">
+          <SkeletonCard />
+        </div>
       ) : loadError || !registration ? (
-        <Card className="p-10 text-sm font-medium text-red-700">
-          {loadError ?? "Processo não encontrado."}
-        </Card>
+        <div className="mx-auto max-w-3xl">
+          <NetworkErrorState
+            message={loadError ?? "Processo não encontrado."}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
+        </div>
       ) : completed ? (
         <Card className="mx-auto max-w-3xl p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-600">
@@ -205,19 +222,40 @@ function DecisionPage() {
               >
                 Cancelar
               </Link>
-              <button
-                type="button"
-                disabled={observation.trim().length < 4 || submitting}
-                onClick={submit}
-                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {submitting ? "A processar..." : "Confirmar rejeição"}
-              </button>
+              <LoadingButton
+                onClick={() => setConfirmOpen(true)}
+                disabled={observation.trim().length < 4}
+                state={submitting ? "loading" : "idle"}
+                idleLabel="Confirmar rejeição"
+                loadingLabel="A rejeitar..."
+                icon={<Save className="h-4 w-4" />}
+                className="bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-40"
+              />
             </div>
           </Card>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open && !submitting) setConfirmOpen(false);
+        }}
+        title="Rejeitar este processo?"
+        description="O processo será encerrado como rejeitado com a fundamentação informada. O histórico e os documentos serão preservados."
+        confirmLabel="Confirmar rejeição"
+        destructive={true}
+        busy={submitting}
+        onConfirm={async () => {
+          await submit();
+          setConfirmOpen(false);
+        }}
+      />
+
+      <ProcessingOverlay
+        open={submitting}
+        message="A registar a rejeição do processo..."
+      />
     </MobiGestShell>
   );
 }
