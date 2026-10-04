@@ -174,3 +174,36 @@ Uma funcionalidade só pode ser marcada como concluída quando:
 - [x] CI executa `npm run audit-routes` antes do build.
 - [x] Auditoria automática reconhece 84 rotas e não encontrou links literais sem rota após as correcções.
 - [ ] Permanecem botões sem handler/submit; o CI lista-os como aviso para correcção sistemática.
+
+
+## Correcção estrutural de rotas aninhadas
+
+Problema identificado: o URL mudava para uma subrota, mas a rota-pai continuava a renderizar a sua própria página porque não existia um boundary/Outlet para os filhos.
+
+Correcções aplicadas:
+- [x] `/super-admin` → municípios, utilizadores, licenças, permissões, auditoria, relatórios, notificações, saúde e acesso municipal.
+- [x] `/super-admin/municipios` → novo município e detalhe.
+- [x] `/super-admin/municipios/$id` → editar e criar administrador municipal.
+- [x] `/super-admin/utilizadores` → novo utilizador e detalhe.
+- [x] `/super-admin/licencas` → novo, planos e detalhe.
+- [x] `/super-admin/permissoes` → detalhe por perfil.
+- [x] `/super-admin/acesso-municipal` → preparação de acesso por município.
+- [x] `/dashboard` → motorizadas, carros, bicicletas e detalhe por estado.
+- [x] `/veiculos` → novo veículo e detalhe.
+- [x] `/veiculos/novo` → formulário por tipo.
+- [x] `/veiculos/$id` → documentos, estado, histórico e transferência.
+- [x] `/proprietarios` → novo proprietário e detalhe.
+- [x] `/proprietarios/$id` → editar e documentos.
+- [x] `/fiscalizacao` → nova fiscalização e histórico.
+- [x] `/multas` → nova multa e tipos.
+- [x] `/registos` → detalhe, validação, aprovação, correcção e rejeição.
+- [x] `/utilizadores` → novo e detalhe.
+- [x] `/taxistas` → novo taxista.
+- [x] `/definicoes` → documentos, numeração e taxas.
+- [x] `/consulta` → consulta por código.
+- [x] `/localidades`, `/municipios` e `/postos-administrativos` → respectivos detalhes.
+- [x] `/financeiro` já possuía Outlet próprio e foi mantido.
+
+Protecção permanente:
+- [x] O CI agora falha quando uma rota-pai tem filhos mas não consegue renderizá-los.
+- [x] Dashboard global e municipal usam estado activo exacto no menu para não ficar seleccionado simultaneamente com uma subpágina.
