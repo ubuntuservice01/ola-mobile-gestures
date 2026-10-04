@@ -1,3 +1,4 @@
+import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -15,7 +16,7 @@ import { SuperAdminShell, SuperCard } from "../components/SuperAdminShell";
 import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/super-admin")({
-  component: SuperAdminDashboard,
+  component: SuperAdminDashboardRouteBoundary,
 });
 
 type MunicipalitySummary = {
@@ -362,4 +363,9 @@ function QuickLink({ to, icon, title, description }: { to: string; icon: React.R
       <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
     </Link>
   );
+}
+
+
+function SuperAdminDashboardRouteBoundary() {
+  return <RouteIndexBoundary pattern="/super-admin"><SuperAdminDashboard /></RouteIndexBoundary>;
 }
