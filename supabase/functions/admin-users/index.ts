@@ -77,6 +77,47 @@ function canManageTarget(actor: ActorProfile, targetRole: Role, municipalityId: 
   return false;
 }
 
+
+async function validateSuperAdminMunicipalSession(
+  admin: ReturnType<typeof createClient>,
+  actor: ActorProfile,
+  accessSessionId: string | null,
+  municipalityId: string | null,
+) {
+  if (actor.role !== "super_admin" || !accessSessionId) return;
+
+  if (!municipalityId) {
+    throw new Error("Município obrigatório no contexto municipal.");
+  }
+
+  const { data: session, error } = await admin
+    .from("municipal_access_sessions")
+    .select("id, municipality_id, mode, status, expires_at, ended_at")
+    .eq("id", accessSessionId)
+    .eq("super_admin_id", actor.id)
+    .maybeSingle();
+
+  if (error || !session) {
+    throw new Error("Sessão municipal não encontrada.");
+  }
+
+  if (
+    session.status !== "activa" ||
+    session.ended_at ||
+    new Date(session.expires_at).getTime() <= Date.now()
+  ) {
+    throw new Error("A sessão municipal expirou ou já foi encerrada.");
+  }
+
+  if (session.mode !== "assistencia") {
+    throw new Error("Esta operação exige uma sessão municipal em modo Assistência.");
+  }
+
+  if (session.municipality_id !== municipalityId) {
+    throw new Error("O município da operação não corresponde à sessão activa.");
+  }
+}
+
 async function validateTerritory(
   admin: ReturnType<typeof createClient>,
   municipalityId: string,
@@ -223,6 +264,8 @@ Deno.serve(async (request) => {
       const postId = typeof body.administrativePostId === "string"
         ? body.administrativePostId || null
         : null;
+      const accessSessionId =
+        typeof body.accessSessionId === "string" ? body.accessSessionId : null;
 
       if (!email || !email.includes("@") || !fullName || !isRole(role) || !municipalityId) {
         return response(request, 400, { error: "Dados obrigatórios do utilizador estão incompletos." });
@@ -232,6 +275,12 @@ Deno.serve(async (request) => {
         return response(request, 403, { error: "Não tem permissão para criar este perfil." });
       }
 
+      await validateSuperAdminMunicipalSession(
+        admin,
+        actor,
+        accessSessionId,
+        municipalityId,
+      );
       await validateTerritory(admin, municipalityId, postId);
 
       const siteUrl =
@@ -309,6 +358,8 @@ Deno.serve(async (request) => {
       const postId = typeof body.administrativePostId === "string"
         ? body.administrativePostId || null
         : null;
+      const accessSessionId =
+        typeof body.accessSessionId === "string" ? body.accessSessionId : null;
 
       if (!targetUserId || !fullName || !isRole(role) || !municipalityId) {
         return response(request, 400, { error: "Dados de actualização incompletos." });
@@ -331,6 +382,12 @@ Deno.serve(async (request) => {
         return response(request, 403, { error: "Não tem permissão para alterar este utilizador." });
       }
 
+      await validateSuperAdminMunicipalSession(
+        admin,
+        actor,
+        accessSessionId,
+        municipalityId,
+      );
       await validateTerritory(admin, municipalityId, postId);
 
       const oldValues = {
@@ -375,6 +432,8 @@ Deno.serve(async (request) => {
         typeof body.userId === "string" ? body.userId : "";
       const status = body.status;
       const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+      const accessSessionId =
+        typeof body.accessSessionId === "string" ? body.accessSessionId : null;
 
       if (!targetUserId || !isStatus(status) || reason.length < 4) {
         return response(request, 400, { error: "Estado ou motivo inválido." });
@@ -399,6 +458,13 @@ Deno.serve(async (request) => {
       if (!canManageTarget(actor, target.role, target.municipality_id)) {
         return response(request, 403, { error: "Não tem permissão para alterar este utilizador." });
       }
+
+      await validateSuperAdminMunicipalSession(
+        admin,
+        actor,
+        accessSessionId,
+        target.municipality_id,
+      );
 
       if (target.status === status) {
         return response(request, 400, { error: "O utilizador já possui este estado." });
