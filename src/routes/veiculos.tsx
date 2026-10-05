@@ -1,18 +1,35 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bike, CarFront, Eye, QrCode, Search, X } from "lucide-react";
+import {
+  Bike,
+  CarFront,
+  CircleCheck,
+  Eye,
+  QrCode,
+  Search,
+  ShieldAlert,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
   EmptyState,
   IconTooltip,
   NetworkErrorState,
   PaginationBar,
+  SkeletonCard,
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/veiculos")({
   component: VeiculosRouteBoundary,
@@ -181,12 +198,101 @@ function Veiculos() {
       title="Veículos"
       subtitle="Registo, consulta e acompanhamento da frota municipal."
     >
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Frota municipal"
         title="Veículos"
-        description="Motorizadas, carros e bicicletas visíveis no seu âmbito."
-        action="+ Registar veículo"
-        actionTo="/veiculos/novo"
+        description="Registo, estado e evolução da frota municipal por tipo e situação operacional."
+        icon={<CarFront />}
+        action={
+          <Link
+            to="/veiculos/novo"
+            className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+          >
+            + Registar veículo
+          </Link>
+        }
       />
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <AnalyticsKpiCard
+              label="Total de veículos"
+              value={rows.length}
+              icon={<CarFront />}
+              note="Frota visível"
+              emphasis
+            />
+            <AnalyticsKpiCard
+              label="Activos"
+              value={rows.filter((row) => displayStatusKey(row) === "activa").length}
+              icon={<CircleCheck />}
+              note="Em operação"
+            />
+            <AnalyticsKpiCard
+              label="Roubados"
+              value={rows.filter((row) => displayStatusKey(row) === "roubada").length}
+              icon={<ShieldAlert />}
+              note="Requer atenção"
+            />
+            <AnalyticsKpiCard
+              label="Apreendidos"
+              value={rows.filter((row) => displayStatusKey(row) === "apreendida").length}
+              icon={<ShieldAlert />}
+              note="Sob custódia"
+            />
+          </>
+        )}
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr_0.8fr]">
+        <AnalyticsChartCard
+          title="Novos veículos"
+          description="Evolução dos registos da frota nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart
+              data={vehicleMonthlySeries(rows)}
+              seriesLabel="Veículos"
+              emptyTitle="Ainda não existem veículos no período"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Por tipo"
+          description="Distribuição da frota municipal."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={vehicleTypeDistribution(rows)}
+              centerLabel="Veículos"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Por estado"
+          description="Situação operacional actual."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={vehicleStatusDistribution(rows)}
+              centerLabel="Estados"
+            />
+          )}
+        </AnalyticsChartCard>
+      </div>
 
       <Card>
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 md:flex-row">
@@ -424,6 +530,50 @@ function Veiculos() {
       </Card>
     </MobiGestShell>
   );
+}
+
+function vehicleMonthlySeries(rows: VehicleRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.created_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function vehicleTypeDistribution(rows: VehicleRow[]) {
+  return ["motorizada", "carro", "bicicleta"]
+    .map((type) => ({
+      name: vehicleTypeLabel(type),
+      value: rows.filter((row) => row.vehicle_type === type).length,
+    }))
+    .filter((item) => item.value > 0);
+}
+
+function vehicleStatusDistribution(rows: VehicleRow[]) {
+  const statuses = ["activa", "a_venda", "roubada", "apreendida", "suspensa", "cancelada"];
+  return statuses
+    .map((status) => ({
+      name: statusLabel(status),
+      value: rows.filter((row) => displayStatusKey(row) === status).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function vehicleTypeLabel(type: string) {
