@@ -241,9 +241,10 @@ function MobiGestHome() {
               Sistema Municipal de Gestão de Mobilidade
             </span>
           </div>
-          <span className="text-xs text-slate-500">
-            © 2026 MobiGest. Todos os direitos reservados.
-          </span>
+          <div className="text-right text-xs leading-5 text-slate-500">
+            <p>© 2026 MobiGest. Todos os direitos reservados.</p>
+            <p>Uma plataforma desenvolvida pela Ubuntu Service, Lda.</p>
+          </div>
         </div>
       </footer>
     </main>
