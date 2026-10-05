@@ -41,6 +41,11 @@ export function useSessionDraft<T>({
   const hydratedRef = useRef(false);
   const skipNextWriteRef = useRef(false);
   const [restored, setRestored] = useState(false);
+  const [hasStoredDraft, setHasStoredDraft] = useState(() =>
+    typeof window !== "undefined"
+      ? Boolean(window.sessionStorage.getItem(storageKey))
+      : false,
+  );
 
   restoreRef.current = restore;
   meaningfulRef.current = isMeaningful;
@@ -103,6 +108,7 @@ export function useSessionDraft<T>({
         data: value,
       };
       window.sessionStorage.setItem(storageKey, JSON.stringify(payload));
+      setHasStoredDraft(true);
     }, debounceMs);
 
     return () => window.clearTimeout(timer);
@@ -126,11 +132,13 @@ export function useSessionDraft<T>({
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(storageKey);
     }
+    setHasStoredDraft(false);
     setRestored(false);
   };
 
   return {
     restored,
+    hasStoredDraft,
     clearDraft,
     dismissRestored: () => setRestored(false),
   };
