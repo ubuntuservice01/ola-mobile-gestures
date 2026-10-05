@@ -1,9 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Pencil, Plus, Save, X } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../../components/MobiGestShell";
 import { createFeeConfig, updateFeeConfig } from "../../lib/finance";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  SkeletonTable,
+  StatusBadge,
+  notify,
+  type LoadingButtonState,
+} from "../../components/mobigest/Experience";
+import { formatDate, formatMoneyMt } from "../../lib/format";
 
 export const Route = createFileRoute("/definicoes/taxas")({
   head: () => ({
@@ -63,6 +73,7 @@ function Taxas() {
   const [edit, setEdit] = useState<FeeForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<LoadingButtonState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -137,6 +148,7 @@ function Taxas() {
     }
 
     setSaving(true);
+    setSaveState("loading");
     setErrorMessage(null);
     setMessage(null);
 
@@ -160,20 +172,26 @@ function Taxas() {
           ...payload,
         });
         setMessage("Taxa municipal actualizada.");
+        notify.success("Taxa actualizada", "A configuração municipal foi guardada.");
       } else {
         await createFeeConfig(payload);
         setMessage("Taxa municipal criada.");
+        notify.success("Taxa criada", "A nova taxa municipal já está disponível.");
       }
 
+      setSaveState("success");
       setEdit(null);
       setRefreshToken((value) => value + 1);
+      window.setTimeout(() => setSaveState("idle"), 1600);
     } catch (error) {
       console.error("Falha ao guardar taxa municipal:", error);
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível guardar a taxa municipal.",
-      );
+          : "Não foi possível guardar a taxa municipal.";
+      setErrorMessage(message);
+      setSaveState("error");
+      notify.error("Não foi possível guardar a taxa", message);
     } finally {
       setSaving(false);
     }
@@ -210,8 +228,11 @@ function Taxas() {
       </div>
 
       {errorMessage && !edit && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {errorMessage}
+        <div className="mb-4">
+          <NetworkErrorState
+            message={errorMessage}
+            onRetry={() => setRefreshToken((value) => value + 1)}
+          />
         </div>
       )}
 
@@ -222,7 +243,7 @@ function Taxas() {
       )}
 
       <Card className="overflow-x-auto">
-        <table className="w-full min-w-[950px] text-left text-sm">
+        <table className="mobigest-data-table w-full min-w-[950px] text-left text-sm">
           <thead className="bg-slate-50 text-xs text-slate-500">
             <tr>
               {[
@@ -245,19 +266,31 @@ function Taxas() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
-                  A carregar taxas...
+                <td colSpan={8} className="p-4">
+                  <SkeletonTable rows={5} columns={8} />
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
-                  Ainda não existem taxas municipais configuradas.
+                <td colSpan={8}>
+                  <EmptyState
+                    title="Ainda não existem taxas municipais"
+                    description="Crie a primeira taxa para começar a configurar cobranças e serviços do município."
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => setEdit(blankForm())}
+                        className="mobigest-button rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                      >
+                        Nova taxa
+                      </button>
+                    }
+                  />
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.id} className="border-t border-slate-100">
+                <tr key={row.id} className="mobigest-table-row border-t border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3 font-semibold">{row.code}</td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{row.name}</p>
@@ -269,29 +302,20 @@ function Taxas() {
                     {vehicleTypeLabel(row.vehicle_type)}
                   </td>
                   <td className="px-4 py-3 font-semibold">
-                    {formatMoney(row.amount)}
+                    {formatMoneyMt(row.amount)}
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    {new Date(row.valid_from).toLocaleDateString("pt-MZ")}
+                    {formatDate(row.valid_from)}
                     {" → "}
                     {row.valid_to
-                      ? new Date(row.valid_to).toLocaleDateString("pt-MZ")
+                      ? formatDate(row.valid_to)
                       : "sem fim"}
                   </td>
                   <td className="px-4 py-3">
                     {row.exemption_allowed ? "Permitida" : "Não permitida"}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={
-                        "rounded-full px-3 py-1 text-xs font-semibold " +
-                        (row.active
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-slate-100 text-slate-500")
-                      }
-                    >
-                      {row.active ? "Activa" : "Inactiva"}
-                    </span>
+                    <StatusBadge status={row.active ? "activa" : "inactiva"} />
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -312,10 +336,10 @@ function Taxas() {
 
       {edit && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          className="mobigest-drawer-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
           onClick={() => setEdit(null)}
         >
-          <Card className="max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
+          <Card className="mobigest-soft-pop max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
             <div
               onClick={(event) => event.stopPropagation()}
               className="grid gap-4 sm:grid-cols-2"
@@ -455,15 +479,16 @@ function Taxas() {
                 >
                   Cancelar
                 </button>
-                <button
-                  type="button"
+                <LoadingButton
+                  state={saveState}
                   disabled={saving}
                   onClick={save}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving ? "A guardar..." : "Guardar"}
-                </button>
+                  idleLabel="Guardar"
+                  loadingLabel="A guardar..."
+                  successLabel="Guardado"
+                  errorLabel="Tentar novamente"
+                  className="bg-sky-600 text-white hover:bg-sky-700"
+                />
               </div>
             </div>
           </Card>
@@ -474,7 +499,7 @@ function Taxas() {
 }
 
 const inputClass =
-  "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3";
+  "mobigest-input mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 
 function Field({
   label,
@@ -502,13 +527,4 @@ function vehicleTypeLabel(type: FeeRow["vehicle_type"]) {
   if (type === "carro") return "Carro";
   if (type === "bicicleta") return "Bicicleta";
   return "Todos";
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("pt-MZ", {
-    style: "currency",
-    currency: "MZN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
 }
