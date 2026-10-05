@@ -197,18 +197,22 @@ function DashboardPage() {
   }, [reloadKey]);
 
   return (
-    <MobiGestShell
-      title="Dashboard"
-      subtitle="Visão real da gestão de mobilidade do município actual."
-    >
-      <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm text-slate-500">Visão geral da gestão de mobilidade</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight">Resumo do município</h2>
+    <MobiGestShell title="Dashboard">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Visão geral
+          </p>
+          <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.03em] text-slate-950">
+            Resumo do município
+          </h2>
+          <p className="mt-1.5 text-sm leading-6 text-slate-500">
+            Indicadores actualizados da operação municipal de mobilidade.
+          </p>
         </div>
         <Link
           to="/veiculos/novo"
-          className="inline-flex w-fit items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+          className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-95"
         >
           <FilePlus2 className="h-4 w-4" />
           Registar veículo
@@ -226,12 +230,12 @@ function DashboardPage() {
 
       {loading ? (
         <>
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </section>
-          <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <SkeletonCard key={index} />
             ))}
@@ -239,7 +243,7 @@ function DashboardPage() {
         </>
       ) : (
         <>
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <TypeCard
               to="/dashboard/motorizadas"
               icon={<Bike />}
@@ -265,7 +269,7 @@ function DashboardPage() {
             />
           </section>
 
-          <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Metric
               icon={<Users />}
               label="Proprietários"
@@ -290,16 +294,20 @@ function DashboardPage() {
         </>
       )}
 
-      <Card className="mt-6 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+      <Card className="mt-5 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
           <div>
             <h3 className="font-semibold">Registos recentes</h3>
             <p className="mt-1 text-sm text-slate-500">
               Últimos processos visíveis no seu âmbito
             </p>
           </div>
-          <Link to="/registos" className="text-sm font-semibold text-sky-600">
+          <Link
+            to="/registos"
+            className="mobigest-interactive inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-[var(--municipal-primary)] hover:bg-slate-50"
+          >
             Ver todos
+            <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -327,7 +335,7 @@ function DashboardPage() {
                 key={item.id}
                 to="/registos/$id"
                 params={{ id: item.id }}
-                className="mobigest-table-row grid gap-2 px-6 py-4 hover:bg-slate-50 md:grid-cols-[1.1fr_1.4fr_1.2fr_0.8fr_auto] md:items-center"
+                className="mobigest-table-row grid gap-2 px-5 py-3.5 hover:bg-slate-50/80 sm:px-6 md:grid-cols-[1.1fr_1.4fr_1.2fr_0.8fr_auto] md:items-center"
               >
                 <div>
                   <p className="text-sm font-semibold">{item.number}</p>
@@ -367,16 +375,23 @@ function TypeCard({
   value: number;
 }) {
   return (
-    <Link to={to}>
-      <Card className="mobigest-card-interactive h-full p-5 hover:border-sky-200">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-          {icon}
-        </span>
-        <p className="mt-5 text-sm text-slate-500">{label}</p>
-        <p className="mt-1 text-2xl font-bold">
+    <Link to={to} className="group">
+      <Card className="mobigest-card-interactive h-full p-4 hover:border-slate-300">
+        <div className="flex items-start justify-between">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+            {icon}
+          </span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors group-hover:bg-slate-50 group-hover:text-slate-600">
+            <ChevronRight className="h-4 w-4" />
+          </span>
+        </div>
+        <p className="mt-4 text-[13px] font-medium text-slate-500">{label}</p>
+        <p className="mt-0.5 text-[28px] font-bold tracking-[-0.035em] text-slate-950">
           <AnimatedNumber value={value} />
         </p>
-        <p className="mt-2 text-xs font-semibold text-sky-600">Abrir dashboard</p>
+        <p className="mt-2 text-[11px] font-semibold text-[var(--municipal-primary)]">
+          Ver detalhe
+        </p>
       </Card>
     </Link>
   );
@@ -392,12 +407,15 @@ function Metric({
   value: number;
 }) {
   return (
-    <Card className="p-5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-        {icon}
-      </span>
-      <p className="mt-5 text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">
+    <Card className="h-full p-4">
+      <div className="flex items-start justify-between">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-slate-600 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+          {icon}
+        </span>
+        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+      </div>
+      <p className="mt-4 text-[13px] font-medium text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[28px] font-bold tracking-[-0.035em] text-slate-950">
         <AnimatedNumber value={value} />
       </p>
     </Card>
