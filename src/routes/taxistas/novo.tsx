@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createDriver, type DriverType } from "../../lib/drivers";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   LoadingButton,
   NetworkErrorState,
@@ -67,6 +68,53 @@ function NovoTaxista() {
     id: string;
     reference: string;
   } | null>(null);
+
+  const driverDraft = useSessionDraft({
+    key: "taxistas:novo",
+    value: {
+      driverType,
+      fullName,
+      documentType,
+      documentNumber,
+      nuit,
+      phone,
+      email,
+      birthDate,
+      address,
+      postId,
+      localityId,
+      vehicleId,
+    },
+    restore: (draft) => {
+      setDriverType(draft.driverType ?? "mototaxista");
+      setFullName(draft.fullName ?? "");
+      setDocumentType(draft.documentType ?? "BI");
+      setDocumentNumber(draft.documentNumber ?? "");
+      setNuit(draft.nuit ?? "");
+      setPhone(draft.phone ?? "");
+      setEmail(draft.email ?? "");
+      setBirthDate(draft.birthDate ?? "");
+      setAddress(draft.address ?? "");
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setVehicleId(draft.vehicleId ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !created,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.fullName?.trim() ||
+          draft.documentNumber?.trim() ||
+          draft.nuit?.trim() ||
+          draft.phone?.trim() ||
+          draft.email?.trim() ||
+          draft.birthDate ||
+          draft.address?.trim() ||
+          draft.postId ||
+          draft.localityId ||
+          draft.vehicleId,
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -158,6 +206,7 @@ function NovoTaxista() {
         vehicleId: vehicleId || null,
       });
 
+      driverDraft.clearDraft();
       setCreated({
         id: result.driver_id,
         reference: result.driver_reference,
