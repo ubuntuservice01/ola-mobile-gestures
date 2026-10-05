@@ -3,6 +3,8 @@ import { ArrowLeft, Building2, Save, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../../components/SuperAdminShell";
 import { supabase } from "../../../../lib/supabase";
+import { useSessionDraft } from "../../../../hooks/use-session-draft";
+import { notify } from "../../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/municipios/$id/editar")({
   component: EditarMunicipio,
@@ -38,6 +40,30 @@ function EditarMunicipio() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState<MunicipalityForm | null>(null);
+
+  const municipalityDraft = useSessionDraft({
+    key: "super-admin:municipios:" + id + ":editar",
+    value: form,
+    restore: (draft) => {
+      setForm(draft);
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => {
+      if (!baseline) {
+        return Boolean(
+          draft.name?.trim() ||
+            draft.code?.trim() ||
+            draft.province?.trim() ||
+            draft.area?.trim() ||
+            draft.phone?.trim() ||
+            draft.email?.trim() ||
+            draft.address?.trim(),
+        );
+      }
+      return JSON.stringify(draft) !== JSON.stringify(baseline);
+    },
+  });
 
   useEffect(() => {
     let active = true;
@@ -63,7 +89,7 @@ function EditarMunicipio() {
         return;
       }
 
-      setForm({
+      const serverValues: MunicipalityForm = {
         name: data.name ?? "",
         code: data.code ?? "",
         province: data.province ?? "",
@@ -72,7 +98,11 @@ function EditarMunicipio() {
         email: data.institutional_email ?? "",
         address: data.address ?? "",
         status: data.status ?? "",
-      });
+      };
+      setBaseline(serverValues);
+      if (!municipalityDraft.hasStoredDraft) {
+        setForm(serverValues);
+      }
       setLoading(false);
     };
 
@@ -122,6 +152,7 @@ function EditarMunicipio() {
       return;
     }
 
+    municipalityDraft.clearDraft();
     await navigate({
       to: "/super-admin/municipios/$id",
       params: { id },
