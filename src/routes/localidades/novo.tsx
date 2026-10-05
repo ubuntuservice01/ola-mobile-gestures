@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createLocality } from "../../lib/territory";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   EmptyState,
   LoadingButton,
@@ -36,6 +37,21 @@ function NovaLocalidade() {
   const [reloadKey, setReloadKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+
+  const localityDraft = useSessionDraft({
+    key: "localidades:novo",
+    value: { postId, name, code, type },
+    restore: (draft) => {
+      setPostId(draft.postId ?? "");
+      setName(draft.name ?? "");
+      setCode(draft.code ?? "");
+      setType(draft.type ?? "localidade");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdId,
+    isMeaningful: (draft) =>
+      Boolean(draft.postId || draft.name?.trim() || draft.code?.trim()),
+  });
 
   useEffect(() => {
     let active = true;
@@ -81,6 +97,7 @@ function NovaLocalidade() {
         code: code.trim() || null,
         type,
       });
+      localityDraft.clearDraft();
       setCreatedId(id);
       notify.success("Localidade criada");
     } catch (error) {
