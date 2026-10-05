@@ -3,6 +3,8 @@ import { ArrowLeft, Building2, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/municipios/novo")({
   component: NovoMunicipio,
@@ -25,6 +27,32 @@ function NovoMunicipio() {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedMunicipality | null>(null);
+
+  const municipalityDraft = useSessionDraft({
+    key: "super-admin:municipios:novo",
+    value: { name, code, province, area, phone, email, address },
+    restore: (draft) => {
+      setName(draft.name ?? "");
+      setCode(draft.code ?? "");
+      setProvince(draft.province ?? "");
+      setArea(draft.area ?? "");
+      setPhone(draft.phone ?? "");
+      setEmail(draft.email ?? "");
+      setAddress(draft.address ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !created,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.name?.trim() ||
+          draft.code?.trim() ||
+          draft.province?.trim() ||
+          draft.area?.trim() ||
+          draft.phone?.trim() ||
+          draft.email?.trim() ||
+          draft.address?.trim(),
+      ),
+  });
 
   const canSubmit =
     name.trim().length > 0 &&
