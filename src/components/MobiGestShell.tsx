@@ -320,7 +320,11 @@ export function MobiGestShell({
                 to={to}
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/dashboard" }}
-                activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
+                activeProps={{
+                  className:
+                    "bg-[var(--municipal-primary)] text-white shadow-lg shadow-slate-950/15 ring-1 ring-white/10 before:absolute before:-left-1 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white",
+                  "data-status": "active",
+                }}
                 className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
               >
                 <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -340,7 +344,11 @@ export function MobiGestShell({
                 <Link
                   to="/permissoes"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
+                  activeProps={{
+                  className:
+                    "bg-[var(--municipal-primary)] text-white shadow-lg shadow-slate-950/15 ring-1 ring-white/10 before:absolute before:-left-1 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white",
+                  "data-status": "active",
+                }}
                   className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
                 >
                   <ShieldCheck className="h-[18px] w-[18px] shrink-0" />
@@ -355,7 +363,11 @@ export function MobiGestShell({
                 <Link
                   to="/auditoria"
                   onClick={() => setOpen(false)}
-                  activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
+                  activeProps={{
+                  className:
+                    "bg-[var(--municipal-primary)] text-white shadow-lg shadow-slate-950/15 ring-1 ring-white/10 before:absolute before:-left-1 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white",
+                  "data-status": "active",
+                }}
                   className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
                 >
                   <FileText className="h-[18px] w-[18px] shrink-0" />
