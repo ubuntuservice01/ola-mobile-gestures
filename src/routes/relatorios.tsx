@@ -17,6 +17,7 @@ import {
 } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
+  AnimatedNumber,
   EmptyState,
   NetworkErrorState,
   SkeletonCard,
@@ -285,22 +286,23 @@ function Relatorios() {
             <Metric
               icon={<Bike />}
               title="Veículos"
-              value={formatNumberPt(row.vehicles_total)}
+              value={row.vehicles_total}
             />
             <Metric
               icon={<Users />}
               title="Proprietários"
-              value={formatNumberPt(row.owners_total)}
+              value={row.owners_total}
             />
             <Metric
               icon={<FileBarChart />}
               title="Registos no período"
-              value={formatNumberPt(row.registrations_period)}
+              value={row.registrations_period}
             />
             <Metric
               icon={<Wallet />}
               title="Receita confirmada"
-              value={formatMoneyMt(row.revenue_period)}
+              value={row.revenue_period}
+              money
             />
           </section>
 
@@ -311,37 +313,37 @@ function Relatorios() {
             <ReportCard
               icon={<Bike />}
               title="Motorizadas"
-              value={formatNumberPt(row.motorcycles_total)}
+              value={row.motorcycles_total}
             />
             <ReportCard
               icon={<CarFront />}
               title="Carros"
-              value={formatNumberPt(row.cars_total)}
+              value={row.cars_total}
             />
             <ReportCard
               icon={<Bike />}
               title="Bicicletas"
-              value={formatNumberPt(row.bicycles_total)}
+              value={row.bicycles_total}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Activos"
-              value={formatNumberPt(row.active_vehicles)}
+              value={row.active_vehicles}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Suspensos"
-              value={formatNumberPt(row.suspended_vehicles)}
+              value={row.suspended_vehicles}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Roubados"
-              value={formatNumberPt(row.stolen_vehicles)}
+              value={row.stolen_vehicles}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Apreendidos"
-              value={formatNumberPt(row.seized_vehicles)}
+              value={row.seized_vehicles}
             />
           </div>
 
@@ -352,24 +354,22 @@ function Relatorios() {
             <ReportCard
               icon={<FileBarChart />}
               title="Transferências"
-              value={formatNumberPt(row.transfers_period)}
+              value={row.transfers_period}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Fiscalizações"
-              value={formatNumberPt(row.fiscalizations_period)}
+              value={row.fiscalizations_period}
             />
             <ReportCard
               icon={<ShieldAlert />}
               title="Com ocorrência"
-              value={formatNumberPt(
-                row.irregular_fiscalizations_period,
-              )}
+              value={row.irregular_fiscalizations_period}
             />
             <ReportCard
               icon={<FileBarChart />}
               title="Multas"
-              value={formatNumberPt(row.fines_period)}
+              value={row.fines_period}
             />
           </div>
 
@@ -380,27 +380,29 @@ function Relatorios() {
             <ReportCard
               icon={<Wallet />}
               title="Receita paga"
-              value={formatMoneyMt(row.revenue_period)}
+              value={row.revenue_period}
+              money
             />
             <ReportCard
               icon={<Wallet />}
               title="Valor pendente"
-              value={formatMoneyMt(row.pending_amount)}
+              value={row.pending_amount}
+              money
             />
             <ReportCard
               icon={<Wallet />}
               title="Pagamentos confirmados"
-              value={formatNumberPt(row.payments_period)}
+              value={row.payments_period}
             />
             <ReportCard
               icon={<Wallet />}
               title="Isenções"
-              value={formatNumberPt(row.exemptions_period)}
+              value={row.exemptions_period}
             />
             <ReportCard
               icon={<Wallet />}
               title="Reembolsos"
-              value={formatNumberPt(row.refunds_period)}
+              value={row.refunds_period}
             />
           </div>
         </>
@@ -410,7 +412,7 @@ function Relatorios() {
 }
 
 const inputClass =
-  "h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500";
+  "mobigest-input h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 
 function csvCell(value: unknown) {
   let text =
@@ -427,10 +429,12 @@ function Metric({
   icon,
   title,
   value,
+  money = false,
 }: {
   icon: ReactNode;
   title: string;
-  value: string;
+  value: number;
+  money?: boolean;
 }) {
   return (
     <Card className="p-5">
@@ -438,7 +442,12 @@ function Metric({
         {icon}
       </div>
       <p className="mt-3 text-xs text-slate-400">{title}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-2xl font-bold">
+        <AnimatedNumber
+          value={value}
+          formatter={money ? formatMoneyMt : formatNumberPt}
+        />
+      </p>
     </Card>
   );
 }
@@ -447,16 +456,23 @@ function ReportCard({
   icon,
   title,
   value,
+  money = false,
 }: {
   icon: ReactNode;
   title: string;
-  value: string;
+  value: number;
+  money?: boolean;
 }) {
   return (
-    <Card className="p-5">
+    <Card className="mobigest-card-interactive p-5">
       <div className="text-sky-600">{icon}</div>
       <p className="mt-3 text-sm font-semibold">{title}</p>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
+      <p className="mt-2 text-2xl font-bold">
+        <AnimatedNumber
+          value={value}
+          formatter={money ? formatMoneyMt : formatNumberPt}
+        />
+      </p>
     </Card>
   );
 }
