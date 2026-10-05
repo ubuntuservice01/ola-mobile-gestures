@@ -77,6 +77,7 @@ export function LoadingButton({
     <button
       {...props}
       type={props.type ?? "button"}
+      onClick={props.onClick}
       disabled={disabled || busy}
       aria-busy={busy}
       className={
