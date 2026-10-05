@@ -152,6 +152,8 @@ html {
 
 body {
   min-width: 320px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -217,6 +219,29 @@ a:focus-visible,
 
 .mobigest-drawer-backdrop {
   animation: mobigest-fade-in var(--motion-panel) var(--ease-standard) both;
+}
+
+/* Compact, quiet navigation inspired by modern product dashboards. */
+.mobigest-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.25) transparent;
+}
+
+.mobigest-sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.mobigest-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobigest-sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(148 163 184 / 0.22);
+}
+
+.mobigest-sidebar-link {
+  letter-spacing: -0.01em;
 }
 
 .mobigest-sidebar-link svg {
@@ -342,8 +367,10 @@ a:focus-visible,
   animation: mobigest-soft-pop var(--motion-panel) var(--ease-standard) both;
 }
 
-.mobigest-card {
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+ .mobigest-card {
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.025),
+    0 0 0 1px rgb(255 255 255 / 0.35) inset;
   transition:
     border-color var(--motion-control) var(--ease-standard),
     box-shadow var(--motion-control) var(--ease-standard),
