@@ -50,7 +50,7 @@ function ErrorComponent({
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Não foi possível carregar</h1>
         <p className="mt-2 text-sm text-muted-foreground">Não foi possível concluir o carregamento. Pode tentar novamente sem sair desta página.</p>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="mobigest-button rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
+          <button onClick={() => { router.invalidate(); reset?.(); }} className="mobigest-button rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
           <a href="/" className="mobigest-button rounded-xl border border-input bg-background px-4 py-2.5 text-sm font-semibold text-foreground">Início</a>
         </div>
       </div>
