@@ -19,6 +19,8 @@ import {
   type ManagedUserRole,
 } from "../../../lib/admin-users";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/utilizadores/$id")({
   component: UtilizadorGlobal,
@@ -94,6 +96,35 @@ function UtilizadorGlobal() {
   const [changingStatus, setChangingStatus] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
 
+  const profileDraft = useSessionDraft({
+    key: "super-admin:utilizadores:" + id + ":editar",
+    value: { editing, fullName, phone, role, municipalityId, postId },
+    restore: (draft) => {
+      setEditing(Boolean(draft.editing));
+      setFullName(draft.fullName ?? "");
+      setPhone(draft.phone ?? "");
+      setRole(draft.role ?? "tecnico");
+      setMunicipalityId(draft.municipalityId ?? "");
+      setPostId(draft.postId ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => Boolean(draft.editing),
+  });
+
+  const statusDraft = useSessionDraft({
+    key: "super-admin:utilizadores:" + id + ":estado",
+    value: { pendingStatus, statusReason },
+    restore: (draft) => {
+      setPendingStatus(draft.pendingStatus ?? null);
+      setStatusReason(draft.statusReason ?? "");
+      if (draft.pendingStatus || draft.statusReason?.trim()) {
+        notify.info("Rascunho de alteração de estado recuperado.");
+      }
+    },
+    isMeaningful: (draft) =>
+      Boolean(draft.pendingStatus || draft.statusReason?.trim()),
+  });
+
   useEffect(() => {
     let active = true;
 
@@ -136,13 +167,15 @@ function UtilizadorGlobal() {
       setMunicipalities((municipalityResult.data ?? []) as Municipality[]);
       setPosts((postResult.data ?? []) as Post[]);
 
-      setFullName(profile.full_name);
-      setPhone(profile.phone ?? "");
-      if (profile.role !== "super_admin") {
-        setRole(profile.role as ManagedUserRole);
+      if (!profileDraft.hasStoredDraft) {
+        setFullName(profile.full_name);
+        setPhone(profile.phone ?? "");
+        if (profile.role !== "super_admin") {
+          setRole(profile.role as ManagedUserRole);
+        }
+        setMunicipalityId(profile.municipality_id ?? "");
+        setPostId(profile.administrative_post_id ?? "");
       }
-      setMunicipalityId(profile.municipality_id ?? "");
-      setPostId(profile.administrative_post_id ?? "");
 
       setLoading(false);
     };
@@ -193,6 +226,7 @@ function UtilizadorGlobal() {
         administrativePostId: postId || null,
       });
 
+      profileDraft.clearDraft();
       setEditing(false);
       setRefreshToken((value) => value + 1);
     } catch (error) {
@@ -220,6 +254,7 @@ function UtilizadorGlobal() {
         reason: statusReason.trim(),
       });
 
+      statusDraft.clearDraft();
       setPendingStatus(null);
       setStatusReason("");
       setRefreshToken((value) => value + 1);
@@ -253,7 +288,12 @@ function UtilizadorGlobal() {
             <button
               type="button"
               onClick={() => {
-                setEditing((value) => !value);
+                if (editing) {
+                  profileDraft.clearDraft();
+                  setEditing(false);
+                } else {
+                  setEditing(true);
+                }
                 setEditError(null);
               }}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
