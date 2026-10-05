@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { heroMobilityImage } from "../assets/hero-mobility";
 import {
   ArrowRight,
   Bike,
@@ -47,9 +48,45 @@ function MobiGestHome() {
       </header>
 
       <section id="inicio" className="overflow-hidden bg-slate-950">
-        <div className="mx-auto grid max-w-7xl lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="flex flex-col justify-center px-6 py-20 lg:px-10 lg:py-24">
-            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-300">
+        <div className="relative mx-auto max-w-7xl lg:min-h-[620px]">
+          <div className="absolute inset-y-0 right-0 hidden w-[68%] overflow-hidden lg:block">
+            <img
+              src={heroMobilityImage}
+              alt="Moto-taxistas em circulação urbana"
+              className="absolute inset-0 h-full w-full object-cover object-[62%_center]"
+              loading="eager"
+              decoding="async"
+            />
+
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,8,23,0.05),rgba(2,8,23,0.22))]" />
+
+            <div className="absolute inset-y-0 left-0 w-[58%] bg-[linear-gradient(90deg,#020817_0%,rgba(2,8,23,0.98)_24%,rgba(2,8,23,0.88)_40%,rgba(2,8,23,0.60)_58%,rgba(2,8,23,0.28)_76%,rgba(2,8,23,0.06)_92%,transparent_100%)]" />
+
+            <div className="absolute inset-x-0 bottom-0 h-44 bg-[linear-gradient(180deg,transparent_0%,rgba(2,8,23,0.18)_45%,rgba(2,8,23,0.45)_100%)]" />
+
+            <div className="absolute bottom-20 left-[20%] right-8 grid grid-cols-3 items-end gap-5">
+              <VehicleVisual
+                icon={<Bike className="h-14 w-14" />}
+                label="Motorizadas"
+              />
+              <VehicleVisual
+                icon={<CarFront className="h-20 w-20" />}
+                label="Carros"
+                featured
+              />
+              <VehicleVisual
+                icon={<Bike className="h-12 w-12" />}
+                label="Bicicletas"
+              />
+            </div>
+
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/15 bg-slate-950/45 px-4 py-2.5 text-xs font-semibold text-white shadow-lg backdrop-blur-md">
+              Gestão municipal em tempo real
+            </div>
+          </div>
+
+          <div className="relative z-10 flex min-h-[620px] max-w-[53%] flex-col justify-center px-6 py-20 lg:px-10 lg:py-24">
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-300 backdrop-blur-sm">
               <Target className="h-4 w-4" />
               Plataforma para municípios
             </div>
@@ -68,7 +105,7 @@ function MobiGestHome() {
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
+                className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:bg-sky-400"
               >
                 Aceder ao sistema
                 <ArrowRight className="h-4 w-4" />
@@ -76,7 +113,7 @@ function MobiGestHome() {
 
               <Link
                 to="/consulta"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-500 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-500 bg-slate-950/25 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white"
               >
                 <Search className="h-4 w-4" />
                 Consulta pública
@@ -84,18 +121,33 @@ function MobiGestHome() {
             </div>
           </div>
 
-          <div className="relative min-h-[480px] overflow-hidden bg-slate-900">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(14,165,233,0.35),transparent_40%),linear-gradient(135deg,#0f2748,#123e69_55%,#0b203b)]" />
-            <div className="absolute inset-x-0 bottom-0 h-40 bg-slate-800/80 [clip-path:polygon(0_45%,100%_0,100%_100%,0_100%)]" />
-            <div className="absolute right-10 top-16 h-44 w-44 rounded-full bg-sky-300/10 blur-3xl" />
+          <div className="relative min-h-[420px] overflow-hidden lg:hidden">
+            <img
+              src={heroMobilityImage}
+              alt="Moto-taxistas em circulação urbana"
+              className="absolute inset-0 h-full w-full object-cover object-[62%_center]"
+              loading="eager"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,#020817_0%,rgba(2,8,23,0.78)_13%,rgba(2,8,23,0.26)_38%,rgba(2,8,23,0.16)_68%,rgba(2,8,23,0.48)_100%)]" />
 
-            <div className="absolute bottom-24 left-10 right-10 grid grid-cols-3 items-end gap-5">
-              <VehicleVisual icon={<Bike className="h-16 w-16" />} label="Motorizadas" />
-              <VehicleVisual icon={<CarFront className="h-24 w-24" />} label="Carros" featured />
-              <VehicleVisual icon={<Bike className="h-14 w-14" />} label="Bicicletas" />
+            <div className="absolute bottom-16 left-4 right-4 grid grid-cols-3 items-end gap-2">
+              <VehicleVisual
+                icon={<Bike className="h-10 w-10" />}
+                label="Motorizadas"
+              />
+              <VehicleVisual
+                icon={<CarFront className="h-14 w-14" />}
+                label="Carros"
+                featured
+              />
+              <VehicleVisual
+                icon={<Bike className="h-9 w-9" />}
+                label="Bicicletas"
+              />
             </div>
 
-            <div className="absolute bottom-8 left-8 rounded-xl border border-white/10 bg-white/10 px-4 py-2.5 text-xs font-medium text-white backdrop-blur-md">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/15 bg-slate-950/45 px-4 py-2 text-[11px] font-semibold text-white backdrop-blur-md">
               Gestão municipal em tempo real
             </div>
           </div>
@@ -223,11 +275,13 @@ function VehicleVisual({
   featured?: boolean;
 }) {
   return (
-    <div className={`flex flex-col items-center justify-end text-white ${featured ? "scale-110" : ""}`}>
-      <div className="flex h-32 items-center justify-center text-sky-200 drop-shadow-2xl">
+    <div
+      className={`flex flex-col items-center justify-end text-white ${featured ? "scale-105" : ""}`}
+    >
+      <div className="flex h-20 items-center justify-center text-sky-100 drop-shadow-[0_8px_18px_rgba(0,0,0,0.35)] sm:h-24 lg:h-28">
         {icon}
       </div>
-      <span className="mt-2 rounded-full bg-black/25 px-3 py-1 text-xs font-medium backdrop-blur">
+      <span className="mt-1 rounded-full border border-white/10 bg-slate-950/55 px-3 py-1 text-[11px] font-semibold text-white shadow-lg backdrop-blur-md sm:text-xs">
         {label}
       </span>
     </div>
