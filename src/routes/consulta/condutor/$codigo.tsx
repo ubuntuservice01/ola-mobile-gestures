@@ -125,7 +125,7 @@ function DriverLookup() {
                 />
 
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <Field label="Nome" value={driver.full_name} />
+                  <Field label="Nome profissional" value={driver.full_name} />
                   <Field
                     label="Tipo"
                     value={driverTypeLabel(driver.driver_type)}
@@ -177,9 +177,10 @@ function DriverLookup() {
 
             <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs leading-5 text-slate-500">
               <b className="text-slate-700">Privacidade:</b> esta consulta
-              confirma apenas a identidade profissional necessária. Documento
-              pessoal, NUIT, telefone, email, data de nascimento, morada e
-              histórico não são apresentados.
+              mostra apenas o nome profissional abreviado e os dados mínimos
+              necessários à verificação. Documento pessoal, NUIT, telefone,
+              email, data de nascimento, morada e histórico não são
+              apresentados.
             </div>
           </div>
         </div>
