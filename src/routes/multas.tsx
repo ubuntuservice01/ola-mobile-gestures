@@ -1,17 +1,20 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  CircleCheck,
   ChevronRight,
+  Clock3,
   ReceiptText,
   Search,
   Settings2,
+  ShieldAlert,
+  Wallet,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
-  AnimatedNumber,
   EmptyState,
   NetworkErrorState,
   PaginationBar,
@@ -21,6 +24,13 @@ import {
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
 import { formatDateTime, formatMoneyMt } from "../lib/format";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/multas")({
   component: MultasRouteBoundary,
@@ -219,40 +229,96 @@ function Multas() {
       title="Multas"
       subtitle="Infracções aplicadas a taxistas e outros condutores."
     >
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Fiscalização"
         title="Multas"
-        description="Consulte, registe e acompanhe multas emitidas no município."
-        action="+ Aplicar multa"
-        actionTo="/multas/nova"
+        description="Emissão, acompanhamento e situação financeira das infracções registadas no município."
+        icon={<ReceiptText />}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/multas/tipos"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Settings2 className="h-4 w-4" />
+              Tipos de multa
+            </Link>
+            <Link
+              to="/multas/nova"
+              className="mobigest-button inline-flex items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+            >
+              + Aplicar multa
+            </Link>
+          </div>
+        }
       />
 
-      <div className="mb-5 flex justify-end">
-        <Link
-          to="/multas/tipos"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-        >
-          <Settings2 className="h-4 w-4" />
-          Tipos de multa
-        </Link>
-      </div>
-
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {loading ? (
           Array.from({ length: 4 }).map((_, index) => (
             <SkeletonCard key={index} />
           ))
         ) : (
           <>
-            <Metric label="Multas emitidas" value={metrics.total} />
-            <Metric label="Pendentes / recurso" value={metrics.pending} />
-            <Metric label="Pagas" value={metrics.paid} />
-            <Metric
+            <AnalyticsKpiCard
+              label="Multas emitidas"
+              value={metrics.total}
+              icon={<ReceiptText />}
+              note="Total registado"
+              emphasis
+            />
+            <AnalyticsKpiCard
+              label="Pendentes / recurso"
+              value={metrics.pending}
+              icon={<Clock3 />}
+              note="Aguardam resolução"
+            />
+            <AnalyticsKpiCard
+              label="Pagas"
+              value={metrics.paid}
+              icon={<CircleCheck />}
+              note="Regularizadas"
+            />
+            <AnalyticsKpiCard
               label="Valor pendente"
               value={metrics.pendingAmount}
-              money
+              icon={<Wallet />}
+              formatter={formatMoneyMt}
+              note="Montante por cobrar"
             />
           </>
         )}
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+        <AnalyticsChartCard
+          title="Multas ao longo do tempo"
+          description="Novas infracções registadas nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart
+              data={fineMonthlySeries(rows)}
+              seriesLabel="Multas"
+              emptyTitle="Ainda não existem multas no período"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Multas por estado"
+          description="Distribuição entre pendentes, pagas, anuladas e em recurso."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={fineStatusDistribution(rows)}
+              centerLabel="Multas"
+            />
+          )}
+        </AnalyticsChartCard>
       </div>
 
       <Card className="overflow-hidden">
@@ -447,27 +513,38 @@ function Multas() {
   );
 }
 
-function Metric({
-  label,
-  value,
-  money = false,
-}: {
-  label: string;
-  value: number;
-  money?: boolean;
-}) {
-  return (
-    <Card className="p-5">
-      <ReceiptText className="h-5 w-5 text-sky-600" />
-      <p className="mt-3 text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">
-        <AnimatedNumber
-          value={value}
-          formatter={money ? formatMoneyMt : undefined}
-        />
-      </p>
-    </Card>
-  );
+function fineMonthlySeries(rows: FineRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.occurred_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function fineStatusDistribution(rows: FineRow[]) {
+  return ["pendente", "paga", "em_recurso", "anulada"]
+    .map((status) => ({
+      name: fineStatusLabel(status),
+      value: rows.filter((row) => row.status === status).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function fineStatusLabel(status: string) {
