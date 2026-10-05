@@ -1,18 +1,34 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, FileText, Search, X } from "lucide-react";
+import {
+  CircleCheck,
+  ChevronRight,
+  Clock3,
+  FileText,
+  Search,
+  ShieldAlert,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
   EmptyState,
   NetworkErrorState,
   PaginationBar,
+  SkeletonCard,
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
 import { formatDate } from "../lib/format";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/registos")({
   component: RegistosRouteBoundary,
@@ -168,12 +184,87 @@ function Registos() {
       title="Registos"
       subtitle="Processos municipais de registo inicial e transferência."
     >
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Processos municipais"
         title="Registos"
-        description="Acompanhe submissão, validação, correcção, aprovação e rejeição."
-        action="+ Registar veículo"
-        actionTo="/veiculos/novo"
+        description="Submissão, validação, correcção, aprovação e rejeição dos processos de mobilidade."
+        icon={<FileText />}
+        action={
+          <Link
+            to="/veiculos/novo"
+            className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+          >
+            + Registar veículo
+          </Link>
+        }
       />
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <AnalyticsKpiCard
+              label="Processos"
+              value={rows.length}
+              icon={<FileText />}
+              note="Total registado"
+              emphasis
+            />
+            <AnalyticsKpiCard
+              label="Pendentes / validação"
+              value={rows.filter((row) => ["pendente", "em_validacao", "correccao"].includes(row.status)).length}
+              icon={<Clock3 />}
+              note="Aguardam decisão"
+            />
+            <AnalyticsKpiCard
+              label="Aprovados"
+              value={rows.filter((row) => row.status === "aprovada").length}
+              icon={<CircleCheck />}
+              note="Concluídos"
+            />
+            <AnalyticsKpiCard
+              label="Rejeitados"
+              value={rows.filter((row) => row.status === "rejeitada").length}
+              icon={<ShieldAlert />}
+              note="Não aprovados"
+            />
+          </>
+        )}
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <AnalyticsChartCard
+          title="Processos ao longo do tempo"
+          description="Novos processos criados nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart
+              data={registrationMonthlySeries(rows)}
+              seriesLabel="Processos"
+              emptyTitle="Ainda não existem processos no período"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Processos por estado"
+          description="Distribuição actual do fluxo de validação."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={registrationStatusDistribution(rows)}
+              centerLabel="Processos"
+            />
+          )}
+        </AnalyticsChartCard>
+      </div>
 
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row">
@@ -328,6 +419,38 @@ function Registos() {
       </Card>
     </MobiGestShell>
   );
+}
+
+function registrationMonthlySeries(rows: RegistrationRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.created_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function registrationStatusDistribution(rows: RegistrationRow[]) {
+  return ["pendente", "em_validacao", "correccao", "aprovada", "rejeitada", "cancelada"]
+    .map((status) => ({
+      name: registrationStatusLabel(status),
+      value: rows.filter((row) => row.status === status).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function registrationTypeLabel(type: string) {
