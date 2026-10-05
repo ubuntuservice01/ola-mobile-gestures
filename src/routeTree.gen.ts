@@ -13,10 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AtivarContaRouteImport } from './routes/ativar-conta'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ConsultaRouteImport } from './routes/consulta'
+import { Route as ContactoRouteImport } from './routes/contacto'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DefinicoesRouteImport } from './routes/definicoes'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FiscalizacaoRouteImport } from './routes/fiscalizacao'
+import { Route as FuncionalidadesRouteImport } from './routes/funcionalidades'
 import { Route as LocalidadesRouteImport } from './routes/localidades'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeuMunicipioRouteImport } from './routes/meu-municipio'
@@ -31,9 +34,11 @@ import { Route as ProprietariosRouteImport } from './routes/proprietarios'
 import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
 import { Route as RegistosRouteImport } from './routes/registos'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SuperAdminRouteImport } from './routes/super-admin'
 import { Route as TaxistasRouteImport } from './routes/taxistas'
 import { Route as UtilizadoresRouteImport } from './routes/utilizadores'
+import { Route as VantagensRouteImport } from './routes/vantagens'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
 import { Route as ConsultaCodigoRouteImport } from './routes/consulta/$codigo'
 import { Route as DashboardBicicletasRouteImport } from './routes/dashboard/bicicletas'
@@ -124,6 +129,11 @@ const ConsultaRoute = ConsultaRouteImport.update({
   path: '/consulta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactoRoute = ContactoRouteImport.update({
+  id: '/contacto',
+  path: '/contacto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -134,6 +144,11 @@ const DefinicoesRoute = DefinicoesRouteImport.update({
   path: '/definicoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -142,6 +157,11 @@ const FinanceiroRoute = FinanceiroRouteImport.update({
 const FiscalizacaoRoute = FiscalizacaoRouteImport.update({
   id: '/fiscalizacao',
   path: '/fiscalizacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FuncionalidadesRoute = FuncionalidadesRouteImport.update({
+  id: '/funcionalidades',
+  path: '/funcionalidades',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocalidadesRoute = LocalidadesRouteImport.update({
@@ -214,6 +234,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SuperAdminRoute = SuperAdminRouteImport.update({
   id: '/super-admin',
   path: '/super-admin',
@@ -227,6 +252,11 @@ const TaxistasRoute = TaxistasRouteImport.update({
 const UtilizadoresRoute = UtilizadoresRouteImport.update({
   id: '/utilizadores',
   path: '/utilizadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VantagensRoute = VantagensRouteImport.update({
+  id: '/vantagens',
+  path: '/vantagens',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VeiculosRoute = VeiculosRouteImport.update({
@@ -591,10 +621,13 @@ export interface FileRoutesByFullPath {
   '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
+  '/contacto': typeof ContactoRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/definicoes': typeof DefinicoesRouteWithChildren
+  '/entrar': typeof EntrarRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
   '/meu-municipio': typeof MeuMunicipioRoute
@@ -609,9 +642,11 @@ export interface FileRoutesByFullPath {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
+  '/sobre': typeof SobreRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
   '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/vantagens': typeof VantagensRoute
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
   '/dashboard/bicicletas': typeof DashboardBicicletasRoute
@@ -687,10 +722,13 @@ export interface FileRoutesByTo {
   '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
+  '/contacto': typeof ContactoRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/definicoes': typeof DefinicoesRouteWithChildren
+  '/entrar': typeof EntrarRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
   '/meu-municipio': typeof MeuMunicipioRoute
@@ -705,9 +743,11 @@ export interface FileRoutesByTo {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
+  '/sobre': typeof SobreRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
   '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/vantagens': typeof VantagensRoute
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
   '/dashboard/bicicletas': typeof DashboardBicicletasRoute
@@ -784,10 +824,13 @@ export interface FileRoutesById {
   '/ativar-conta': typeof AtivarContaRoute
   '/auditoria': typeof AuditoriaRoute
   '/consulta': typeof ConsultaRouteWithChildren
+  '/contacto': typeof ContactoRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/definicoes': typeof DefinicoesRouteWithChildren
+  '/entrar': typeof EntrarRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
   '/meu-municipio': typeof MeuMunicipioRoute
@@ -802,9 +845,11 @@ export interface FileRoutesById {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/registos': typeof RegistosRouteWithChildren
   '/relatorios': typeof RelatoriosRoute
+  '/sobre': typeof SobreRoute
   '/super-admin': typeof SuperAdminRouteWithChildren
   '/taxistas': typeof TaxistasRouteWithChildren
   '/utilizadores': typeof UtilizadoresRouteWithChildren
+  '/vantagens': typeof VantagensRoute
   '/veiculos': typeof VeiculosRouteWithChildren
   '/consulta/$codigo': typeof ConsultaCodigoRoute
   '/dashboard/bicicletas': typeof DashboardBicicletasRoute
@@ -882,10 +927,13 @@ export interface FileRouteTypes {
     | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
+    | '/contacto'
     | '/dashboard'
     | '/definicoes'
+    | '/entrar'
     | '/financeiro'
     | '/fiscalizacao'
+    | '/funcionalidades'
     | '/localidades'
     | '/login'
     | '/meu-municipio'
@@ -900,9 +948,11 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/registos'
     | '/relatorios'
+    | '/sobre'
     | '/super-admin'
     | '/taxistas'
     | '/utilizadores'
+    | '/vantagens'
     | '/veiculos'
     | '/consulta/$codigo'
     | '/dashboard/bicicletas'
@@ -978,10 +1028,13 @@ export interface FileRouteTypes {
     | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
+    | '/contacto'
     | '/dashboard'
     | '/definicoes'
+    | '/entrar'
     | '/financeiro'
     | '/fiscalizacao'
+    | '/funcionalidades'
     | '/localidades'
     | '/login'
     | '/meu-municipio'
@@ -996,9 +1049,11 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/registos'
     | '/relatorios'
+    | '/sobre'
     | '/super-admin'
     | '/taxistas'
     | '/utilizadores'
+    | '/vantagens'
     | '/veiculos'
     | '/consulta/$codigo'
     | '/dashboard/bicicletas'
@@ -1074,10 +1129,13 @@ export interface FileRouteTypes {
     | '/ativar-conta'
     | '/auditoria'
     | '/consulta'
+    | '/contacto'
     | '/dashboard'
     | '/definicoes'
+    | '/entrar'
     | '/financeiro'
     | '/fiscalizacao'
+    | '/funcionalidades'
     | '/localidades'
     | '/login'
     | '/meu-municipio'
@@ -1092,9 +1150,11 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/registos'
     | '/relatorios'
+    | '/sobre'
     | '/super-admin'
     | '/taxistas'
     | '/utilizadores'
+    | '/vantagens'
     | '/veiculos'
     | '/consulta/$codigo'
     | '/dashboard/bicicletas'
@@ -1171,10 +1231,13 @@ export interface RootRouteChildren {
   AtivarContaRoute: typeof AtivarContaRoute
   AuditoriaRoute: typeof AuditoriaRoute
   ConsultaRoute: typeof ConsultaRouteWithChildren
+  ContactoRoute: typeof ContactoRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DefinicoesRoute: typeof DefinicoesRouteWithChildren
+  EntrarRoute: typeof EntrarRoute
   FinanceiroRoute: typeof FinanceiroRouteWithChildren
   FiscalizacaoRoute: typeof FiscalizacaoRouteWithChildren
+  FuncionalidadesRoute: typeof FuncionalidadesRoute
   LocalidadesRoute: typeof LocalidadesRouteWithChildren
   LoginRoute: typeof LoginRoute
   MeuMunicipioRoute: typeof MeuMunicipioRoute
@@ -1189,9 +1252,11 @@ export interface RootRouteChildren {
   RecuperarPasswordRoute: typeof RecuperarPasswordRoute
   RegistosRoute: typeof RegistosRouteWithChildren
   RelatoriosRoute: typeof RelatoriosRoute
+  SobreRoute: typeof SobreRoute
   SuperAdminRoute: typeof SuperAdminRouteWithChildren
   TaxistasRoute: typeof TaxistasRouteWithChildren
   UtilizadoresRoute: typeof UtilizadoresRouteWithChildren
+  VantagensRoute: typeof VantagensRoute
   VeiculosRoute: typeof VeiculosRouteWithChildren
   QCodigoRoute: typeof QCodigoRoute
   ImprimirQrIdRoute: typeof ImprimirQrIdRoute
@@ -1228,6 +1293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsultaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contacto': {
+      id: '/contacto'
+      path: '/contacto'
+      fullPath: '/contacto'
+      preLoaderRoute: typeof ContactoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -1242,6 +1314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefinicoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro': {
       id: '/financeiro'
       path: '/financeiro'
@@ -1254,6 +1333,13 @@ declare module '@tanstack/react-router' {
       path: '/fiscalizacao'
       fullPath: '/fiscalizacao'
       preLoaderRoute: typeof FiscalizacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/funcionalidades': {
+      id: '/funcionalidades'
+      path: '/funcionalidades'
+      fullPath: '/funcionalidades'
+      preLoaderRoute: typeof FuncionalidadesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/localidades': {
@@ -1354,6 +1440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/super-admin': {
       id: '/super-admin'
       path: '/super-admin'
@@ -1373,6 +1466,13 @@ declare module '@tanstack/react-router' {
       path: '/utilizadores'
       fullPath: '/utilizadores'
       preLoaderRoute: typeof UtilizadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vantagens': {
+      id: '/vantagens'
+      path: '/vantagens'
+      fullPath: '/vantagens'
+      preLoaderRoute: typeof VantagensRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/veiculos': {
@@ -2240,10 +2340,13 @@ const rootRouteChildren: RootRouteChildren = {
   AtivarContaRoute: AtivarContaRoute,
   AuditoriaRoute: AuditoriaRoute,
   ConsultaRoute: ConsultaRouteWithChildren,
+  ContactoRoute: ContactoRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DefinicoesRoute: DefinicoesRouteWithChildren,
+  EntrarRoute: EntrarRoute,
   FinanceiroRoute: FinanceiroRouteWithChildren,
   FiscalizacaoRoute: FiscalizacaoRouteWithChildren,
+  FuncionalidadesRoute: FuncionalidadesRoute,
   LocalidadesRoute: LocalidadesRouteWithChildren,
   LoginRoute: LoginRoute,
   MeuMunicipioRoute: MeuMunicipioRoute,
@@ -2258,9 +2361,11 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarPasswordRoute: RecuperarPasswordRoute,
   RegistosRoute: RegistosRouteWithChildren,
   RelatoriosRoute: RelatoriosRoute,
+  SobreRoute: SobreRoute,
   SuperAdminRoute: SuperAdminRouteWithChildren,
   TaxistasRoute: TaxistasRouteWithChildren,
   UtilizadoresRoute: UtilizadoresRouteWithChildren,
+  VantagensRoute: VantagensRoute,
   VeiculosRoute: VeiculosRouteWithChildren,
   QCodigoRoute: QCodigoRoute,
   ImprimirQrIdRoute: ImprimirQrIdRoute,
