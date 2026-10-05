@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -99,11 +100,27 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const homeHasIntegratedFooter = pathname === "/";
+
   return (
     <QueryClientProvider client={queryClient}>
-      <RequireAuth>
-        <Outlet />
-      </RequireAuth>
+      <div className="flex min-h-screen flex-col">
+        <div className="flex-1">
+          <RequireAuth>
+            <Outlet />
+          </RequireAuth>
+        </div>
+
+        {!homeHasIntegratedFooter && (
+          <footer className="mobigest-no-print border-t border-slate-200 bg-white px-5 py-4 text-center text-xs text-slate-400">
+            Uma plataforma desenvolvida pela Ubuntu Service, Lda.
+          </footer>
+        )}
+      </div>
+
       <Toaster
         position="top-right"
         richColors
