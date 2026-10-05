@@ -5,7 +5,6 @@ import {
   ChevronRight,
   CircleAlert,
   Info,
-  Loader2,
   SearchX,
   X,
 } from "lucide-react";
@@ -41,6 +40,28 @@ export type LoadingButtonState =
   | "loading"
   | "success"
   | "error";
+
+export function ModernSpinner({
+  size = "md",
+  className = "",
+}: {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
+  const sizeClass =
+    size === "sm"
+      ? "h-4 w-4"
+      : size === "lg"
+        ? "h-8 w-8"
+        : "h-5 w-5";
+
+  return (
+    <span
+      className={"mobigest-spinner inline-block shrink-0 " + sizeClass + " " + className}
+      aria-hidden="true"
+    />
+  );
+}
 
 export function LoadingButton({
   state = "idle",
@@ -86,7 +107,7 @@ export function LoadingButton({
       }
     >
       {busy && showBusyFeedback ? (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        <ModernSpinner size="sm" />
       ) : state === "success" ? (
         <Check className="h-4 w-4" aria-hidden="true" />
       ) : state === "error" ? (
@@ -413,7 +434,7 @@ export function ConfirmDialog({
                 : "bg-sky-600 text-white hover:bg-sky-700"
             }
           >
-            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {busy && <ModernSpinner size="sm" className="mr-2" />}
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -576,8 +597,10 @@ export function ProcessingOverlay({
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="mobigest-page-enter w-full max-w-sm rounded-2xl border border-white/60 bg-white p-6 text-center shadow-2xl">
-        <Loader2 className="mx-auto h-7 w-7 animate-spin text-sky-600" />
+      <div className="mobigest-processing-card w-full max-w-sm rounded-2xl border border-white/70 bg-white p-6 text-center shadow-2xl">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-[var(--municipal-primary,#0284c7)] ring-1 ring-slate-100">
+          <ModernSpinner size="lg" />
+        </div>
         <p className="mt-4 text-sm font-semibold text-slate-900">
           {message}
         </p>
