@@ -26,9 +26,11 @@ import {
 import { supabase } from "../lib/supabase";
 import {
   LoadingButton,
+  NetworkErrorState,
   SkeletonCard,
   StatusBadge,
   notify,
+  type LoadingButtonState,
 } from "../components/mobigest/Experience";
 import { formatDate } from "../lib/format";
 
@@ -57,7 +59,10 @@ function PerfilPage() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaveState, setProfileSaveState] = useState<LoadingButtonState>("idle");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordState, setPasswordState] = useState<LoadingButtonState>("idle");
+  const [reloadKey, setReloadKey] = useState(0);
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
@@ -166,7 +171,7 @@ function PerfilPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const permissionsByModule = useMemo(() => {
     const grouped = new Map<string, PermissionRow[]>();
@@ -196,6 +201,7 @@ function PerfilPage() {
     }
 
     setSavingProfile(true);
+    setProfileSaveState("loading");
     setProfileMessage(null);
     setErrorMessage(null);
 
@@ -212,6 +218,7 @@ function PerfilPage() {
       const message =
         error.message || "Não foi possível actualizar os dados.";
       setProfileMessage(message);
+      setProfileSaveState("error");
       notify.error("Não foi possível guardar os dados", message);
       setSavingProfile(false);
       return;
@@ -227,8 +234,10 @@ function PerfilPage() {
         : current,
     );
     setProfileMessage("Dados pessoais actualizados com sucesso.");
+    setProfileSaveState("success");
     notify.success("Dados pessoais actualizados");
     setSavingProfile(false);
+    window.setTimeout(() => setProfileSaveState("idle"), 1600);
   };
 
   const changePassword = async (event: FormEvent<HTMLFormElement>) => {
@@ -252,6 +261,7 @@ function PerfilPage() {
     }
 
     setChangingPassword(true);
+    setPasswordState("loading");
 
     const { error } = await supabase.auth.updateUser({
       password,
@@ -262,11 +272,14 @@ function PerfilPage() {
       const message =
         error.message || "Não foi possível alterar a palavra-passe.";
       setPasswordMessage(message);
+      setPasswordState("error");
       notify.error("Não foi possível alterar a palavra-passe", message);
       setChangingPassword(false);
       return;
     }
 
+    setPasswordState("success");
+    notify.success("Palavra-passe alterada");
     await supabase.auth.signOut({ scope: "local" });
     window.location.replace("/login?reason=password_changed");
   };
@@ -297,9 +310,10 @@ function PerfilPage() {
         title="Meu Perfil"
         subtitle="Conta, identidade e permissões."
       >
-        <Card className="p-8 text-sm font-medium text-red-700">
-          {errorMessage ?? "Não foi possível carregar o seu perfil."}
-        </Card>
+        <NetworkErrorState
+          message={errorMessage ?? "Não foi possível carregar o seu perfil."}
+          onRetry={() => setReloadKey((value) => value + 1)}
+        />
       </MobiGestShell>
     );
   }
@@ -419,9 +433,11 @@ function PerfilPage() {
 
             <LoadingButton
               type="submit"
-              state={savingProfile ? "loading" : "idle"}
+              state={profileSaveState}
               idleLabel="Guardar dados pessoais"
               loadingLabel="A guardar..."
+              successLabel="Dados guardados"
+              errorLabel="Tentar novamente"
               icon={<Save className="h-4 w-4" />}
               className="bg-sky-600 text-white hover:bg-sky-700"
             />
@@ -566,9 +582,11 @@ function PerfilPage() {
 
             <LoadingButton
               type="submit"
-              state={changingPassword ? "loading" : "idle"}
+              state={passwordState}
               idleLabel="Alterar palavra-passe"
               loadingLabel="A alterar..."
+              successLabel="Palavra-passe alterada"
+              errorLabel="Tentar novamente"
               icon={<KeyRound className="h-4 w-4" />}
               className="bg-slate-900 text-white hover:bg-slate-800"
             />
@@ -591,10 +609,10 @@ function PerfilPage() {
 }
 
 const inputClass =
-  "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
+  "mobigest-input mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 
 const iconInputClass =
-  "h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
+  "mobigest-input h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 
 const iconReadOnlyClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-500 outline-none";
