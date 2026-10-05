@@ -103,7 +103,7 @@ function RootComponent() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const homeHasIntegratedFooter = pathname === "/";
+  const publicHasIntegratedFooter = ["/", "/sobre", "/funcionalidades", "/vantagens", "/contacto", "/entrar", "/login"].includes(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -114,7 +114,7 @@ function RootComponent() {
           </RequireAuth>
         </div>
 
-        {!homeHasIntegratedFooter && (
+        {!publicHasIntegratedFooter && (
           <footer className="mobigest-no-print border-t border-slate-200 bg-white px-5 py-4 text-center text-xs text-slate-400">
             Uma plataforma desenvolvida pela Ubuntu Service, Lda.
           </footer>

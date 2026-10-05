@@ -512,3 +512,72 @@ a,
     transition: none;
   }
 }
+
+
+/* Public MobiGest website */
+.public-site {
+  --public-navy: #0b172a;
+  --public-blue: #147d92;
+  --public-cyan: #3fb7cc;
+  overflow-x: clip;
+}
+.public-tech-bg {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgb(63 183 204 / 0.12), transparent 28%),
+    radial-gradient(circle at 85% 70%, rgb(20 125 146 / 0.18), transparent 34%);
+}
+.public-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+}
+.public-orb {
+  position: absolute;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 9999px;
+  filter: blur(72px);
+  opacity: 0.18;
+  pointer-events: none;
+  animation: public-orb-drift 16s ease-in-out infinite alternate;
+}
+.public-orb-a { top: -12rem; right: -6rem; background: #38bdf8; }
+.public-orb-b { bottom: -16rem; left: -7rem; background: #22d3ee; animation-delay: -6s; }
+.public-card {
+  transition:
+    transform 220ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 220ms cubic-bezier(.2,.8,.2,1),
+    border-color 220ms cubic-bezier(.2,.8,.2,1);
+}
+.public-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(125 211 252 / 0.85);
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.08);
+}
+.public-input {
+  min-height: 3rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(203 213 225);
+  background: white;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.875rem;
+  color: rgb(15 23 42);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.public-input:focus {
+  border-color: #147d92;
+  box-shadow: 0 0 0 4px rgb(20 125 146 / 0.10);
+}
+@keyframes public-orb-drift {
+  from { transform: translate3d(0,0,0) scale(1); }
+  to { transform: translate3d(28px,22px,0) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-orb { animation: none; }
+  .public-card { transition: none; }
+  .public-card:hover { transform: none; }
+}
