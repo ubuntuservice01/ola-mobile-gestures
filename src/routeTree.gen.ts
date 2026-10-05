@@ -21,9 +21,11 @@ import { Route as LocalidadesRouteImport } from './routes/localidades'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MultasRouteImport } from './routes/multas'
 import { Route as MunicipiosRouteImport } from './routes/municipios'
+import { Route as MeuMunicipioRouteImport } from './routes/meu-municipio'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as NovaPasswordRouteImport } from './routes/nova-password'
 import { Route as PermissoesRouteImport } from './routes/permissoes'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PostosAdministrativosRouteImport } from './routes/postos-administrativos'
 import { Route as ProprietariosRouteImport } from './routes/proprietarios'
 import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
@@ -162,6 +164,11 @@ const MunicipiosRoute = MunicipiosRouteImport.update({
   path: '/municipios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeuMunicipioRoute = MeuMunicipioRouteImport.update({
+  id: '/meu-municipio',
+  path: '/meu-municipio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificacoesRoute = NotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -175,6 +182,11 @@ const NovaPasswordRoute = NovaPasswordRouteImport.update({
 const PermissoesRoute = PermissoesRouteImport.update({
   id: '/permissoes',
   path: '/permissoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostosAdministrativosRoute = PostosAdministrativosRouteImport.update({
@@ -587,9 +599,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
   '/permissoes': typeof PermissoesRoute
+  '/perfil': typeof PerfilRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -681,9 +695,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
   '/permissoes': typeof PermissoesRoute
+  '/perfil': typeof PerfilRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -776,9 +792,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
   '/permissoes': typeof PermissoesRoute
+  '/perfil': typeof PerfilRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -872,9 +890,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/multas'
     | '/municipios'
+    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
     | '/permissoes'
+    | '/perfil'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -966,9 +986,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/multas'
     | '/municipios'
+    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
     | '/permissoes'
+    | '/perfil'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -1060,9 +1082,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/multas'
     | '/municipios'
+    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
     | '/permissoes'
+    | '/perfil'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -1155,9 +1179,11 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MultasRoute: typeof MultasRouteWithChildren
   MunicipiosRoute: typeof MunicipiosRouteWithChildren
+  MeuMunicipioRoute: typeof MeuMunicipioRoute
   NotificacoesRoute: typeof NotificacoesRoute
   NovaPasswordRoute: typeof NovaPasswordRoute
   PermissoesRoute: typeof PermissoesRoute
+  PerfilRoute: typeof PerfilRoute
   PostosAdministrativosRoute: typeof PostosAdministrativosRouteWithChildren
   ProprietariosRoute: typeof ProprietariosRouteWithChildren
   RecuperarPasswordRoute: typeof RecuperarPasswordRoute
@@ -1258,6 +1284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MunicipiosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meu-municipio': {
+      id: '/meu-municipio'
+      path: '/meu-municipio'
+      fullPath: '/meu-municipio'
+      preLoaderRoute: typeof MeuMunicipioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notificacoes': {
       id: '/notificacoes'
       path: '/notificacoes'
@@ -1277,6 +1310,13 @@ declare module '@tanstack/react-router' {
       path: '/permissoes'
       fullPath: '/permissoes'
       preLoaderRoute: typeof PermissoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/postos-administrativos': {
@@ -2208,9 +2248,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MultasRoute: MultasRouteWithChildren,
   MunicipiosRoute: MunicipiosRouteWithChildren,
+  MeuMunicipioRoute: MeuMunicipioRoute,
   NotificacoesRoute: NotificacoesRoute,
   NovaPasswordRoute: NovaPasswordRoute,
   PermissoesRoute: PermissoesRoute,
+  PerfilRoute: PerfilRoute,
   PostosAdministrativosRoute: PostosAdministrativosRouteWithChildren,
   ProprietariosRoute: ProprietariosRouteWithChildren,
   RecuperarPasswordRoute: RecuperarPasswordRoute,
