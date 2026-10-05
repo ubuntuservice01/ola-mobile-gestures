@@ -230,7 +230,7 @@ function Auditoria() {
                   "Auditoria exportada",
                   "O ficheiro CSV foi preparado com sucesso.",
                 );
-              }
+              }}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold disabled:opacity-40"
             >
               <Download className="h-4 w-4" />
