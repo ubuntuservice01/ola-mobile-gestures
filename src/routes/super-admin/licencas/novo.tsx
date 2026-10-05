@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SuperAdminShell, SuperCard } from "../../../components/SuperAdminShell";
 import { createLicense } from "../../../lib/licenses";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
 import {
   EmptyState,
   LoadingButton,
@@ -54,6 +55,41 @@ function NovaLicenca() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  const licenseDraft = useSessionDraft({
+    key: "super-admin:licencas:novo",
+    value: {
+      municipalityId,
+      planId,
+      start,
+      end,
+      status,
+      maxUsers,
+      maxVehicles,
+      notes,
+    },
+    restore: (draft) => {
+      setMunicipalityId(draft.municipalityId ?? "");
+      setPlanId(draft.planId ?? "");
+      setStart(draft.start ?? "");
+      setEnd(draft.end ?? "");
+      setStatus(draft.status ?? "activa");
+      setMaxUsers(draft.maxUsers ?? "");
+      setMaxVehicles(draft.maxVehicles ?? "");
+      setNotes(draft.notes ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.municipalityId ||
+          draft.planId ||
+          draft.start ||
+          draft.end ||
+          draft.maxUsers ||
+          draft.maxVehicles ||
+          draft.notes?.trim(),
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -174,6 +210,7 @@ function NovaLicenca() {
         notes: notes.trim() || null,
       });
 
+      licenseDraft.clearDraft();
       notify.success(
         "Licença criada",
         "A licença municipal foi registada com sucesso.",
