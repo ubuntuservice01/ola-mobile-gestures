@@ -241,7 +241,7 @@ function AuditoriaGlobal() {
                   "Auditoria global exportada",
                   "O ficheiro CSV foi preparado com sucesso.",
                 );
-              }
+              }}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-600 disabled:opacity-40"
             >
               <Download className="h-4 w-4" />
