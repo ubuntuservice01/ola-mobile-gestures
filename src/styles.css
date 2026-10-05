@@ -218,7 +218,46 @@ a:focus-visible,
 }
 
 .mobigest-drawer-backdrop {
-  animation: mobigest-fade-in var(--motion-panel) var(--ease-standard) both;
+  transition:
+    opacity var(--motion-panel) var(--ease-standard),
+    backdrop-filter var(--motion-panel) var(--ease-standard);
+}
+
+.mobigest-spinner {
+  position: relative;
+  border-radius: 999px;
+  color: currentColor;
+  background:
+    conic-gradient(
+      from 10deg,
+      transparent 0deg 72deg,
+      currentColor 72deg 300deg,
+      color-mix(in srgb, currentColor 28%, transparent) 300deg 360deg
+    );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2.5px),
+    #000 calc(100% - 2px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2.5px),
+    #000 calc(100% - 2px)
+  );
+  animation: mobigest-spinner-rotate 780ms linear infinite;
+  will-change: transform;
+}
+
+.mobigest-processing-card {
+  animation: mobigest-processing-enter var(--motion-panel) var(--ease-emphasized) both;
+  transform-origin: center;
+}
+
+.mobigest-card {
+  transition:
+    border-color var(--motion-control) var(--ease-standard),
+    box-shadow var(--motion-control) var(--ease-standard),
+    background-color var(--motion-control) var(--ease-standard);
 }
 
 /* Compact, quiet navigation inspired by modern product dashboards. */
@@ -288,11 +327,31 @@ a:focus-visible,
 @keyframes mobigest-page-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(5px);
+  }
+  55% {
+    opacity: 0.92;
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes mobigest-processing-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mobigest-spinner-rotate {
+  to {
+    transform: rotate(360deg);
   }
 }
 
