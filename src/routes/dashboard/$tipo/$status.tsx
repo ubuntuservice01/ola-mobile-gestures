@@ -3,6 +3,13 @@ import { ArrowLeft, BarChart3, Bike, CarFront, ChevronRight, MapPin } from "luci
 import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { supabase } from "../../../lib/supabase";
+import {
+  AnimatedNumber,
+  EmptyState,
+  NetworkErrorState,
+  SkeletonCard,
+  SkeletonTable,
+} from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/dashboard/$tipo/$status")({
   component: StatusDetailPage,
@@ -71,6 +78,7 @@ function StatusDetailPage() {
   const [selectedPost, setSelectedPost] = useState<string>("todos");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -155,7 +163,7 @@ function StatusDetailPage() {
     return () => {
       active = false;
     };
-  }, [current.vehicleType, statusConfig.column, statusConfig.value]);
+  }, [current.vehicleType, statusConfig.column, statusConfig.value, reloadKey]);
 
   const countsByPost = useMemo(() => {
     const map = new Map<string, { id: string; name: string; count: number }>();
@@ -225,32 +233,43 @@ function StatusDetailPage() {
       </div>
 
       {loadError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-5">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setReloadKey((value) => value + 1)}
+          />
         </div>
       )}
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card className="p-5">
-          <p className="text-sm text-slate-500">Total nesta situação</p>
-          <p className="mt-2 text-3xl font-bold">
-            {loading ? "—" : rows.length.toLocaleString("pt-MZ")}
-          </p>
-        </Card>
-        <Card className="p-5">
-          <p className="text-sm text-slate-500">Postos com registos</p>
-          <p className="mt-2 text-3xl font-bold">
-            {loading ? "—" : countsByPost.length.toLocaleString("pt-MZ")}
-          </p>
-        </Card>
-        <Card className="p-5">
-          <p className="text-sm text-slate-500">Filtro actual</p>
-          <p className="mt-2 text-lg font-bold">
-            {selectedPost === "todos"
-              ? "Todos os postos"
-              : countsByPost.find((item) => item.id === selectedPost)?.name ?? "Posto"}
-          </p>
-        </Card>
+        {loading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <Card className="p-5">
+              <p className="text-sm text-slate-500">Total nesta situação</p>
+              <p className="mt-2 text-3xl font-bold">
+                <AnimatedNumber value={rows.length} />
+              </p>
+            </Card>
+            <Card className="p-5">
+              <p className="text-sm text-slate-500">Postos com registos</p>
+              <p className="mt-2 text-3xl font-bold">
+                <AnimatedNumber value={countsByPost.length} />
+              </p>
+            </Card>
+            <Card className="p-5">
+              <p className="text-sm text-slate-500">Filtro actual</p>
+              <p className="mt-2 text-lg font-bold">
+                {selectedPost === "todos"
+                  ? "Todos os postos"
+                  : countsByPost.find((item) => item.id === selectedPost)?.name ?? "Posto"}
+              </p>
+            </Card>
+          </>
+        )}
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
@@ -266,8 +285,20 @@ function StatusDetailPage() {
           </div>
 
           <div className="mt-7 space-y-5">
-            {countsByPost.length === 0 ? (
-              <p className="text-sm text-slate-500">Sem registos para distribuir.</p>
+            {loading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+                    <div className="h-3 w-full animate-pulse rounded-full bg-slate-100" />
+                  </div>
+                ))}
+              </div>
+            ) : countsByPost.length === 0 ? (
+              <EmptyState
+                title="Sem registos para distribuir"
+                description="Ainda não existem veículos desta situação associados aos postos administrativos."
+              />
             ) : (
               countsByPost.map((item) => (
                 <div key={item.id}>
@@ -280,7 +311,7 @@ function StatusDetailPage() {
                   </div>
                   <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-sky-600"
+                      className="h-full rounded-full bg-sky-600 transition-[width] duration-500 ease-out"
                       style={{ width: String((item.count / maxCount) * 100) + "%" }}
                     />
                   </div>
@@ -297,7 +328,7 @@ function StatusDetailPage() {
               type="button"
               onClick={() => setSelectedPost("todos")}
               className={
-                "flex w-full items-center justify-between rounded-xl border p-3 text-left " +
+                "mobigest-button flex w-full items-center justify-between rounded-xl border p-3 text-left " +
                 (selectedPost === "todos"
                   ? "border-sky-300 bg-sky-50"
                   : "border-slate-200")
@@ -335,11 +366,29 @@ function StatusDetailPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-sm text-slate-500">A carregar...</div>
-        ) : filteredRows.length === 0 ? (
-          <div className="p-8 text-sm text-slate-500">
-            Não existem veículos para este filtro.
+          <div className="p-5">
+            <SkeletonTable rows={5} columns={4} />
           </div>
+        ) : filteredRows.length === 0 ? (
+          <EmptyState
+            title="Nenhum veículo encontrado"
+            description={
+              selectedPost === "todos"
+                ? "Ainda não existem veículos nesta situação."
+                : "Não existem veículos nesta situação para o posto seleccionado."
+            }
+            action={
+              selectedPost !== "todos" ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedPost("todos")}
+                  className="mobigest-button rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
+                >
+                  Mostrar todos os postos
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-slate-100">
             {filteredRows.map((row) => (
@@ -347,7 +396,7 @@ function StatusDetailPage() {
                 key={row.id}
                 to="/veiculos/$id"
                 params={{ id: row.id }}
-                className="grid gap-2 px-6 py-4 hover:bg-slate-50 md:grid-cols-[1.2fr_1.4fr_1fr_auto] md:items-center"
+                className="mobigest-table-row grid gap-2 px-6 py-4 hover:bg-slate-50 md:grid-cols-[1.2fr_1.4fr_1fr_auto] md:items-center"
               >
                 <div>
                   <p className="text-sm font-semibold">
