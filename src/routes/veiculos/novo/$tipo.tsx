@@ -27,6 +27,7 @@ import {
   type VehicleType,
 } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
 
 export const Route = createFileRoute("/veiculos/novo/$tipo")({
   component: RegistoVeiculo,
