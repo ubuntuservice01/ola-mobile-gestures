@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Plus, Save, Settings2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MobiGestShell, PageHeader, Card } from "../../components/MobiGestShell";
 import { createFineType, updateFineType } from "../../lib/enforcement";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import { supabase } from "../../lib/supabase";
 
 export const Route = createFileRoute("/multas/tipos")({
@@ -31,6 +32,28 @@ function Tipos() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
+
+  const fineTypeDraft = useSessionDraft({
+    key: "multas:tipos:formulario",
+    value: { editing, code, name, description, amount, active },
+    restore: (draft) => {
+      setEditing(draft.editing ?? null);
+      setCode(draft.code ?? "");
+      setName(draft.name ?? "");
+      setDescription(draft.description ?? "");
+      setAmount(draft.amount ?? "");
+      setActive(draft.active ?? true);
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.editing ||
+          draft.code?.trim() ||
+          draft.name?.trim() ||
+          draft.description?.trim() ||
+          draft.amount,
+      ),
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +89,7 @@ function Tipos() {
   }, [refreshToken]);
 
   const resetForm = () => {
+    fineTypeDraft.clearDraft();
     setEditing(null);
     setCode("");
     setName("");
