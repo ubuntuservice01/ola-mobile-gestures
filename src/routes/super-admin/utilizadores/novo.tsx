@@ -10,6 +10,7 @@ import {
   notify,
 } from "../../../components/mobigest/Experience";
 import { formatDateTime } from "../../../lib/format";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
 
 export const Route = createFileRoute("/super-admin/utilizadores/novo")({
   component: NovoUtilizadorGlobal,
@@ -52,6 +53,29 @@ function NovoUtilizadorGlobal() {
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [activationExpiresAt, setActivationExpiresAt] = useState<string | null>(null);
+
+  const userDraft = useSessionDraft({
+    key: "super-admin:utilizadores:novo",
+    value: { name, email, phone, role, municipalityId, postId },
+    restore: (draft) => {
+      setName(draft.name ?? "");
+      setEmail(draft.email ?? "");
+      setPhone(draft.phone ?? "");
+      setRole(draft.role ?? "admin_municipal");
+      setMunicipalityId(draft.municipalityId ?? "");
+      setPostId(draft.postId ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdUserId,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.name?.trim() ||
+          draft.email?.trim() ||
+          draft.phone?.trim() ||
+          draft.municipalityId ||
+          draft.postId,
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -140,6 +164,7 @@ function NovoUtilizadorGlobal() {
         administrativePostId: postId || null,
       });
 
+      userDraft.clearDraft();
       setCreatedUserId(result.id ?? null);
       setActivationCode(result.activationCode ?? null);
       setActivationExpiresAt(result.activationExpiresAt ?? null);
