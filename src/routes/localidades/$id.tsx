@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { updateLocality } from "../../lib/territory";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
+import { notify } from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/localidades/$id")({
   component: DetalheLocalidade,
@@ -50,6 +52,21 @@ function DetalheLocalidade() {
   const [postId, setPostId] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const localityDraft = useSessionDraft({
+    key: "localidades:" + id + ":editar",
+    value: { editing, name, code, type, status, postId },
+    restore: (draft) => {
+      setEditing(Boolean(draft.editing));
+      setName(draft.name ?? "");
+      setCode(draft.code ?? "");
+      setType(draft.type ?? "localidade");
+      setStatus(draft.status ?? "activo");
+      setPostId(draft.postId ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => Boolean(draft.editing),
+  });
 
   useEffect(() => {
     let active = true;
@@ -111,11 +128,13 @@ function DetalheLocalidade() {
       setPosts((postsResult.data ?? []) as Post[]);
       setVehicles(vehiclesResult.count ?? 0);
 
-      setName(current.name);
-      setCode(current.code ?? "");
-      setType(current.type);
-      setStatus(current.status);
-      setPostId(current.administrative_post_id);
+      if (!localityDraft.hasStoredDraft) {
+        setName(current.name);
+        setCode(current.code ?? "");
+        setType(current.type);
+        setStatus(current.status);
+        setPostId(current.administrative_post_id);
+      }
       setLoading(false);
     };
 
@@ -142,6 +161,7 @@ function DetalheLocalidade() {
         status,
       });
 
+      localityDraft.clearDraft();
       setEditing(false);
       setRefreshToken((value) => value + 1);
     } catch (error) {
@@ -173,7 +193,12 @@ function DetalheLocalidade() {
           <button
             type="button"
             onClick={() => {
-              setEditing((value) => !value);
+              if (editing) {
+                localityDraft.clearDraft();
+                setEditing(false);
+              } else {
+                setEditing(true);
+              }
               setSaveError(null);
             }}
             className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
