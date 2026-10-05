@@ -4,7 +4,6 @@ import {
   FileCheck2,
   Pencil,
   Plus,
-  Save,
   Settings2,
   X,
 } from "lucide-react";
@@ -15,6 +14,15 @@ import {
   Card,
 } from "../../components/MobiGestShell";
 import { supabase } from "../../lib/supabase";
+import {
+  EmptyState,
+  LoadingButton,
+  NetworkErrorState,
+  SkeletonTable,
+  StatusBadge,
+  notify,
+  type LoadingButtonState,
+} from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/definicoes/documentos")({
   component: RequisitosDocumentais,
@@ -57,6 +65,7 @@ function RequisitosDocumentais() {
   const [edit, setEdit] = useState<FormState | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<LoadingButtonState>("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -142,6 +151,7 @@ function RequisitosDocumentais() {
     }
 
     setSaving(true);
+    setSaveState("loading");
     setActionError(null);
     setMessage(null);
 
@@ -164,22 +174,29 @@ function RequisitosDocumentais() {
 
     if (result.error) {
       console.error("Falha ao guardar requisito documental:", result.error);
-      setActionError(
+      const message =
         result.error.message ||
-          "Não foi possível guardar o requisito.",
-      );
+        "Não foi possível guardar o requisito.";
+      setActionError(message);
+      setSaveState("error");
+      notify.error("Não foi possível guardar o requisito", message);
       setSaving(false);
       return;
     }
 
-    setMessage(
-      edit.id
-        ? "Requisito documental actualizado."
-        : "Requisito documental criado.",
+    const successMessage = edit.id
+      ? "Requisito documental actualizado."
+      : "Requisito documental criado.";
+    setMessage(successMessage);
+    setSaveState("success");
+    notify.success(
+      edit.id ? "Requisito actualizado" : "Requisito criado",
+      successMessage,
     );
     setEdit(null);
     setRefreshToken((value) => value + 1);
     setSaving(false);
+    window.setTimeout(() => setSaveState("idle"), 1600);
   };
 
   return (
@@ -239,8 +256,11 @@ function RequisitosDocumentais() {
       )}
 
       {loadError && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {loadError}
+        <div className="mb-4">
+          <NetworkErrorState
+            message={loadError}
+            onRetry={() => setRefreshToken((value) => value + 1)}
+          />
         </div>
       )}
 
@@ -252,15 +272,27 @@ function RequisitosDocumentais() {
 
       <Card className="overflow-x-auto">
         {loading ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            A carregar requisitos...
+          <div className="p-4">
+            <SkeletonTable rows={5} columns={7} />
           </div>
         ) : rows.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
-            Ainda não existem requisitos documentais configurados.
-          </div>
+          <EmptyState
+            title="Ainda não existem requisitos documentais"
+            description="Configure os documentos que o município exige em cada tipo de processo."
+            action={
+              canManage ? (
+                <button
+                  type="button"
+                  onClick={() => setEdit(blankForm())}
+                  className="mobigest-button rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                  Novo requisito
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
-          <table className="min-w-[900px] w-full text-left text-sm">
+          <table className="mobigest-data-table min-w-[900px] w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-5 py-4">Documento</th>
@@ -276,7 +308,7 @@ function RequisitosDocumentais() {
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-t border-slate-100"
+                  className="mobigest-table-row border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-5 py-4 font-semibold">
                     {row.label}
@@ -294,16 +326,7 @@ function RequisitosDocumentais() {
                     {row.expiry_required ? "Sim" : "Não"}
                   </td>
                   <td className="px-5 py-4">
-                    <span
-                      className={
-                        "rounded-full px-2.5 py-1 text-xs font-semibold " +
-                        (row.active
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-slate-100 text-slate-500")
-                      }
-                    >
-                      {row.active ? "Activo" : "Inactivo"}
-                    </span>
+                    <StatusBadge status={row.active ? "activo" : "inactivo"} />
                   </td>
                   {canManage && (
                     <td className="px-5 py-4">
@@ -332,10 +355,10 @@ function RequisitosDocumentais() {
 
       {edit && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          className="mobigest-drawer-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
           onClick={() => setEdit(null)}
         >
-          <Card className="w-full max-w-2xl p-6">
+          <Card className="mobigest-soft-pop w-full max-w-2xl p-6">
             <div onClick={(event) => event.stopPropagation()}>
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">
@@ -460,15 +483,16 @@ function RequisitosDocumentais() {
                 >
                   Cancelar
                 </button>
-                <button
-                  type="button"
+                <LoadingButton
+                  state={saveState}
                   disabled={saving}
                   onClick={() => void save()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving ? "A guardar..." : "Guardar"}
-                </button>
+                  idleLabel="Guardar"
+                  loadingLabel="A guardar..."
+                  successLabel="Guardado"
+                  errorLabel="Tentar novamente"
+                  className="bg-sky-600 text-white hover:bg-sky-700"
+                />
               </div>
             </div>
           </Card>
@@ -479,7 +503,7 @@ function RequisitosDocumentais() {
 }
 
 const inputClass =
-  "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3";
+  "mobigest-input mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 
 function vehicleTypeLabel(
   type: Requirement["vehicle_type"],
