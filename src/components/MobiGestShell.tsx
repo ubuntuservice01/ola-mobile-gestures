@@ -28,6 +28,7 @@ import {
   type MunicipalAccessSession,
 } from "../lib/municipal-access";
 import { supabase } from "../lib/supabase";
+import { clearAllFormDrafts } from "../hooks/use-session-draft";
 import {
   loadMunicipalityIdentity,
   municipalityLogoUrl,
@@ -226,6 +227,7 @@ export function MobiGestShell({
 
   const handleSignOut = async () => {
     setSigningOut(true);
+    clearAllFormDrafts();
     await supabase.auth.signOut({ scope: "local" });
     window.location.replace("/login");
   };
