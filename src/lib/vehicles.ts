@@ -182,3 +182,64 @@ export async function resubmitRegistration(input: {
 
   throwRpc(error, "Não foi possível reenviar o processo.");
 }
+
+
+export type VehicleSaleCondition =
+  | "excelente"
+  | "boa"
+  | "razoavel"
+  | "necessita_reparacao";
+
+export type PublicVehicleSale = {
+  listing_id: string;
+  vehicle_id: string;
+  mobigest_number: string;
+  vehicle_type: VehicleType;
+  make: string | null;
+  model: string | null;
+  color: string | null;
+  manufacture_year: number | null;
+  price: number;
+  vehicle_condition: VehicleSaleCondition;
+  declared_problems: string | null;
+  contact_name: string;
+  contact_phone: string;
+  location: string;
+  municipality_name: string;
+  published_at: string;
+  photo_paths: string[];
+};
+
+export async function publishVehicleSale(input: {
+  vehicleId: string;
+  price: number;
+  vehicleCondition: VehicleSaleCondition;
+  declaredProblems?: string | null;
+  contactName: string;
+  contactPhone: string;
+  location: string;
+  photoPaths: string[];
+  consentConfirmed: boolean;
+}) {
+  const { data, error } = await supabase.rpc("publish_vehicle_sale", {
+    p_vehicle_id: input.vehicleId,
+    p_price: input.price,
+    p_vehicle_condition: input.vehicleCondition,
+    p_declared_problems: input.declaredProblems ?? null,
+    p_contact_name: input.contactName,
+    p_contact_phone: input.contactPhone,
+    p_location: input.location,
+    p_photo_paths: input.photoPaths,
+    p_consent_confirmed: input.consentConfirmed,
+  });
+
+  throwRpc(error, "Não foi possível publicar o veículo à venda.");
+  return data as string;
+}
+
+export async function listPublicVehicleSales() {
+  const { data, error } = await supabase.rpc("list_public_vehicle_sales");
+
+  throwRpc(error, "Não foi possível carregar os veículos à venda.");
+  return (Array.isArray(data) ? data : []) as PublicVehicleSale[];
+}
