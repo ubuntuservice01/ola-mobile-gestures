@@ -6,12 +6,16 @@ import {
   ChevronRight,
   CircleCheck,
   FilePlus2,
+  ReceiptText,
   ShieldAlert,
+  UserRoundCheck,
   Users,
+  Wallet,
 } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
+import { loadMunicipalityStatistics } from "../lib/municipality-settings";
 import {
   AnimatedNumber,
   EmptyState,
@@ -20,7 +24,7 @@ import {
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
-import { formatDate } from "../lib/format";
+import { formatDate, formatMoneyMt } from "../lib/format";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPageRouteBoundary,
@@ -35,6 +39,10 @@ type DashboardCounts = {
   registrations: number;
   pending: number;
   stolen: number;
+  drivers: number;
+  fines: number;
+  revenue: number;
+  users: number;
 };
 
 type RecentRegistration = {
@@ -57,6 +65,10 @@ const EMPTY_COUNTS: DashboardCounts = {
   registrations: 0,
   pending: 0,
   stolen: 0,
+  drivers: 0,
+  fines: 0,
+  revenue: 0,
+  users: 0,
 };
 
 function DashboardPage() {
@@ -74,22 +86,12 @@ function DashboardPage() {
       setLoadError(null);
 
       const [
-        motorcyclesResult,
-        carsResult,
-        bicyclesResult,
-        vehiclesResult,
-        ownersResult,
-        registrationsResult,
+        municipalStats,
         pendingResult,
         stolenResult,
         recentResult,
       ] = await Promise.all([
-        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "motorizada"),
-        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "carro"),
-        supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("vehicle_type", "bicicleta"),
-        supabase.from("vehicles").select("id", { count: "exact", head: true }),
-        supabase.from("owners").select("id", { count: "exact", head: true }),
-        supabase.from("registrations").select("id", { count: "exact", head: true }),
+        loadMunicipalityStatistics(),
         supabase
           .from("registrations")
           .select("id", { count: "exact", head: true })
@@ -108,18 +110,15 @@ function DashboardPage() {
       if (!active) return;
 
       const firstError =
-        motorcyclesResult.error ??
-        carsResult.error ??
-        bicyclesResult.error ??
-        vehiclesResult.error ??
-        ownersResult.error ??
-        registrationsResult.error ??
         pendingResult.error ??
         stolenResult.error ??
         recentResult.error;
 
-      if (firstError) {
-        console.error("Falha ao carregar dashboard municipal:", firstError);
+      if (firstError || !municipalStats) {
+        console.error(
+          "Falha ao carregar dashboard municipal:",
+          firstError ?? "Estatísticas municipais indisponíveis",
+        );
         setLoadError("Não foi possível carregar os indicadores do município.");
         setLoading(false);
         return;
@@ -159,14 +158,18 @@ function DashboardPage() {
       );
 
       setCounts({
-        motorcycles: motorcyclesResult.count ?? 0,
-        cars: carsResult.count ?? 0,
-        bicycles: bicyclesResult.count ?? 0,
-        vehicles: vehiclesResult.count ?? 0,
-        owners: ownersResult.count ?? 0,
-        registrations: registrationsResult.count ?? 0,
+        motorcycles: Number(municipalStats.motorcycles_total ?? 0),
+        cars: Number(municipalStats.cars_total ?? 0),
+        bicycles: Number(municipalStats.bicycles_total ?? 0),
+        vehicles: Number(municipalStats.vehicles_total ?? 0),
+        owners: Number(municipalStats.owners_total ?? 0),
+        registrations: Number(municipalStats.registrations_total ?? 0),
         pending: pendingResult.count ?? 0,
         stolen: stolenResult.count ?? 0,
+        drivers: Number(municipalStats.drivers_total ?? 0),
+        fines: Number(municipalStats.fines_total ?? 0),
+        revenue: Number(municipalStats.revenue_total ?? 0),
+        users: Number(municipalStats.users_total ?? 0),
       });
 
       setRecent(
@@ -235,7 +238,12 @@ function DashboardPage() {
               <SkeletonCard key={index} />
             ))}
           </section>
-          <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </section>
+          <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <SkeletonCard key={index} />
             ))}
@@ -269,7 +277,7 @@ function DashboardPage() {
             />
           </section>
 
-          <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Metric
               icon={<Users />}
               label="Proprietários"
@@ -289,6 +297,34 @@ function DashboardPage() {
               icon={<ShieldAlert />}
               label="Veículos roubados"
               value={counts.stolen}
+            />
+          </section>
+
+          <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <LinkedMetric
+              to="/taxistas"
+              icon={<UserRoundCheck />}
+              label="Taxistas"
+              value={counts.drivers}
+            />
+            <LinkedMetric
+              to="/multas"
+              icon={<ReceiptText />}
+              label="Multas"
+              value={counts.fines}
+            />
+            <LinkedMetric
+              to="/financeiro"
+              icon={<Wallet />}
+              label="Receitas"
+              value={counts.revenue}
+              formatter={formatMoneyMt}
+            />
+            <LinkedMetric
+              to="/utilizadores"
+              icon={<Users />}
+              label="Utilizadores"
+              value={counts.users}
             />
           </section>
         </>
@@ -419,6 +455,42 @@ function Metric({
         <AnimatedNumber value={value} />
       </p>
     </Card>
+  );
+}
+
+function LinkedMetric({
+  to,
+  icon,
+  label,
+  value,
+  formatter,
+}: {
+  to: "/taxistas" | "/multas" | "/financeiro" | "/utilizadores";
+  icon: ReactNode;
+  label: string;
+  value: number;
+  formatter?: (value: number) => string;
+}) {
+  return (
+    <Link to={to} className="group">
+      <Card className="mobigest-card-interactive h-full p-4 hover:border-slate-300">
+        <div className="flex items-start justify-between">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-slate-600 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+            {icon}
+          </span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors group-hover:bg-slate-50 group-hover:text-slate-600">
+            <ChevronRight className="h-4 w-4" />
+          </span>
+        </div>
+        <p className="mt-4 text-[13px] font-medium text-slate-500">{label}</p>
+        <p className="mt-0.5 text-[28px] font-bold tracking-[-0.035em] text-slate-950">
+          <AnimatedNumber value={value} formatter={formatter} />
+        </p>
+        <p className="mt-2 text-[11px] font-semibold text-[var(--municipal-primary)]">
+          Abrir módulo
+        </p>
+      </Card>
+    </Link>
   );
 }
 
