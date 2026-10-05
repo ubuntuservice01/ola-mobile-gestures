@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { updateOwner, type OwnerStatus } from "../../../lib/owners";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/proprietarios/$id/editar")({
   component: Editar,
@@ -39,6 +41,65 @@ function Editar() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState<{
+    fullName: string;
+    documentType: string;
+    documentNumber: string;
+    nuit: string;
+    phone: string;
+    alternatePhone: string;
+    email: string;
+    address: string;
+    postId: string;
+    localityId: string;
+    notes: string;
+    status: OwnerStatus;
+  } | null>(null);
+
+  const ownerDraft = useSessionDraft({
+    key: "proprietarios:" + id + ":editar",
+    value: {
+      fullName,
+      documentType,
+      documentNumber,
+      nuit,
+      phone,
+      alternatePhone,
+      email,
+      address,
+      postId,
+      localityId,
+      notes,
+      status,
+    },
+    restore: (draft) => {
+      setFullName(draft.fullName ?? "");
+      setDocumentType(draft.documentType ?? "BI");
+      setDocumentNumber(draft.documentNumber ?? "");
+      setNuit(draft.nuit ?? "");
+      setPhone(draft.phone ?? "");
+      setAlternatePhone(draft.alternatePhone ?? "");
+      setEmail(draft.email ?? "");
+      setAddress(draft.address ?? "");
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setNotes(draft.notes ?? "");
+      setStatus(draft.status ?? "activo");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => {
+      if (!baseline) {
+        return Boolean(
+          draft.fullName?.trim() ||
+            draft.documentNumber?.trim() ||
+            draft.phone?.trim() ||
+            draft.email?.trim() ||
+            draft.notes?.trim(),
+        );
+      }
+      return JSON.stringify(draft) !== JSON.stringify(baseline);
+    },
+  });
 
   useEffect(() => {
     let active = true;
@@ -78,18 +139,35 @@ function Editar() {
       const owner = ownerResult.data;
       setPosts((postResult.data ?? []) as Post[]);
       setLocalities((localityResult.data ?? []) as Locality[]);
-      setFullName(owner.full_name ?? "");
-      setDocumentType(owner.document_type ?? "BI");
-      setDocumentNumber(owner.document_number ?? "");
-      setNuit(owner.nuit ?? "");
-      setPhone(owner.phone ?? "");
-      setAlternatePhone(owner.alternate_phone ?? "");
-      setEmail(owner.email ?? "");
-      setAddress(owner.address ?? "");
-      setPostId(owner.administrative_post_id ?? "");
-      setLocalityId(owner.locality_id ?? "");
-      setNotes(owner.notes ?? "");
-      setStatus(owner.status as OwnerStatus);
+      const serverValues = {
+        fullName: owner.full_name ?? "",
+        documentType: owner.document_type ?? "BI",
+        documentNumber: owner.document_number ?? "",
+        nuit: owner.nuit ?? "",
+        phone: owner.phone ?? "",
+        alternatePhone: owner.alternate_phone ?? "",
+        email: owner.email ?? "",
+        address: owner.address ?? "",
+        postId: owner.administrative_post_id ?? "",
+        localityId: owner.locality_id ?? "",
+        notes: owner.notes ?? "",
+        status: owner.status as OwnerStatus,
+      };
+      setBaseline(serverValues);
+      if (!ownerDraft.hasStoredDraft) {
+        setFullName(serverValues.fullName);
+        setDocumentType(serverValues.documentType);
+        setDocumentNumber(serverValues.documentNumber);
+        setNuit(serverValues.nuit);
+        setPhone(serverValues.phone);
+        setAlternatePhone(serverValues.alternatePhone);
+        setEmail(serverValues.email);
+        setAddress(serverValues.address);
+        setPostId(serverValues.postId);
+        setLocalityId(serverValues.localityId);
+        setNotes(serverValues.notes);
+        setStatus(serverValues.status);
+      }
       setLoading(false);
     };
 
@@ -131,6 +209,7 @@ function Editar() {
         status,
       });
 
+      ownerDraft.clearDraft();
       await navigate({
         to: "/proprietarios/$id",
         params: { id },
