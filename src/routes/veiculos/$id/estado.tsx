@@ -14,6 +14,8 @@ import {
   type VehicleOperationalStatus,
 } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/veiculos/$id/estado")({
   component: AlterarEstado,
@@ -78,6 +80,33 @@ function AlterarEstado() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const operationalDraft = useSessionDraft({
+    key: "veiculos:" + id + ":estado-operacional",
+    value: { newStatus, reason, occurrenceReference },
+    restore: (draft) => {
+      setNewStatus(draft.newStatus ?? "");
+      setReason(draft.reason ?? "");
+      setOccurrenceReference(draft.occurrenceReference ?? "");
+      notify.info("Rascunho operacional recuperado automaticamente.");
+    },
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.newStatus ||
+          draft.reason?.trim() ||
+          draft.occurrenceReference?.trim(),
+      ),
+  });
+
+  const commercialDraft = useSessionDraft({
+    key: "veiculos:" + id + ":estado-comercial",
+    value: { commercialReason },
+    restore: (draft) => {
+      setCommercialReason(draft.commercialReason ?? "");
+      notify.info("Rascunho comercial recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => Boolean(draft.commercialReason?.trim()),
+  });
+
   useEffect(() => {
     let active = true;
 
@@ -103,7 +132,9 @@ function AlterarEstado() {
       setVehicleNumber(data.mobigest_number ?? "Aguardando aprovação");
       setCurrentStatus(data.status as VehicleOperationalStatus);
       setCommercialStatus(data.commercial_status as "normal" | "a_venda");
-      setNewStatus("");
+      if (!operationalDraft.hasStoredDraft) {
+        setNewStatus("");
+      }
       setLoading(false);
     };
 
@@ -134,6 +165,7 @@ function AlterarEstado() {
         occurrenceReference: occurrenceReference.trim() || null,
       });
 
+      operationalDraft.clearDraft();
       setCurrentStatus(newStatus);
       setNewStatus("");
       setReason("");
@@ -167,6 +199,7 @@ function AlterarEstado() {
         reason: commercialReason.trim(),
       });
 
+      commercialDraft.clearDraft();
       setCommercialStatus(target);
       setCommercialReason("");
       setMessage(
