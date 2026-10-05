@@ -1,18 +1,26 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, Search } from "lucide-react";
+import { CircleCheck, Eye, Search, UserRound, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
   EmptyState,
   IconTooltip,
   NetworkErrorState,
   PaginationBar,
+  SkeletonCard,
   SkeletonTable,
   StatusBadge,
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/proprietarios")({
   component: PropsRouteBoundary,
@@ -25,6 +33,7 @@ type OwnerRow = {
   document_number: string | null;
   phone: string | null;
   status: string;
+  created_at: string;
   vehicles: number;
 };
 
@@ -46,7 +55,7 @@ function Props() {
 
       const { data, error } = await supabase
         .from("owners")
-        .select("id, full_name, document_type, document_number, phone, status")
+        .select("id, full_name, document_type, document_number, phone, status, created_at")
         .order("full_name", { ascending: true });
 
       if (!active) return;
@@ -126,12 +135,87 @@ function Props() {
 
   return (
     <MobiGestShell title="Proprietários">
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Cadastro municipal"
         title="Proprietários"
-        description="Cidadãos associados aos veículos registados."
-        action="+ Novo proprietário"
-        actionTo="/proprietarios/novo"
+        description="Cidadãos associados aos veículos, processos e serviços municipais de mobilidade."
+        icon={<Users />}
+        action={
+          <Link
+            to="/proprietarios/novo"
+            className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+          >
+            + Novo proprietário
+          </Link>
+        }
       />
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          <>
+            <AnalyticsKpiCard
+              label="Proprietários"
+              value={rows.length}
+              icon={<Users />}
+              note="Total registado"
+              emphasis
+            />
+            <AnalyticsKpiCard
+              label="Activos"
+              value={rows.filter((row) => row.status === "activo").length}
+              icon={<CircleCheck />}
+              note="Cadastros activos"
+            />
+            <AnalyticsKpiCard
+              label="Com veículos"
+              value={rows.filter((row) => row.vehicles > 0).length}
+              icon={<UserRound />}
+              note="Possuem veículo associado"
+            />
+            <AnalyticsKpiCard
+              label="Sem veículos"
+              value={rows.filter((row) => row.vehicles === 0).length}
+              icon={<UserRound />}
+              note="Sem veículo associado"
+            />
+          </>
+        )}
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <AnalyticsChartCard
+          title="Novos proprietários"
+          description="Cadastros criados nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart
+              data={ownerMonthlySeries(rows)}
+              seriesLabel="Proprietários"
+              emptyTitle="Ainda não existem cadastros no período"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Situação dos cadastros"
+          description="Distribuição actual por estado."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={ownerStatusDistribution(rows)}
+              centerLabel="Pessoas"
+            />
+          )}
+        </AnalyticsChartCard>
+      </div>
 
       <Card>
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -250,6 +334,38 @@ function Props() {
       </Card>
     </MobiGestShell>
   );
+}
+
+function ownerMonthlySeries(rows: OwnerRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.created_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function ownerStatusDistribution(rows: OwnerRow[]) {
+  return ["activo", "inactivo"]
+    .map((status) => ({
+      name: status === "activo" ? "Activos" : "Inactivos",
+      value: rows.filter((row) => row.status === status).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function PropsRouteBoundary() {
