@@ -13,8 +13,6 @@ import {
   LogOut,
   MapPin,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   ReceiptText,
   Settings,
   ShieldCheck,
@@ -71,7 +69,6 @@ export function MobiGestShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [accessSession, setAccessSession] = useState<MunicipalAccessSession | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
@@ -87,22 +84,6 @@ export function MobiGestShell({
   const [municipalBrandName, setMunicipalBrandName] = useState("Área municipal");
   const [municipalLogoUrl, setMunicipalLogoUrl] = useState<string | null>(null);
   const [municipalPrimaryColor, setMunicipalPrimaryColor] = useState("#0284C7");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("mobigest-sidebar-collapsed");
-    setCollapsed(saved === "true");
-  }, []);
-
-  const toggleSidebar = () => {
-    setCollapsed((current) => {
-      const next = !current;
-      window.localStorage.setItem(
-        "mobigest-sidebar-collapsed",
-        String(next),
-      );
-      return next;
-    });
-  };
 
   useEffect(() => {
     let active = true;
@@ -273,63 +254,49 @@ export function MobiGestShell({
     >
       <aside
         className={
-          "fixed inset-y-0 left-0 z-50 w-72 border-r border-white/10 bg-[#07101f] text-white shadow-2xl shadow-slate-950/10 transition-[width,transform] duration-200 ease-out lg:translate-x-0 " +
-          (collapsed ? "lg:w-20 " : "lg:w-64 ") +
+          "fixed inset-y-0 left-0 z-50 w-[min(88vw,320px)] border-r border-white/10 bg-[#07101f] text-white shadow-2xl shadow-slate-950/20 transition-transform duration-200 ease-out " +
           (open ? "translate-x-0" : "-translate-x-full")
         }
+        aria-hidden={!open}
       >
         <div className="flex h-full flex-col">
-          <div
-            className={
-              "relative flex h-16 items-center border-b border-white/10 " +
-              (collapsed
-                ? "justify-between px-5 lg:justify-center lg:px-3"
-                : "justify-between px-5")
-            }
-          >
-            <div className="min-w-0">
-              {collapsed && (
-                <div className="hidden h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-slate-950 shadow-sm lg:flex">
-                  MG
-                </div>
-              )}
-              <img
-                src="/mobigest-logo.svg"
-                alt="MobiGest"
-                className={
-                  "h-9 w-auto brightness-0 invert " +
-                  (collapsed ? "lg:hidden" : "")
-                }
-              />
-            </div>
-
-            <div className="flex items-center gap-1">
-              <IconTooltip
-                label={collapsed ? "Expandir menu" : "Recolher menu"}
+          <div className="border-b border-white/10 px-4 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                to="/meu-municipio"
+                onClick={() => setOpen(false)}
+                className="mobigest-interactive flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2 hover:bg-white/[0.06]"
               >
-                <button
-                  type="button"
-                  onClick={toggleSidebar}
-                  aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-                  aria-expanded={!collapsed}
-                  className={
-                    "mobigest-interactive hidden rounded-lg p-2 lg:inline-flex " +
-                    (collapsed
-                      ? "text-slate-400 hover:bg-white/10 hover:text-white lg:absolute lg:-right-3 lg:top-5 lg:z-10 lg:border lg:border-slate-200 lg:bg-white lg:text-slate-600 lg:shadow-md lg:hover:bg-slate-50 lg:hover:text-slate-900"
-                      : "text-slate-400 hover:bg-white/10 hover:text-white")
-                  }
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm"
+                  style={{ border: "2px solid " + municipalPrimaryColor }}
                 >
-                  {collapsed ? (
-                    <PanelLeftOpen className="h-4 w-4" />
+                  {municipalLogoUrl ? (
+                    <img
+                      src={municipalLogoUrl}
+                      alt={"Logótipo de " + municipalBrandName}
+                      className="h-full w-full object-contain p-1"
+                    />
                   ) : (
-                    <PanelLeftClose className="h-4 w-4" />
+                    <Building2
+                      className="h-6 w-6"
+                      style={{ color: municipalPrimaryColor }}
+                    />
                   )}
-                </button>
-              </IconTooltip>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    Município
+                  </p>
+                  <p className="truncate text-sm font-semibold text-white">
+                    {municipalBrandName}
+                  </p>
+                </div>
+              </Link>
 
               <button
                 type="button"
-                className="mobigest-interactive rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
+                className="mobigest-interactive rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white"
                 onClick={() => setOpen(false)}
                 aria-label="Fechar menu"
               >
@@ -338,56 +305,7 @@ export function MobiGestShell({
             </div>
           </div>
 
-          <div
-            className={
-              "border-b border-white/10 py-3 " +
-              (collapsed ? "px-3 lg:px-2" : "px-4")
-            }
-          >
-            <Link
-              to="/meu-municipio"
-              title={collapsed ? municipalBrandName : undefined}
-              className={
-                "mobigest-interactive flex items-center rounded-xl border border-transparent bg-white/[0.045] hover:border-white/10 hover:bg-white/[0.08] " +
-                (collapsed
-                  ? "gap-3 p-3 lg:justify-center lg:gap-0 lg:p-2"
-                  : "gap-3 p-3")
-              }
-            >
-              <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10"
-                style={{ border: "1px solid " + municipalPrimaryColor }}
-              >
-                {municipalLogoUrl ? (
-                  <img
-                    src={municipalLogoUrl}
-                    alt=""
-                    className="h-full w-full object-contain bg-white p-1"
-                  />
-                ) : (
-                  <Building2
-                    className="h-5 w-5"
-                    style={{ color: municipalPrimaryColor }}
-                  />
-                )}
-              </div>
-              <div className={collapsed ? "lg:hidden" : "min-w-0"}>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                  Município
-                </p>
-                <p className="truncate text-sm font-semibold text-white">
-                  {municipalBrandName}
-                </p>
-              </div>
-            </Link>
-          </div>
-
-          <nav
-            className={
-              "mobigest-sidebar-scroll flex-1 space-y-1 overflow-y-auto py-3 " +
-              (collapsed ? "px-3 lg:px-2" : "px-3")
-            }
-          >
+          <nav className="mobigest-sidebar-scroll flex-1 space-y-1 overflow-y-auto px-3 py-3">
             {items
               .filter(([, , , permission]) =>
                 canShowMenuItem(
@@ -403,26 +321,15 @@ export function MobiGestShell({
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: to === "/dashboard" }}
                 activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
-                title={collapsed ? label : undefined}
-                className={
-                  "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
-                  (collapsed
-                    ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2"
-                    : "gap-3 px-3")
-                }
+                className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
               >
                 <Icon className="h-[18px] w-[18px] shrink-0" />
-                <span className={collapsed ? "lg:hidden" : ""}>{label}</span>
+                <span>{label}</span>
               </Link>
             ))}
 
             <div className="my-3 border-t border-white/10 pt-3">
-              <p
-                className={
-                  "px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 " +
-                  (collapsed ? "lg:hidden" : "")
-                }
-              >
+              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                 Sistema
               </p>
               {canShowMenuItem(
@@ -434,14 +341,10 @@ export function MobiGestShell({
                   to="/permissoes"
                   onClick={() => setOpen(false)}
                   activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
-                  title={collapsed ? "Permissões" : undefined}
-                  className={
-                    "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
-                    (collapsed ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3")
-                  }
+                  className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
                 >
                   <ShieldCheck className="h-[18px] w-[18px] shrink-0" />
-                  <span className={collapsed ? "lg:hidden" : ""}>Permissões</span>
+                  <span>Permissões</span>
                 </Link>
               )}
               {canShowMenuItem(
@@ -453,38 +356,21 @@ export function MobiGestShell({
                   to="/auditoria"
                   onClick={() => setOpen(false)}
                   activeProps={{ className: "bg-[var(--municipal-primary)] text-white", "data-status": "active" }}
-                  title={collapsed ? "Auditoria" : undefined}
-                  className={
-                    "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
-                    (collapsed ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3")
-                  }
+                  className="mobigest-sidebar-link group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white"
                 >
                   <FileText className="h-[18px] w-[18px] shrink-0" />
-                  <span className={collapsed ? "lg:hidden" : ""}>Auditoria</span>
+                  <span>Auditoria</span>
                 </Link>
               )}
             </div>
           </nav>
 
-          <div className={"border-t border-white/10 " + (collapsed ? "p-3 lg:p-2" : "p-3")}>
-            <div
-              className={
-                "flex items-center rounded-xl border border-transparent bg-white/[0.045] hover:border-white/10 " +
-                (collapsed
-                  ? "gap-2 p-2 lg:flex-col lg:gap-1 lg:p-1.5"
-                  : "gap-2 p-2")
-              }
-            >
+          <div className="border-t border-white/10 p-3">
+            <div className="flex items-center gap-2 rounded-xl border border-transparent bg-white/[0.045] p-2 hover:border-white/10">
               <Link
                 to="/perfil"
                 onClick={() => setOpen(false)}
-                title={collapsed ? profileName : undefined}
-                className={
-                  "mobigest-interactive flex min-w-0 items-center rounded-lg p-1 hover:bg-white/[0.06] " +
-                  (collapsed
-                    ? "flex-1 gap-3 lg:flex-none lg:justify-center lg:gap-0"
-                    : "flex-1 gap-3")
-                }
+                className="mobigest-interactive flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-white/[0.06]"
                 aria-label="Abrir meu perfil"
               >
                 <div
@@ -493,12 +379,7 @@ export function MobiGestShell({
                 >
                   {isSuperAdminAccess ? "SA" : initials(profileName)}
                 </div>
-                <div
-                  className={
-                    "min-w-0 flex-1 text-left " +
-                    (collapsed ? "lg:hidden" : "")
-                  }
-                >
+                <div className="min-w-0 flex-1 text-left">
                   <p className="truncate text-sm font-semibold">
                     {isSuperAdminAccess ? "Super Administrador" : profileName}
                   </p>
@@ -531,40 +412,50 @@ export function MobiGestShell({
           type="button"
           aria-label="Fechar menu"
           onClick={() => setOpen(false)}
-          className="mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
+          className="mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[1px]"
         />
       )}
 
-      <div
-        className={
-          "transition-[padding] duration-200 ease-out " +
-          (collapsed ? "lg:pl-20" : "lg:pl-64")
-        }
-      >
+      <div>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 shadow-[0_1px_0_rgba(15,23,42,0.02)] backdrop-blur-xl md:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              className="mobigest-interactive rounded-lg border border-slate-200 bg-white p-2 text-slate-500 shadow-sm hover:bg-slate-50 lg:hidden"
+              className="mobigest-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-900"
               onClick={() => setOpen(true)}
               aria-label="Abrir menu"
+              aria-expanded={open}
             >
               <Menu className="h-5 w-5" />
             </button>
-            {!isSuperAdminAccess && municipalLogoUrl && (
-              <img
-                src={municipalLogoUrl}
-                alt=""
-                className="hidden h-9 w-9 rounded-lg border border-slate-200 bg-white object-contain p-1 sm:block"
-              />
-            )}
+
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm"
+              style={{ border: "1px solid " + municipalPrimaryColor }}
+            >
+              {municipalLogoUrl ? (
+                <img
+                  src={municipalLogoUrl}
+                  alt={"Logótipo de " + municipalBrandName}
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : (
+                <Building2
+                  className="h-5 w-5"
+                  style={{ color: municipalPrimaryColor }}
+                />
+              )}
+            </div>
+
             <div className="min-w-0">
-              <p className="max-w-[52vw] truncate text-[11px] font-medium tracking-wide text-slate-400 sm:max-w-none">
+              <p className="max-w-[48vw] truncate text-[11px] font-semibold tracking-wide text-slate-500 sm:max-w-none">
                 {isSuperAdminAccess
-                  ? "MobiGest · Acesso municipal do Super Admin"
-                  : "MobiGest · " + municipalBrandName}
+                  ? accessSession?.municipality_name ?? municipalBrandName
+                  : municipalBrandName}
               </p>
-              <h1 className="truncate text-[15px] font-semibold tracking-[-0.01em] text-slate-900">{title}</h1>
+              <h1 className="truncate text-[15px] font-semibold tracking-[-0.01em] text-slate-950">
+                {title}
+              </h1>
             </div>
           </div>
 
@@ -651,7 +542,10 @@ export function MobiGestShell({
 
         <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 md:py-7 lg:px-8">
           {title !== "Dashboard" && (
-            <MobiGestBreadcrumbs currentTitle={title} />
+            <MobiGestBreadcrumbs
+              currentTitle={title}
+              rootLabel={municipalBrandName}
+            />
           )}
 
           <PageTransition>
@@ -802,8 +696,10 @@ const BREADCRUMB_LABELS: Record<string, string> = {
 
 function MobiGestBreadcrumbs({
   currentTitle,
+  rootLabel,
 }: {
   currentTitle: string;
+  rootLabel: string;
 }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -821,7 +717,7 @@ function MobiGestBreadcrumbs({
         to="/dashboard"
         className="mobigest-interactive rounded px-1 py-0.5 hover:text-sky-700"
       >
-        MobiGest
+        {rootLabel}
       </Link>
 
       {segments.map((segment, index) => {
