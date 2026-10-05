@@ -15,6 +15,7 @@ import {
   type FiscalizationResult,
 } from "../../lib/enforcement";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   LoadingButton,
   ProcessingOverlay,
@@ -63,6 +64,49 @@ function NovaFiscalizacao() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [evidenceWarning, setEvidenceWarning] = useState<string | null>(null);
+
+  const fiscalizationDraft = useSessionDraft({
+    key: "fiscalizacao:nova",
+    value: {
+      code,
+      result,
+      occurrence,
+      observation,
+      postId,
+      localityId,
+      evidenceDescription,
+      confirmed,
+      hadEvidence: Boolean(evidence),
+    },
+    restore: (draft) => {
+      setCode(draft.code ?? "");
+      setResult(draft.result ?? "regular");
+      setOccurrence(draft.occurrence ?? "");
+      setObservation(draft.observation ?? "");
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setEvidenceDescription(draft.evidenceDescription ?? "");
+      setConfirmed(Boolean(draft.confirmed));
+      if (draft.hadEvidence) {
+        setEvidenceWarning(
+          "O restante rascunho foi recuperado. Por segurança do navegador, seleccione novamente o ficheiro de evidência.",
+        );
+      }
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdId,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.code?.trim() ||
+          draft.occurrence?.trim() ||
+          draft.observation?.trim() ||
+          draft.postId ||
+          draft.localityId ||
+          draft.evidenceDescription?.trim() ||
+          draft.confirmed ||
+          draft.hadEvidence,
+      ),
+  });
 
   const availableLocalities = useMemo(
     () =>
@@ -171,6 +215,7 @@ function NovaFiscalizacao() {
         }
       }
 
+      fiscalizationDraft.clearDraft();
       setCreatedId(fiscalizationId);
       notify.success(
         "Fiscalização registada",
