@@ -19,13 +19,13 @@ import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FiscalizacaoRouteImport } from './routes/fiscalizacao'
 import { Route as LocalidadesRouteImport } from './routes/localidades'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MeuMunicipioRouteImport } from './routes/meu-municipio'
 import { Route as MultasRouteImport } from './routes/multas'
 import { Route as MunicipiosRouteImport } from './routes/municipios'
-import { Route as MeuMunicipioRouteImport } from './routes/meu-municipio'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as NovaPasswordRouteImport } from './routes/nova-password'
-import { Route as PermissoesRouteImport } from './routes/permissoes'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PermissoesRouteImport } from './routes/permissoes'
 import { Route as PostosAdministrativosRouteImport } from './routes/postos-administrativos'
 import { Route as ProprietariosRouteImport } from './routes/proprietarios'
 import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
@@ -154,6 +154,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeuMunicipioRoute = MeuMunicipioRouteImport.update({
+  id: '/meu-municipio',
+  path: '/meu-municipio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MultasRoute = MultasRouteImport.update({
   id: '/multas',
   path: '/multas',
@@ -162,11 +167,6 @@ const MultasRoute = MultasRouteImport.update({
 const MunicipiosRoute = MunicipiosRouteImport.update({
   id: '/municipios',
   path: '/municipios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MeuMunicipioRoute = MeuMunicipioRouteImport.update({
-  id: '/meu-municipio',
-  path: '/meu-municipio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificacoesRoute = NotificacoesRouteImport.update({
@@ -179,14 +179,14 @@ const NovaPasswordRoute = NovaPasswordRouteImport.update({
   path: '/nova-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PermissoesRoute = PermissoesRouteImport.update({
-  id: '/permissoes',
-  path: '/permissoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PermissoesRoute = PermissoesRouteImport.update({
+  id: '/permissoes',
+  path: '/permissoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostosAdministrativosRoute = PostosAdministrativosRouteImport.update({
@@ -597,13 +597,13 @@ export interface FileRoutesByFullPath {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
-  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
-  '/permissoes': typeof PermissoesRoute
   '/perfil': typeof PerfilRoute
+  '/permissoes': typeof PermissoesRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -693,13 +693,13 @@ export interface FileRoutesByTo {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
-  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
-  '/permissoes': typeof PermissoesRoute
   '/perfil': typeof PerfilRoute
+  '/permissoes': typeof PermissoesRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -790,13 +790,13 @@ export interface FileRoutesById {
   '/fiscalizacao': typeof FiscalizacaoRouteWithChildren
   '/localidades': typeof LocalidadesRouteWithChildren
   '/login': typeof LoginRoute
+  '/meu-municipio': typeof MeuMunicipioRoute
   '/multas': typeof MultasRouteWithChildren
   '/municipios': typeof MunicipiosRouteWithChildren
-  '/meu-municipio': typeof MeuMunicipioRoute
   '/notificacoes': typeof NotificacoesRoute
   '/nova-password': typeof NovaPasswordRoute
-  '/permissoes': typeof PermissoesRoute
   '/perfil': typeof PerfilRoute
+  '/permissoes': typeof PermissoesRoute
   '/postos-administrativos': typeof PostosAdministrativosRouteWithChildren
   '/proprietarios': typeof ProprietariosRouteWithChildren
   '/recuperar-password': typeof RecuperarPasswordRoute
@@ -888,13 +888,13 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/meu-municipio'
     | '/multas'
     | '/municipios'
-    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
-    | '/permissoes'
     | '/perfil'
+    | '/permissoes'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -984,13 +984,13 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/meu-municipio'
     | '/multas'
     | '/municipios'
-    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
-    | '/permissoes'
     | '/perfil'
+    | '/permissoes'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -1080,13 +1080,13 @@ export interface FileRouteTypes {
     | '/fiscalizacao'
     | '/localidades'
     | '/login'
+    | '/meu-municipio'
     | '/multas'
     | '/municipios'
-    | '/meu-municipio'
     | '/notificacoes'
     | '/nova-password'
-    | '/permissoes'
     | '/perfil'
+    | '/permissoes'
     | '/postos-administrativos'
     | '/proprietarios'
     | '/recuperar-password'
@@ -1177,13 +1177,13 @@ export interface RootRouteChildren {
   FiscalizacaoRoute: typeof FiscalizacaoRouteWithChildren
   LocalidadesRoute: typeof LocalidadesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MeuMunicipioRoute: typeof MeuMunicipioRoute
   MultasRoute: typeof MultasRouteWithChildren
   MunicipiosRoute: typeof MunicipiosRouteWithChildren
-  MeuMunicipioRoute: typeof MeuMunicipioRoute
   NotificacoesRoute: typeof NotificacoesRoute
   NovaPasswordRoute: typeof NovaPasswordRoute
-  PermissoesRoute: typeof PermissoesRoute
   PerfilRoute: typeof PerfilRoute
+  PermissoesRoute: typeof PermissoesRoute
   PostosAdministrativosRoute: typeof PostosAdministrativosRouteWithChildren
   ProprietariosRoute: typeof ProprietariosRouteWithChildren
   RecuperarPasswordRoute: typeof RecuperarPasswordRoute
@@ -1270,6 +1270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meu-municipio': {
+      id: '/meu-municipio'
+      path: '/meu-municipio'
+      fullPath: '/meu-municipio'
+      preLoaderRoute: typeof MeuMunicipioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/multas': {
       id: '/multas'
       path: '/multas'
@@ -1282,13 +1289,6 @@ declare module '@tanstack/react-router' {
       path: '/municipios'
       fullPath: '/municipios'
       preLoaderRoute: typeof MunicipiosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/meu-municipio': {
-      id: '/meu-municipio'
-      path: '/meu-municipio'
-      fullPath: '/meu-municipio'
-      preLoaderRoute: typeof MeuMunicipioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notificacoes': {
@@ -1305,18 +1305,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NovaPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/permissoes': {
-      id: '/permissoes'
-      path: '/permissoes'
-      fullPath: '/permissoes'
-      preLoaderRoute: typeof PermissoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/perfil': {
       id: '/perfil'
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/permissoes': {
+      id: '/permissoes'
+      path: '/permissoes'
+      fullPath: '/permissoes'
+      preLoaderRoute: typeof PermissoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/postos-administrativos': {
@@ -2246,13 +2246,13 @@ const rootRouteChildren: RootRouteChildren = {
   FiscalizacaoRoute: FiscalizacaoRouteWithChildren,
   LocalidadesRoute: LocalidadesRouteWithChildren,
   LoginRoute: LoginRoute,
+  MeuMunicipioRoute: MeuMunicipioRoute,
   MultasRoute: MultasRouteWithChildren,
   MunicipiosRoute: MunicipiosRouteWithChildren,
-  MeuMunicipioRoute: MeuMunicipioRoute,
   NotificacoesRoute: NotificacoesRoute,
   NovaPasswordRoute: NovaPasswordRoute,
-  PermissoesRoute: PermissoesRoute,
   PerfilRoute: PerfilRoute,
+  PermissoesRoute: PermissoesRoute,
   PostosAdministrativosRoute: PostosAdministrativosRouteWithChildren,
   ProprietariosRoute: ProprietariosRouteWithChildren,
   RecuperarPasswordRoute: RecuperarPasswordRoute,
