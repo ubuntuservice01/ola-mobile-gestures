@@ -254,7 +254,7 @@ export function MobiGestShell({
     >
       <aside
         className={
-          "fixed inset-y-0 left-0 z-50 w-[min(88vw,320px)] border-r border-white/10 bg-[#07101f] text-white shadow-2xl shadow-slate-950/20 transition-transform duration-200 ease-out " +
+          "fixed inset-y-0 left-0 z-50 w-[min(88vw,320px)] border-r border-white/10 bg-[#07101f] text-white shadow-2xl shadow-slate-950/20 transition-transform duration-[220ms] ease-[cubic-bezier(0.2,0,0,1)] will-change-transform " +
           (open ? "translate-x-0" : "-translate-x-full")
         }
         aria-hidden={!open}
@@ -407,21 +407,26 @@ export function MobiGestShell({
         </div>
       </aside>
 
-      {open && (
-        <button
-          type="button"
-          aria-label="Fechar menu"
-          onClick={() => setOpen(false)}
-          className="mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[1px]"
-        />
-      )}
+      <button
+        type="button"
+        aria-label="Fechar menu"
+        onClick={() => setOpen(false)}
+        tabIndex={open ? 0 : -1}
+        aria-hidden={!open}
+        className={
+          "mobigest-drawer-backdrop fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[1px] " +
+          (open
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0")
+        }
+      />
 
       <div>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 shadow-[0_1px_0_rgba(15,23,42,0.02)] backdrop-blur-xl md:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              className="mobigest-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-900"
+              className="mobigest-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:-translate-y-px hover:bg-slate-50 hover:text-slate-900 hover:shadow-md"
               onClick={() => setOpen(true)}
               aria-label="Abrir menu"
               aria-expanded={open}
