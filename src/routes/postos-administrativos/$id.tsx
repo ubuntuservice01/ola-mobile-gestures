@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { updateAdministrativePost } from "../../lib/territory";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
+import { notify } from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/postos-administrativos/$id")({
   component: Detalhe,
@@ -51,6 +53,19 @@ function Detalhe() {
   const [status, setStatus] = useState<"activo" | "inactivo">("activo");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const postDraft = useSessionDraft({
+    key: "postos-administrativos:" + id + ":editar",
+    value: { editing, name, code, status },
+    restore: (draft) => {
+      setEditing(Boolean(draft.editing));
+      setName(draft.name ?? "");
+      setCode(draft.code ?? "");
+      setStatus(draft.status ?? "activo");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => Boolean(draft.editing),
+  });
 
   useEffect(() => {
     let active = true;
@@ -146,9 +161,11 @@ function Detalhe() {
       setVehicles(vehiclesResult.count ?? 0);
       setUsers(usersResult.count ?? 0);
 
-      setName(currentPost.name);
-      setCode(currentPost.code ?? "");
-      setStatus(currentPost.status);
+      if (!postDraft.hasStoredDraft) {
+        setName(currentPost.name);
+        setCode(currentPost.code ?? "");
+        setStatus(currentPost.status);
+      }
       setLoading(false);
     };
 
@@ -173,6 +190,7 @@ function Detalhe() {
         status,
       });
 
+      postDraft.clearDraft();
       setEditing(false);
       setRefreshToken((value) => value + 1);
     } catch (error) {
@@ -204,7 +222,12 @@ function Detalhe() {
           <button
             type="button"
             onClick={() => {
-              setEditing((value) => !value);
+              if (editing) {
+                postDraft.clearDraft();
+                setEditing(false);
+              } else {
+                setEditing(true);
+              }
               setSaveError(null);
             }}
             className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold"
