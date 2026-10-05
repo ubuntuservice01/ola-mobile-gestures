@@ -147,8 +147,7 @@ function RegistoVeiculo() {
     enabled: !created,
     isMeaningful: (draft) =>
       Boolean(
-        draft.ownerId ||
-          draft.localityId ||
+        draft.localityId ||
           draft.plateNumber?.trim() ||
           draft.chassisNumber?.trim() ||
           draft.frameNumber?.trim() ||
