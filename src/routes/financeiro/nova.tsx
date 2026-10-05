@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createCharge } from "../../lib/finance";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   EmptyState,
   LoadingButton,
@@ -73,6 +74,24 @@ function Nova() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  const chargeDraft = useSessionDraft({
+    key: "financeiro:nova",
+    value: { ownerId, vehicleId, feeId, note },
+    restore: (draft) => {
+      setOwnerId(draft.ownerId ?? "");
+      setVehicleId(draft.vehicleId ?? "");
+      setFeeId(draft.feeId ?? "");
+      setNote(draft.note ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.vehicleId ||
+          draft.feeId ||
+          draft.note?.trim(),
+      ),
+  });
+
   useEffect(() => {
     let active = true;
 
@@ -120,7 +139,9 @@ function Nova() {
       setVehicles((vehiclesResult.data ?? []) as Vehicle[]);
       setFees((feesResult.data ?? []) as Fee[]);
 
-      if (ownerRows[0]) setOwnerId(ownerRows[0].id);
+      if (ownerRows[0]) {
+        setOwnerId((current) => current || ownerRows[0].id);
+      }
       setLoading(false);
     };
 
@@ -192,6 +213,7 @@ function Nova() {
         note: note.trim() || null,
       });
 
+      chargeDraft.clearDraft();
       notify.success(
         "Cobrança criada",
         "A cobrança municipal foi registada com sucesso.",
