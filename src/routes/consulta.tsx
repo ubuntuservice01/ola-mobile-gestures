@@ -8,6 +8,11 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
+import {
+  LoadingButton,
+  PageTransition,
+  type LoadingButtonState,
+} from "../components/mobigest/Experience";
 
 export const Route = createFileRoute("/consulta")({
   component: ConsultaRouteBoundary,
@@ -17,17 +22,20 @@ function Consulta() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"veiculo" | "condutor">("veiculo");
   const [code, setCode] = useState("");
+  const [searchState, setSearchState] = useState<LoadingButtonState>("idle");
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const normalized = code.trim().toUpperCase();
     if (!normalized) return;
+    setSearchState("loading");
 
     if (mode === "condutor") {
       await navigate({
         to: "/consulta/condutor/$codigo",
         params: { codigo: normalized },
       });
+      setSearchState("success");
       return;
     }
 
@@ -35,10 +43,12 @@ function Consulta() {
       to: "/consulta/$codigo",
       params: { codigo: normalized },
     });
+    setSearchState("success");
   };
 
   return (
     <main className="min-h-screen bg-slate-50">
+      <PageTransition>
       <header className="border-b bg-white">
         <div className="mx-auto flex h-20 max-w-5xl items-center justify-between px-5">
           <Link to="/">
@@ -128,16 +138,21 @@ function Consulta() {
             />
           </div>
 
-          <button
+          <LoadingButton
             type="submit"
             disabled={!code.trim()}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {mode === "veiculo"
-              ? "Consultar veículo"
-              : "Consultar taxista / condutor"}
-            <ArrowRight className="h-4 w-4" />
-          </button>
+            state={searchState}
+            idleLabel={
+              mode === "veiculo"
+                ? "Consultar veículo"
+                : "Consultar taxista / condutor"
+            }
+            loadingLabel="A consultar registos..."
+            successLabel="A abrir resultado..."
+            errorLabel="Tentar novamente"
+            icon={<ArrowRight className="h-4 w-4" />}
+            className="mt-4 w-full bg-sky-600 py-3 text-white hover:bg-sky-700"
+          />
 
           <p className="mt-4 text-center text-xs leading-5 text-slate-400">
             Ao digitalizar um QR MobiGest com a câmara do telemóvel, a página de
@@ -162,6 +177,7 @@ function Consulta() {
           </div>
         </div>
       </div>
+      </PageTransition>
     </main>
   );
 }
