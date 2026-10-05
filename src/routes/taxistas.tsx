@@ -1,11 +1,20 @@
 import { RouteIndexBoundary } from "../components/RouteIndexBoundary";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, QrCode, Search, UserRoundCheck, X } from "lucide-react";
+import {
+  Ban,
+  CircleCheck,
+  Eye,
+  QrCode,
+  Search,
+  ShieldAlert,
+  UserRoundCheck,
+  Users,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
-  AnimatedNumber,
   EmptyState,
   IconTooltip,
   NetworkErrorState,
@@ -15,6 +24,13 @@ import {
   StatusBadge,
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/taxistas")({
   component: TaxistasRouteBoundary,
@@ -28,6 +44,7 @@ type DriverRow = {
   driver_type: string;
   locality_id: string | null;
   status: string;
+  created_at: string;
   vehicleId: string | null;
   vehicleNumber: string;
   localityName: string;
@@ -55,7 +72,7 @@ function Taxistas() {
         supabase
           .from("drivers")
           .select(
-            "id, reference, full_name, phone, driver_type, locality_id, status",
+            "id, reference, full_name, phone, driver_type, locality_id, status, created_at",
           )
           .order("created_at", { ascending: false }),
         supabase
@@ -179,35 +196,96 @@ function Taxistas() {
       title="Taxistas / Condutores"
       subtitle="Gestão e identificação dos condutores registados no município."
     >
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Gestão de condutores"
         title="Taxistas / Condutores"
-        description="MTX identifica taxistas/mototaxistas; CDT identifica outros condutores."
-        action="+ Novo taxista / condutor"
-        actionTo="/taxistas/novo"
+        description="MTX identifica taxistas e mototaxistas; CDT identifica os restantes condutores autorizados."
+        icon={<UserRoundCheck />}
+        action={
+          <Link
+            to="/taxistas/novo"
+            className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+          >
+            + Novo taxista / condutor
+          </Link>
+        }
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
+          Array.from({ length: 4 }).map((_, index) => (
             <SkeletonCard key={index} />
           ))
         ) : (
           <>
-            <Metric label="Registados" value={rows.length} />
-            <Metric
+            <AnalyticsKpiCard
+              label="Registados"
+              value={rows.length}
+              icon={<Users />}
+              note="Todos os condutores"
+            />
+            <AnalyticsKpiCard
               label="Activos"
               value={rows.filter((row) => row.status === "activo").length}
+              icon={<CircleCheck />}
+              note="Em operação"
+              emphasis
             />
-            <Metric
-              label="Suspensos / bloqueados"
-              value={
-                rows.filter((row) =>
-                  ["suspenso", "bloqueado"].includes(row.status),
-                ).length
-              }
+            <AnalyticsKpiCard
+              label="Suspensos"
+              value={rows.filter((row) => row.status === "suspenso").length}
+              icon={<ShieldAlert />}
+              note="Acesso suspenso"
+            />
+            <AnalyticsKpiCard
+              label="Bloqueados"
+              value={rows.filter((row) => row.status === "bloqueado").length}
+              icon={<Ban />}
+              note="Acesso bloqueado"
             />
           </>
         )}
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr_0.85fr]">
+        <AnalyticsChartCard
+          title="Novos registos"
+          description="Evolução de taxistas e condutores registados nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart data={driverMonthlySeries(rows)} />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Por estado"
+          description="Situação operacional dos condutores."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={driverStatusDistribution(rows)}
+              centerLabel="Condutores"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Por tipo"
+          description="Distribuição entre MTX e outros condutores."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={driverTypeDistribution(rows)}
+              centerLabel="Registos"
+            />
+          )}
+        </AnalyticsChartCard>
       </div>
 
       <Card>
@@ -431,22 +509,49 @@ function driverTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <Card className="p-5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-          <UserRoundCheck className="h-5 w-5" />
-        </span>
-        <div>
-          <p className="text-xs text-slate-500">{label}</p>
-          <p className="text-2xl font-bold">
-            <AnimatedNumber value={value} />
-          </p>
-        </div>
-      </div>
-    </Card>
-  );
+function driverMonthlySeries(rows: DriverRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.created_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function driverStatusDistribution(rows: DriverRow[]) {
+  const statuses = ["activo", "suspenso", "bloqueado", "inactivo"];
+  return statuses
+    .map((status) => ({
+      name: driverStatusLabel(status),
+      value: rows.filter((row) => row.status === status).length,
+    }))
+    .filter((item) => item.value > 0);
+}
+
+function driverTypeDistribution(rows: DriverRow[]) {
+  const types = ["mototaxista", "taxista", "condutor", "outro"];
+  return types
+    .map((type) => ({
+      name: driverTypeLabel(type),
+      value: rows.filter((row) => row.driver_type === type).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function driverStatusLabel(status: string) {
