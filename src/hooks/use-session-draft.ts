@@ -55,13 +55,20 @@ export function useSessionDraft<T>({
     : defaultMeaningful(value);
 
   useEffect(() => {
+    hydratedRef.current = false;
+    skipNextWriteRef.current = false;
+
     if (!enabled || typeof window === "undefined") {
       hydratedRef.current = true;
+      setHasStoredDraft(false);
       return;
     }
 
+    const stored = window.sessionStorage.getItem(storageKey);
+    setHasStoredDraft(Boolean(stored));
+
     try {
-      const raw = window.sessionStorage.getItem(storageKey);
+      const raw = stored;
       if (raw) {
         const parsed = JSON.parse(raw) as StoredDraft<T>;
         if (parsed?.version === 1 && parsed.data) {
