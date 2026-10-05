@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { issueFine } from "../../lib/enforcement";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   ConfirmDialog,
   LoadingButton,
@@ -66,6 +67,37 @@ function NovaMulta() {
     chargeId: string;
     amount: number;
   } | null>(null);
+
+  const fineDraft = useSessionDraft({
+    key: "multas:nova",
+    value: {
+      reference,
+      fineTypeId,
+      vehicleId,
+      location,
+      observation,
+    },
+    restore: (draft) => {
+      setReference(draft.reference ?? "");
+      setFineTypeId(draft.fineTypeId ?? "");
+      setVehicleId(draft.vehicleId ?? "");
+      setLocation(draft.location ?? "");
+      setObservation(draft.observation ?? "");
+      notify.info(
+        "Rascunho recuperado automaticamente.",
+        draft.reference
+          ? "Confirme novamente o condutor para continuar."
+          : undefined,
+      );
+    },
+    enabled: !created,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.reference?.trim() ||
+          draft.location?.trim() ||
+          draft.observation?.trim(),
+      ),
+  });
 
   const selectedType =
     fineTypes.find((type) => type.id === fineTypeId) ?? null;
@@ -177,8 +209,16 @@ function NovaMulta() {
     setFineTypes(typeRows);
     setVehicles(vehicleRows);
 
-    if (typeRows[0]) setFineTypeId(typeRows[0].id);
-    if (vehicleRows[0]) setVehicleId(vehicleRows[0].id);
+    setFineTypeId((current) =>
+      typeRows.some((type) => type.id === current)
+        ? current
+        : typeRows[0]?.id ?? "",
+    );
+    setVehicleId((current) =>
+      vehicleRows.some((vehicle) => vehicle.id === current)
+        ? current
+        : vehicleRows[0]?.id ?? "",
+    );
 
     setSearching(false);
   };
@@ -198,6 +238,7 @@ function NovaMulta() {
         observation: observation.trim() || null,
       });
 
+      fineDraft.clearDraft();
       setCreated({
         fineId: result.fine_id,
         reference: result.fine_reference,
