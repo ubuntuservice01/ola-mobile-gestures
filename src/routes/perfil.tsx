@@ -33,6 +33,7 @@ import {
   type LoadingButtonState,
 } from "../components/mobigest/Experience";
 import { formatDate } from "../lib/format";
+import { useSessionDraft } from "../hooks/use-session-draft";
 
 export const Route = createFileRoute("/perfil")({
   component: PerfilPage,
@@ -68,6 +69,22 @@ function PerfilPage() {
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const profileDraft = useSessionDraft({
+    key: "perfil:dados-pessoais",
+    value: { fullName, phone },
+    restore: (draft) => {
+      setFullName(draft.fullName ?? "");
+      setPhone(draft.phone ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) =>
+      Boolean(
+        profile &&
+          (draft.fullName !== profile.full_name ||
+            draft.phone !== (profile.phone ?? "")),
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -151,8 +168,10 @@ function PerfilPage() {
         };
 
         setProfile(nextProfile);
-        setFullName(nextProfile.full_name);
-        setPhone(nextProfile.phone ?? "");
+        if (!profileDraft.hasStoredDraft) {
+          setFullName(nextProfile.full_name);
+          setPhone(nextProfile.phone ?? "");
+        }
       } catch (error) {
         if (!active) return;
         console.error("Falha ao carregar perfil:", error);
