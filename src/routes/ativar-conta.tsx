@@ -3,6 +3,11 @@ import { ArrowLeft, Eye, EyeOff, KeyRound, LockKeyhole, Mail } from "lucide-reac
 import { FormEvent, useState } from "react";
 import { activateAccount } from "../lib/account-activation";
 import {
+  LoadingButton,
+  PageTransition,
+  type LoadingButtonState,
+} from "../components/mobigest/Experience";
+import {
   defaultRouteForProfile,
   loadAccessProfile,
   profileAccessProblem,
@@ -22,6 +27,7 @@ function ActivateAccountPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [buttonState, setButtonState] = useState<LoadingButtonState>("idle");
   const [message, setMessage] = useState<string | null>(null);
 
   const continueToPassword = (event: FormEvent<HTMLFormElement>) => {
@@ -59,6 +65,7 @@ function ActivateAccountPage() {
     }
 
     setLoading(true);
+    setButtonState("loading");
 
     try {
       await activateAccount({
@@ -91,6 +98,7 @@ function ActivateAccountPage() {
           ? await loadCurrentMunicipalAccess()
           : null;
 
+      setButtonState("success");
       window.location.replace(
         defaultRouteForProfile(profile, Boolean(municipalAccess)),
       );
@@ -100,12 +108,14 @@ function ActivateAccountPage() {
           ? error.message
           : "Não foi possível activar a conta.",
       );
+      setButtonState("error");
       setLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-slate-50">
+      <PageTransition>
       <div className="grid min-h-screen lg:grid-cols-2">
         <section className="hidden bg-slate-950 lg:flex lg:flex-col lg:justify-between lg:p-12">
           <img
@@ -267,13 +277,16 @@ function ActivateAccountPage() {
                     >
                       Voltar
                     </button>
-                    <button
+                    <LoadingButton
                       type="submit"
+                      state={buttonState}
                       disabled={loading}
-                      className="h-12 rounded-xl bg-sky-600 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-60"
-                    >
-                      {loading ? "A activar..." : "Activar e entrar"}
-                    </button>
+                      idleLabel="Activar e entrar"
+                      loadingLabel="A activar..."
+                      successLabel="Conta activada"
+                      errorLabel="Tentar novamente"
+                      className="h-12 bg-sky-600 text-white hover:bg-sky-700"
+                    />
                   </div>
                 </form>
               )}
@@ -281,6 +294,7 @@ function ActivateAccountPage() {
           </div>
         </section>
       </div>
+      </PageTransition>
     </main>
   );
 }
