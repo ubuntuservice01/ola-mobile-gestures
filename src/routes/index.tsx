@@ -127,7 +127,7 @@ function MobiGestHome() {
               loading="eager"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,#0B172A_0%,rgba(11,23,42,0.80)_14%,rgba(11,23,42,0.30)_40%,rgba(11,23,42,0.20)_68%,rgba(11,23,42,0.55)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,#0B172A_0%,rgba(11,23,42,0.78)_16%,rgba(11,23,42,0.28)_48%,rgba(11,23,42,0.16)_75%,rgba(11,23,42,0.45)_100%)]" />
 
             <div className="relative z-10 flex min-h-[560px] flex-col justify-center px-6 py-16">
               <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-[#D59B42]/30 bg-[#D59B42]/15 px-3 py-1.5 text-xs font-semibold text-[#E9B96A] backdrop-blur-sm">
