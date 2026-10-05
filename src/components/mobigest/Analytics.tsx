@@ -256,14 +256,27 @@ export function ChartSkeleton() {
 
 export function RegistrationsAreaChart({
   data,
+  seriesLabel = "Registos",
+  emptyTitle,
+  emptyDescription,
 }: {
   data: Array<{ label: string; total: number }>;
+  seriesLabel?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }) {
-  if (!data.some((item) => item.total > 0)) return <ChartEmptyState />;
+  if (!data.some((item) => item.total > 0)) {
+    return (
+      <ChartEmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+      />
+    );
+  }
 
   const config = {
     total: {
-      label: "Registos",
+      label: seriesLabel,
       color: "var(--municipal-primary)",
     },
   } satisfies ChartConfig;
