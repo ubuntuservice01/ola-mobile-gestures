@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../../components/MobiGestShell";
 import { updateVehicleCore } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/veiculos/$id/editar")({
   component: EditarVeiculo,
@@ -40,6 +42,51 @@ function EditarVeiculo() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState<Record<string, string> | null>(null);
+
+  const vehicleDraft = useSessionDraft({
+    key: "veiculos:" + id + ":editar",
+    value: {
+      postId,
+      localityId,
+      plateNumber,
+      chassisNumber,
+      frameNumber,
+      engineNumber,
+      make,
+      model,
+      color,
+      manufactureYear,
+      notes,
+    },
+    restore: (draft) => {
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setPlateNumber(draft.plateNumber ?? "");
+      setChassisNumber(draft.chassisNumber ?? "");
+      setFrameNumber(draft.frameNumber ?? "");
+      setEngineNumber(draft.engineNumber ?? "");
+      setMake(draft.make ?? "");
+      setModel(draft.model ?? "");
+      setColor(draft.color ?? "");
+      setManufactureYear(draft.manufactureYear ?? "");
+      setNotes(draft.notes ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    isMeaningful: (draft) => {
+      if (!baseline) {
+        return Boolean(
+          draft.plateNumber?.trim() ||
+            draft.chassisNumber?.trim() ||
+            draft.frameNumber?.trim() ||
+            draft.make?.trim() ||
+            draft.model?.trim() ||
+            draft.notes?.trim(),
+        );
+      }
+      return JSON.stringify(draft) !== JSON.stringify(baseline);
+    },
+  });
 
   useEffect(() => {
     let active = true;
@@ -82,19 +129,35 @@ function EditarVeiculo() {
       setVehicleType(vehicle.vehicle_type ?? "");
       setPosts((postsResult.data ?? []) as Post[]);
       setLocalities((localitiesResult.data ?? []) as Locality[]);
-      setPostId(vehicle.administrative_post_id ?? "");
-      setLocalityId(vehicle.locality_id ?? "");
-      setPlateNumber(vehicle.plate_number ?? "");
-      setChassisNumber(vehicle.chassis_number ?? "");
-      setFrameNumber(vehicle.frame_number ?? "");
-      setEngineNumber(vehicle.engine_number ?? "");
-      setMake(vehicle.make ?? "");
-      setModel(vehicle.model ?? "");
-      setColor(vehicle.color ?? "");
-      setManufactureYear(
-        vehicle.manufacture_year ? String(vehicle.manufacture_year) : "",
-      );
-      setNotes(vehicle.notes ?? "");
+      const serverValues = {
+        postId: vehicle.administrative_post_id ?? "",
+        localityId: vehicle.locality_id ?? "",
+        plateNumber: vehicle.plate_number ?? "",
+        chassisNumber: vehicle.chassis_number ?? "",
+        frameNumber: vehicle.frame_number ?? "",
+        engineNumber: vehicle.engine_number ?? "",
+        make: vehicle.make ?? "",
+        model: vehicle.model ?? "",
+        color: vehicle.color ?? "",
+        manufactureYear: vehicle.manufacture_year
+          ? String(vehicle.manufacture_year)
+          : "",
+        notes: vehicle.notes ?? "",
+      };
+      setBaseline(serverValues);
+      if (!vehicleDraft.hasStoredDraft) {
+        setPostId(serverValues.postId);
+        setLocalityId(serverValues.localityId);
+        setPlateNumber(serverValues.plateNumber);
+        setChassisNumber(serverValues.chassisNumber);
+        setFrameNumber(serverValues.frameNumber);
+        setEngineNumber(serverValues.engineNumber);
+        setMake(serverValues.make);
+        setModel(serverValues.model);
+        setColor(serverValues.color);
+        setManufactureYear(serverValues.manufactureYear);
+        setNotes(serverValues.notes);
+      }
       setLoading(false);
     };
 
@@ -155,6 +218,7 @@ function EditarVeiculo() {
         notes: notes.trim() || null,
       });
 
+      vehicleDraft.clearDraft();
       await navigate({
         to: "/veiculos/$id",
         params: { id },
