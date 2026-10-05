@@ -3,6 +3,7 @@ import { ArrowLeft, Building2, Save } from "lucide-react";
 import { useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createAdministrativePost } from "../../lib/territory";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   LoadingButton,
   notify,
@@ -19,6 +20,19 @@ function NovoPosto() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
 
+  const postDraft = useSessionDraft({
+    key: "postos-administrativos:novo",
+    value: { name, code },
+    restore: (draft) => {
+      setName(draft.name ?? "");
+      setCode(draft.code ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdId,
+    isMeaningful: (draft) =>
+      Boolean(draft.name?.trim() || draft.code?.trim()),
+  });
+
   const save = async () => {
     if (name.trim().length < 2 || saving) return;
 
@@ -30,6 +44,7 @@ function NovoPosto() {
         name: name.trim(),
         code: code.trim() || null,
       });
+      postDraft.clearDraft();
       setCreatedId(id);
       notify.success("Posto administrativo criado");
     } catch (error) {
