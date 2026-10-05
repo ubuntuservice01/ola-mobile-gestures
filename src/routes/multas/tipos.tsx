@@ -5,6 +5,7 @@ import { MobiGestShell, PageHeader, Card } from "../../components/MobiGestShell"
 import { createFineType, updateFineType } from "../../lib/enforcement";
 import { useSessionDraft } from "../../hooks/use-session-draft";
 import { supabase } from "../../lib/supabase";
+import { notify } from "../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/multas/tipos")({
   component: Tipos,
