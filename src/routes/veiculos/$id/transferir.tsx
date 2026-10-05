@@ -19,6 +19,7 @@ import {
 } from "../../../components/mobigest/Experience";
 import { requestVehicleTransfer } from "../../../lib/vehicles";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
 
 export const Route = createFileRoute("/veiculos/$id/transferir")({
   component: Transferir,
@@ -60,6 +61,18 @@ function Transferir() {
     registrationId: string;
     reference: string;
   } | null>(null);
+
+  const transferDraft = useSessionDraft({
+    key: "veiculos:" + id + ":transferir",
+    value: { newOwnerId, reason },
+    restore: (draft) => {
+      setNewOwnerId(draft.newOwnerId ?? "");
+      setReason(draft.reason ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !created,
+    isMeaningful: (draft) => Boolean(draft.reason?.trim()),
+  });
 
   useEffect(() => {
     let active = true;
@@ -124,7 +137,9 @@ function Transferir() {
       setVehicle(currentVehicle);
       setCurrentOwner(currentOwnerResult.data as Owner | null);
       setOwners(candidates);
-      if (candidates[0]) setNewOwnerId(candidates[0].id);
+      if (candidates[0]) {
+        setNewOwnerId((current) => current || candidates[0].id);
+      }
       setLoading(false);
     };
 
@@ -157,6 +172,7 @@ function Transferir() {
         reason: reason.trim(),
       });
 
+      transferDraft.clearDraft();
       setCreated({
         registrationId: result.registration_id,
         reference: result.registration_reference,
