@@ -6,6 +6,7 @@ import { createManagedUser, type ManagedUserRole } from "../../lib/admin-users";
 import { loadAccessProfile } from "../../lib/access-control";
 import { loadCurrentMunicipalAccess, type MunicipalAccessSession } from "../../lib/municipal-access";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   LoadingButton,
   SkeletonCard,
@@ -54,6 +55,27 @@ function NovoUtilizador() {
   const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [activationExpiresAt, setActivationExpiresAt] = useState<string | null>(null);
+
+  const userDraft = useSessionDraft({
+    key: "utilizadores:novo",
+    value: { name, email, phone, role, postId },
+    restore: (draft) => {
+      setName(draft.name ?? "");
+      setEmail(draft.email ?? "");
+      setPhone(draft.phone ?? "");
+      setRole(draft.role ?? "tecnico");
+      setPostId(draft.postId ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdUserId,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.name?.trim() ||
+          draft.email?.trim() ||
+          draft.phone?.trim() ||
+          draft.postId,
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -168,6 +190,7 @@ function NovoUtilizador() {
         accessSessionId: superAdminAccess?.session_id ?? null,
       });
 
+      userDraft.clearDraft();
       setCreatedUserId(result.id ?? null);
       setActivationCode(result.activationCode ?? null);
       setActivationExpiresAt(result.activationExpiresAt ?? null);
