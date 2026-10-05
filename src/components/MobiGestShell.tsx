@@ -281,8 +281,10 @@ export function MobiGestShell({
         <div className="flex h-full flex-col">
           <div
             className={
-              "flex h-16 items-center border-b border-white/10 " +
-              (collapsed ? "justify-center px-3 lg:justify-center" : "justify-between px-5")
+              "relative flex h-16 items-center border-b border-white/10 " +
+              (collapsed
+                ? "justify-between px-5 lg:justify-center lg:px-3"
+                : "justify-between px-5")
             }
           >
             <div className="min-w-0">
@@ -310,7 +312,12 @@ export function MobiGestShell({
                   onClick={toggleSidebar}
                   aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
                   aria-expanded={!collapsed}
-                  className="mobigest-interactive hidden rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white lg:inline-flex"
+                  className={
+                    "mobigest-interactive hidden rounded-lg p-2 lg:inline-flex " +
+                    (collapsed
+                      ? "text-slate-400 hover:bg-white/10 hover:text-white lg:absolute lg:-right-3 lg:top-5 lg:z-10 lg:border lg:border-slate-200 lg:bg-white lg:text-slate-600 lg:shadow-md lg:hover:bg-slate-50 lg:hover:text-slate-900"
+                      : "text-slate-400 hover:bg-white/10 hover:text-white")
+                  }
                 >
                   {collapsed ? (
                     <PanelLeftOpen className="h-4 w-4" />
@@ -378,7 +385,7 @@ export function MobiGestShell({
           <nav
             className={
               "mobigest-sidebar-scroll flex-1 space-y-1 overflow-y-auto py-3 " +
-              (collapsed ? "px-2" : "px-3")
+              (collapsed ? "px-3 lg:px-2" : "px-3")
             }
           >
             {items
