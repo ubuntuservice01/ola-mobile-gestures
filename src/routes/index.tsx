@@ -49,7 +49,7 @@ function MobiGestHome() {
 
       <section id="inicio" className="overflow-hidden bg-slate-950">
         <div className="relative mx-auto max-w-7xl lg:min-h-[620px]">
-          <div className="absolute inset-y-0 right-0 hidden w-[68%] overflow-hidden lg:block">
+          <div className="absolute inset-y-0 right-0 hidden w-[68%] overflow-hidden md:block">
             <img
               src={heroMobilityImage}
               alt="Moto-taxistas em circulação urbana"
@@ -85,7 +85,7 @@ function MobiGestHome() {
             </div>
           </div>
 
-          <div className="relative z-10 flex min-h-[620px] max-w-[53%] flex-col justify-center px-6 py-20 lg:px-10 lg:py-24">
+          <div className="relative z-10 flex min-h-[620px] flex-col justify-center px-6 py-20 md:max-w-[56%] md:pr-4 lg:max-w-[53%] lg:px-10 lg:py-24">
             <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-300 backdrop-blur-sm">
               <Target className="h-4 w-4" />
               Plataforma para municípios
@@ -121,7 +121,7 @@ function MobiGestHome() {
             </div>
           </div>
 
-          <div className="relative min-h-[420px] overflow-hidden lg:hidden">
+          <div className="relative min-h-[420px] overflow-hidden md:hidden">
             <img
               src={heroMobilityImage}
               alt="Moto-taxistas em circulação urbana"
