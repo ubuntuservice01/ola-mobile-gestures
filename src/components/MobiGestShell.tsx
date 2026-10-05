@@ -286,17 +286,19 @@ export function MobiGestShell({
             }
           >
             <div className="min-w-0">
-              {collapsed ? (
+              {collapsed && (
                 <div className="hidden h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-slate-950 shadow-sm lg:flex">
                   MG
                 </div>
-              ) : (
-                <img
-                  src="/mobigest-logo.svg"
-                  alt="MobiGest"
-                  className="h-9 w-auto brightness-0 invert"
-                />
               )}
+              <img
+                src="/mobigest-logo.svg"
+                alt="MobiGest"
+                className={
+                  "h-9 w-auto brightness-0 invert " +
+                  (collapsed ? "lg:hidden" : "")
+                }
+              />
             </div>
 
             <div className="flex items-center gap-1">
@@ -341,7 +343,7 @@ export function MobiGestShell({
               className={
                 "mobigest-interactive flex items-center rounded-xl border border-transparent bg-white/[0.045] hover:border-white/10 hover:bg-white/[0.08] " +
                 (collapsed
-                  ? "justify-center gap-0 p-2 lg:justify-center"
+                  ? "gap-3 p-3 lg:justify-center lg:gap-0 lg:p-2"
                   : "gap-3 p-3")
               }
             >
@@ -398,7 +400,7 @@ export function MobiGestShell({
                 className={
                   "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
                   (collapsed
-                    ? "justify-center gap-0 px-2"
+                    ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2"
                     : "gap-3 px-3")
                 }
               >
@@ -428,7 +430,7 @@ export function MobiGestShell({
                   title={collapsed ? "Permissões" : undefined}
                   className={
                     "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
-                    (collapsed ? "justify-center gap-0 px-2" : "gap-3 px-3")
+                    (collapsed ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3")
                   }
                 >
                   <ShieldCheck className="h-[18px] w-[18px] shrink-0" />
@@ -447,7 +449,7 @@ export function MobiGestShell({
                   title={collapsed ? "Auditoria" : undefined}
                   className={
                     "mobigest-sidebar-link group relative flex min-h-10 items-center rounded-xl text-sm font-medium text-slate-300 hover:bg-white/[0.07] hover:text-white " +
-                    (collapsed ? "justify-center gap-0 px-2" : "gap-3 px-3")
+                    (collapsed ? "gap-3 px-3 lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3")
                   }
                 >
                   <FileText className="h-[18px] w-[18px] shrink-0" />
@@ -457,11 +459,13 @@ export function MobiGestShell({
             </div>
           </nav>
 
-          <div className={"border-t border-white/10 " + (collapsed ? "p-2" : "p-3")}>
+          <div className={"border-t border-white/10 " + (collapsed ? "p-3 lg:p-2" : "p-3")}>
             <div
               className={
                 "flex items-center rounded-xl border border-transparent bg-white/[0.045] hover:border-white/10 " +
-                (collapsed ? "flex-col gap-1 p-1.5" : "gap-2 p-2")
+                (collapsed
+                  ? "gap-2 p-2 lg:flex-col lg:gap-1 lg:p-1.5"
+                  : "gap-2 p-2")
               }
             >
               <Link
@@ -470,7 +474,9 @@ export function MobiGestShell({
                 title={collapsed ? profileName : undefined}
                 className={
                   "mobigest-interactive flex min-w-0 items-center rounded-lg p-1 hover:bg-white/[0.06] " +
-                  (collapsed ? "justify-center gap-0" : "flex-1 gap-3")
+                  (collapsed
+                    ? "flex-1 gap-3 lg:flex-none lg:justify-center lg:gap-0"
+                    : "flex-1 gap-3")
                 }
                 aria-label="Abrir meu perfil"
               >
