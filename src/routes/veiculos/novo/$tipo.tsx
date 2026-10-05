@@ -106,6 +106,61 @@ function RegistoVeiculo() {
     vehicleId: string;
   } | null>(null);
 
+  const vehicleDraft = useSessionDraft({
+    key: "veiculos:novo:" + vehicleType,
+    value: {
+      ownerId,
+      postId,
+      localityId,
+      plateNumber,
+      chassisNumber,
+      frameNumber,
+      engineNumber,
+      make,
+      model,
+      color,
+      manufactureYear,
+      notes,
+      step,
+      maxVisitedStep,
+    },
+    restore: (draft) => {
+      setOwnerId(draft.ownerId ?? "");
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setPlateNumber(draft.plateNumber ?? "");
+      setChassisNumber(draft.chassisNumber ?? "");
+      setFrameNumber(draft.frameNumber ?? "");
+      setEngineNumber(draft.engineNumber ?? "");
+      setMake(draft.make ?? "");
+      setModel(draft.model ?? "");
+      setColor(draft.color ?? "");
+      setManufactureYear(draft.manufactureYear ?? "");
+      setNotes(draft.notes ?? "");
+      setStep(Math.min(4, Math.max(1, Number(draft.step ?? 1))));
+      setMaxVisitedStep(
+        Math.min(4, Math.max(1, Number(draft.maxVisitedStep ?? 1))),
+      );
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !created,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.ownerId ||
+          draft.localityId ||
+          draft.plateNumber?.trim() ||
+          draft.chassisNumber?.trim() ||
+          draft.frameNumber?.trim() ||
+          draft.engineNumber?.trim() ||
+          draft.make?.trim() ||
+          draft.model?.trim() ||
+          draft.color?.trim() ||
+          draft.manufactureYear ||
+          draft.notes?.trim() ||
+          Number(draft.step ?? 1) > 1,
+      ),
+  });
+
   useEffect(() => {
     let active = true;
 
@@ -291,6 +346,7 @@ function RegistoVeiculo() {
         notes: notes.trim() || null,
       });
 
+      vehicleDraft.clearDraft();
       setCreated({
         registrationId: result.registration_id,
         registrationReference: result.registration_reference,
