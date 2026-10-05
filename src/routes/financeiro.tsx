@@ -5,16 +5,19 @@ import {
   useMatchRoute,
 } from "@tanstack/react-router";
 import {
+  CircleCheck,
   ChevronRight,
   CircleDollarSign,
+  Clock3,
+  ReceiptText,
   Search,
+  Wallet,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MobiGestShell, PageHeader, Card } from "../components/MobiGestShell";
+import { MobiGestShell, Card } from "../components/MobiGestShell";
 import { supabase } from "../lib/supabase";
 import {
-  AnimatedNumber,
   EmptyState,
   NetworkErrorState,
   PaginationBar,
@@ -24,6 +27,13 @@ import {
 } from "../components/mobigest/Experience";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
 import { formatDateTime, formatMoneyMt } from "../lib/format";
+import {
+  AnalyticsChartCard,
+  AnalyticsKpiCard,
+  DistributionDonut,
+  ModuleHeader,
+  RegistrationsAreaChart,
+} from "../components/mobigest/Analytics";
 
 export const Route = createFileRoute("/financeiro")({
   head: () => ({
@@ -364,29 +374,93 @@ function Financeiro() {
 
   return (
     <MobiGestShell title="Financeiro">
-      <PageHeader
+      <ModuleHeader
+        eyebrow="Gestão financeira"
         title="Financeiro"
         description="Cobranças, pagamentos, recibos, isenções e reembolsos do município."
-        action="Nova cobrança"
-        actionTo="/financeiro/nova"
+        icon={<Wallet />}
+        action={
+          <Link
+            to="/financeiro/nova"
+            className="mobigest-button inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--municipal-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:-translate-y-px hover:brightness-95"
+          >
+            Nova cobrança
+          </Link>
+        }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {loading ? (
           Array.from({ length: 4 }).map((_, index) => (
             <SkeletonCard key={index} />
           ))
         ) : (
           <>
-            <Metric label="Total emitido" value={metrics.issued} />
-            <Metric label="Total pago" value={metrics.paid} />
-            <Metric label="Total pendente" value={metrics.pending} />
-            <Metric label="Isento / reembolsado" value={metrics.special} />
+            <AnalyticsKpiCard
+              label="Total emitido"
+              value={metrics.issued}
+              icon={<ReceiptText />}
+              formatter={formatMoneyMt}
+              note="Cobranças emitidas"
+              emphasis
+            />
+            <AnalyticsKpiCard
+              label="Total pago"
+              value={metrics.paid}
+              icon={<CircleCheck />}
+              formatter={formatMoneyMt}
+              note="Valores regularizados"
+            />
+            <AnalyticsKpiCard
+              label="Total pendente"
+              value={metrics.pending}
+              icon={<Clock3 />}
+              formatter={formatMoneyMt}
+              note="Por cobrar"
+            />
+            <AnalyticsKpiCard
+              label="Isento / reembolsado"
+              value={metrics.special}
+              icon={<CircleDollarSign />}
+              formatter={formatMoneyMt}
+              note="Ajustes financeiros"
+            />
           </>
         )}
       </div>
 
-      <Card className="mt-6 overflow-hidden">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <AnalyticsChartCard
+          title="Cobranças emitidas"
+          description="Evolução das novas cobranças nos últimos seis meses."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <RegistrationsAreaChart
+              data={chargeMonthlySeries(rows)}
+              seriesLabel="Cobranças"
+              emptyTitle="Ainda não existem cobranças no período"
+            />
+          )}
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          title="Estado financeiro"
+          description="Distribuição actual das cobranças por estado."
+        >
+          {loading ? (
+            <SkeletonCard />
+          ) : (
+            <DistributionDonut
+              data={chargeStatusDistribution(rows)}
+              centerLabel="Cobranças"
+            />
+          )}
+        </AnalyticsChartCard>
+      </div>
+
+      <Card className="mt-4 overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 lg:flex-row lg:items-center lg:justify-between">
           <span className="font-semibold">Operações financeiras</span>
 
@@ -600,16 +674,38 @@ function Financeiro() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <Card className="p-5">
-      <CircleDollarSign className="h-5 w-5 text-sky-600" />
-      <p className="mt-4 text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">
-        <AnimatedNumber value={value} formatter={formatMoneyMt} />
-      </p>
-    </Card>
-  );
+function chargeMonthlySeries(rows: ChargeRow[]) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0"),
+      label: new Intl.DateTimeFormat("pt-MZ", { month: "short" })
+        .format(date)
+        .replace(".", "")
+        .replace(/^./, (letter) => letter.toUpperCase()),
+      total: 0,
+    };
+  });
+
+  const map = new Map(months.map((item) => [item.key, item]));
+  rows.forEach((row) => {
+    const date = new Date(row.created_at);
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    const item = map.get(key);
+    if (item) item.total += 1;
+  });
+
+  return months.map(({ label, total }) => ({ label, total }));
+}
+
+function chargeStatusDistribution(rows: ChargeRow[]) {
+  return ["pendente", "em_confirmacao", "pago", "isento", "reembolsado", "cancelado"]
+    .map((status) => ({
+      name: chargeStatusLabel(status),
+      value: rows.filter((row) => row.status === status).length,
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function chargeStatusLabel(status: string) {
