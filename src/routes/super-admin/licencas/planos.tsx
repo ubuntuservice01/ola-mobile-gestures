@@ -15,6 +15,8 @@ import {
   updateLicensePlan,
 } from "../../../lib/licenses";
 import { supabase } from "../../../lib/supabase";
+import { useSessionDraft } from "../../../hooks/use-session-draft";
+import { notify } from "../../../components/mobigest/Experience";
 
 export const Route = createFileRoute("/super-admin/licencas/planos")({
   component: Planos,
@@ -81,6 +83,23 @@ function Planos() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
+
+  const planDraft = useSessionDraft({
+    key: "super-admin:licencas:planos:formulario",
+    value: { edit },
+    restore: (draft) => {
+      if (draft.edit) {
+        setEdit(draft.edit);
+        notify.info("Rascunho recuperado automaticamente.");
+      }
+    },
+    isMeaningful: (draft) => Boolean(draft.edit),
+  });
+
+  const closeEdit = () => {
+    planDraft.clearDraft();
+    setEdit(null);
+  };
 
   useEffect(() => {
     let active = true;
@@ -189,7 +208,7 @@ function Planos() {
         setMessage("Plano criado.");
       }
 
-      setEdit(null);
+      closeEdit();
       setRefreshToken((value) => value + 1);
     } catch (error) {
       console.error("Falha ao guardar plano de licença:", error);
@@ -349,7 +368,7 @@ function Planos() {
       {edit && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
-          onClick={() => setEdit(null)}
+          onClick={closeEdit}
         >
           <SuperCard className="max-h-[92vh] w-full max-w-3xl overflow-y-auto p-6">
             <div onClick={(event) => event.stopPropagation()}>
@@ -359,7 +378,7 @@ function Planos() {
                 </h3>
                 <button
                   type="button"
-                  onClick={() => setEdit(null)}
+                  onClick={closeEdit}
                   className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"
                   aria-label="Fechar"
                 >
@@ -461,7 +480,7 @@ function Planos() {
               <div className="mt-6 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setEdit(null)}
+                  onClick={closeEdit}
                   className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm"
                 >
                   Cancelar
