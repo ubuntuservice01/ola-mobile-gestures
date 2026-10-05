@@ -54,17 +54,25 @@ function UsersPage() {
       setLoadError(null);
 
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (!active || !user) {
-        setLoadError("Sessão inválida.");
+      if (!active) return;
+
+      const user = session?.user ?? null;
+
+      if (sessionError || !user) {
+        setLoadError("A sua sessão terminou. Entre novamente para continuar.");
         setLoading(false);
         return;
       }
 
       const profile = await loadAccessProfile(user.id);
-      if (!active || !profile) {
+
+      if (!active) return;
+
+      if (!profile) {
         setLoadError("Perfil MobiGest não encontrado.");
         setLoading(false);
         return;
