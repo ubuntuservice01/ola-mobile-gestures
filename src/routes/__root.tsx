@@ -30,12 +30,19 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+function ErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown;
+  reset?: () => void;
+}) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  console.error(err);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+    reportLovableError(err, { boundary: "tanstack_root_error_component" });
+  }, [err]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -43,7 +50,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Não foi possível carregar</h1>
         <p className="mt-2 text-sm text-muted-foreground">Não foi possível concluir o carregamento. Pode tentar novamente sem sair desta página.</p>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="mobigest-button rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
+          <button onClick={() => { router.invalidate(); reset?.(); }} className="mobigest-button rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
           <a href="/" className="mobigest-button rounded-xl border border-input bg-background px-4 py-2.5 text-sm font-semibold text-foreground">Início</a>
         </div>
       </div>
@@ -64,7 +71,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }, { rel: "icon", href: "/favicon.ico", type: "image/x-icon" }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap",
+      },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
