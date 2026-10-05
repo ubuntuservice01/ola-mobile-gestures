@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MobiGestShell, Card } from "../../components/MobiGestShell";
 import { createOwner } from "../../lib/owners";
 import { supabase } from "../../lib/supabase";
+import { useSessionDraft } from "../../hooks/use-session-draft";
 import {
   LoadingButton,
   notify,
@@ -39,6 +40,51 @@ function NovoProp() {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+
+  const ownerDraft = useSessionDraft({
+    key: "proprietarios:novo",
+    value: {
+      fullName,
+      documentType,
+      documentNumber,
+      nuit,
+      phone,
+      alternatePhone,
+      email,
+      address,
+      postId,
+      localityId,
+      notes,
+    },
+    restore: (draft) => {
+      setFullName(draft.fullName ?? "");
+      setDocumentType(draft.documentType ?? "BI");
+      setDocumentNumber(draft.documentNumber ?? "");
+      setNuit(draft.nuit ?? "");
+      setPhone(draft.phone ?? "");
+      setAlternatePhone(draft.alternatePhone ?? "");
+      setEmail(draft.email ?? "");
+      setAddress(draft.address ?? "");
+      setPostId(draft.postId ?? "");
+      setLocalityId(draft.localityId ?? "");
+      setNotes(draft.notes ?? "");
+      notify.info("Rascunho recuperado automaticamente.");
+    },
+    enabled: !createdId,
+    isMeaningful: (draft) =>
+      Boolean(
+        draft.fullName?.trim() ||
+          draft.documentNumber?.trim() ||
+          draft.nuit?.trim() ||
+          draft.phone?.trim() ||
+          draft.alternatePhone?.trim() ||
+          draft.email?.trim() ||
+          draft.address?.trim() ||
+          draft.postId ||
+          draft.localityId ||
+          draft.notes?.trim(),
+      ),
+  });
 
   useEffect(() => {
     let active = true;
@@ -120,6 +166,7 @@ function NovoProp() {
         notes: notes.trim() || null,
       });
 
+      ownerDraft.clearDraft();
       setCreatedId(id);
       notify.success("Proprietário criado", "O cadastro foi guardado com sucesso.");
     } catch (error) {
