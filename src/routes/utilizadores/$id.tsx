@@ -99,17 +99,25 @@ function UtilizadorDetalhe() {
       setLoadError(null);
 
       const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (!active || !authUser) {
-        setLoadError("Sessão inválida.");
+      if (!active) return;
+
+      const authUser = session?.user ?? null;
+
+      if (sessionError || !authUser) {
+        setLoadError("A sua sessão terminou. Entre novamente para continuar.");
         setLoading(false);
         return;
       }
 
       const actor = await loadAccessProfile(authUser.id);
-      if (!active || !actor) {
+
+      if (!active) return;
+
+      if (!actor) {
         setLoadError("Perfil do utilizador actual não encontrado.");
         setLoading(false);
         return;
