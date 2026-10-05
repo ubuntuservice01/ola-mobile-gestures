@@ -40,6 +40,7 @@ import {
   type LoadingButtonState,
 } from "../components/mobigest/Experience";
 import { formatMoneyMt } from "../lib/format";
+import { useSessionDraft } from "../hooks/use-session-draft";
 
 export const Route = createFileRoute("/meu-municipio")({
   component: MeuMunicipioPage,
@@ -72,6 +73,20 @@ function MeuMunicipioPage() {
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [identityDirty, setIdentityDirty] = useState(false);
+
+  const identityDraft = useSessionDraft({
+    key: "meu-municipio:identidade",
+    value: { identity },
+    restore: (draft) => {
+      if (draft.identity) {
+        setIdentity(draft.identity);
+        setIdentityDirty(true);
+        notify.info("Rascunho recuperado automaticamente.");
+      }
+    },
+    isMeaningful: () => identityDirty,
+  });
 
   useEffect(() => {
     let active = true;
@@ -102,7 +117,9 @@ function MeuMunicipioPage() {
           profile.role === "admin_municipal" ||
             profile.role === "super_admin",
         );
-        setIdentity(municipalIdentity);
+        if (!identityDraft.hasStoredDraft) {
+          setIdentity(municipalIdentity);
+        }
         setStats(municipalStats ?? EMPTY_STATS);
       } catch (error) {
         if (!active) return;
@@ -131,6 +148,7 @@ function MeuMunicipioPage() {
     setIdentity((current) =>
       current ? { ...current, [key]: value } : current,
     );
+    setIdentityDirty(true);
     setMessage(null);
     setErrorMessage(null);
   };
@@ -147,6 +165,8 @@ function MeuMunicipioPage() {
       await saveMunicipalityIdentity(identity);
       const refreshed = await loadMunicipalityIdentity();
       if (refreshed) setIdentity(refreshed);
+      identityDraft.clearDraft();
+      setIdentityDirty(false);
       setMessage("Dados do município actualizados com sucesso.");
       setSaveState("success");
       notify.success("Alterações guardadas", "Os dados do município foram actualizados.");
@@ -188,6 +208,8 @@ function MeuMunicipioPage() {
       }
 
       setMessage("Logótipo actualizado com sucesso.");
+      identityDraft.clearDraft();
+      setIdentityDirty(false);
       notify.success("Logótipo actualizado");
     } catch (error) {
       console.error("Falha ao carregar logótipo:", error);
